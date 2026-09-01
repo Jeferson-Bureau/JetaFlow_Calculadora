@@ -1,0 +1,143 @@
+:root {
+  --bg-main: #0a0f1d;
+  --bg-secondary: #111827;
+  --bg-card: #162032;
+  --bg-card-hover: #1e2c45;
+  --bg-input: #0d1525;
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-active: rgba(0, 168, 232, 0.5);
+  
+  /* JetaPrint Brand Palette */
+  --brand-navy: #17355B;
+  --brand-cyan: #00A8E8;
+  --brand-magenta: #E62E6B;
+  --brand-yellow: #F7B500;
+  
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-dark: #0F172A;
+
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(0, 168, 232, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(0, 168, 232, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(230, 46, 107, 0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: #2a3a57;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-cyan);
+}
+
+/* Card Utility */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Form Styling */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: var(--brand-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.2);
+}
+
+/* Print Styles for Official PDF Quotes */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    font-size: 12pt;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .glass-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+  }
+}
+.print-only {
+  display: none;
+}

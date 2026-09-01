@@ -1,0 +1,158 @@
+XEROX ALTALINK C8035
+Especificações técnicas
+A Xerox AltaLink C8035 é uma multifuncional digital colorida destinada a ambientes corporativos, departamentos administrativos, gráficas rápidas e operações de impressão sob demanda. O equipamento reúne funções de impressão, cópia e digitalização. O recurso de fax depende da configuração instalada.
+
+Características principais
+Modelo: Xerox AltaLink C8035
+
+Tipo de equipamento: Multifuncional digital colorida
+
+Tecnologia: Impressão eletrofotográfica colorida
+
+Funções: Impressão, cópia, digitalização e fax opcional
+
+Formato máximo de papel: A3
+
+Velocidade de impressão: Até 35 páginas por minuto em preto e branco e em cores
+
+Ciclo de trabalho mensal máximo: Até 110.000 páginas
+
+Impressão frente e verso: Automática
+
+Processador: Intel Atom Quad Core de 1,91 GHz
+
+Memória: 8 GB
+
+Disco rígido: A partir de 250 GB, conforme a configuração
+
+Conectividade: Ethernet 10/100/1000Base-T
+
+Conexão local: USB 2.0
+
+Conectividade sem fio: Disponível por meio de adaptador opcional, conforme a configuração
+
+Digitalização
+Alimentador automático de documentos duplex: Até 130 folhas de 80 g/m²
+
+Velocidade de digitalização simples: Até 80 imagens por minuto
+
+Velocidade de digitalização frente e verso: Até 139 imagens por minuto
+
+Digitalização colorida: Compatível
+
+Tamanho máximo do original: Aproximadamente 297 x 431,8 mm
+
+Recursos disponíveis, conforme configuração: Digitalização para e-mail, pasta de rede, USB, armazenamento em rede e outros destinos compatíveis com a plataforma Xerox ConnectKey.
+
+Papéis e substratos
+Formatos compatíveis: A4, A3, A5, B4, B5, Carta, Ofício, Tabloide e outros formatos compatíveis com as bandejas instaladas.
+
+Faixa de gramatura: Aproximadamente 60 a 256 g/m², dependendo da bandeja, do tipo de papel e da configuração do equipamento.
+
+A impressão em papéis especiais, couchê, cartões e substratos de maior gramatura deve ser validada previamente, pois o desempenho pode variar conforme o material utilizado.
+
+Acabamentos opcionais
+A Xerox AltaLink C8035 pode receber acessórios de acabamento, conforme a configuração adquirida:
+
+Grampeamento;
+
+Perfuração;
+
+Dobra;
+
+Alceamento;
+
+Produção de livretos;
+
+Empilhamento de grandes volumes;
+
+Finalização de documentos.
+
+A capacidade de saída, o número de folhas grampeadas e os recursos de dobra dependem do finalizador instalado no equipamento.
+
+Custo médio por clique
+O custo por clique não possui um valor único e oficial aplicável a todas as Xerox AltaLink C8035. O preço depende da região, do fornecedor, do volume mensal, do prazo contratual, da franquia contratada e dos itens incluídos no contrato.
+
+Normalmente, o contrato pode incluir:
+
+Toner colorido e preto;
+
+Peças de reposição;
+
+Manutenção preventiva;
+
+Manutenção corretiva;
+
+Mão de obra técnica;
+
+Deslocamento do técnico;
+
+Monitoramento remoto;
+
+Instalação e configuração do equipamento.
+
+O fornecedor geralmente separa os valores entre clique preto e branco e clique colorido. Também é necessário confirmar se uma folha A3 será contabilizada como um clique ou como dois cliques equivalentes ao formato A4.
+
+Estrutura de cálculo
+Custo mensal estimado = mensalidade fixa + cliques preto e branco multiplicados pelo valor do clique preto e branco + cliques coloridos multiplicados pelo valor do clique colorido + excedentes e serviços adicionais.
+
+Exemplo de simulação
+Volume mensal preto e branco: 5.000 páginas
+
+Volume mensal colorido: 2.000 páginas
+
+Valor hipotético do clique preto e branco: R$ 0,08
+
+Valor hipotético do clique colorido: R$ 0,65
+
+Mensalidade fixa hipotética: R$ 1.200,00
+
+Cálculo:
+
+5.000 x R$ 0,08 = R$ 400,00
+
+2.000 x R$ 0,65 = R$ 1.300,00
+
+Mensalidade fixa = R$ 1.200,00
+
+Custo mensal estimado: R$ 2.900,00
+
+Esse exemplo é apenas uma simulação matemática. Ele não representa uma cotação oficial ou um preço médio garantido de mercado.
+
+Informações que devem constar na cotação
+Para comparar propostas corretamente, solicite ao fornecedor:
+
+Quantidade mensal de páginas em preto e branco;
+
+Quantidade mensal de páginas coloridas;
+
+Quantidade de impressões em A4 e A3;
+
+Valor individual do clique preto e branco;
+
+Valor individual do clique colorido;
+
+Critério de cobrança para páginas A3;
+
+Valor da franquia mensal;
+
+Valor dos excedentes;
+
+Inclusão de toner;
+
+Inclusão de peças;
+
+Inclusão de manutenção;
+
+Prazo de atendimento técnico;
+
+Valor de deslocamento;
+
+Mensalidade, locação ou comodato;
+
+Custo dos finalizadores e acessórios;
+
+Prazo de vigência do contrato.
+
+Observação final
+As especificações podem variar conforme o país, o ano de fabricação, os acessórios instalados e a configuração comercial do equipamento. Antes de comprar, alugar ou contratar a Xerox AltaLink C8035, confirme os dados na documentação do equipamento e solicite uma proposta atualizada de uma revenda ou assistência técnica autorizada Xerox.
