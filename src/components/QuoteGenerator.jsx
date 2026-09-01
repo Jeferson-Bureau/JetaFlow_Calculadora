@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Printer, CheckCircle2, Building, User, Phone, Mail, Calendar } from 'lucide-react';
+import { X, Printer, CheckCircle2, Building, User, Phone, Mail, Calendar, Plus, Trash2, Download, FileText } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 export default function QuoteGenerator({
   budgetResult,
@@ -9,7 +10,7 @@ export default function QuoteGenerator({
   productH,
   colors,
   mode,
-  selectedFinishings,
+  selectedFinishings = [],
   clients = [],
   onAddClient,
   onClose
@@ -22,7 +23,62 @@ export default function QuoteGenerator({
   const [quoteValidity, setQuoteValidity] = useState('7 Dias');
   const [deliveryTerm, setDeliveryTerm] = useState('3 a 5 Dias Úteis');
   const [paymentTerms, setPaymentTerms] = useState('50% Sinal no Pedido + 50% na Entrega / PIX ou Cartão');
+  const [generalNotes, setGeneralNotes] = useState('Valores sujeitos a alteração sem aviso prévio. Arte final sob responsabilidade do cliente.');
   const [savedSuccessMsg, setSavedSuccessMsg] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  // Item inicial vindo do cálculo atual
+  const initialItem = {
+    id: `item-${Date.now()}`,
+    description: `Produção Gráfica — ${mode === 'digital' ? 'Impressão Digital A3/SRA3' : mode === 'offset' ? 'Off-set Industrial CTP' : 'Comunicação Visual'}`,
+    paperName: selectedPaper?.name || 'Couché 150g',
+    dimensions: `${productW} x ${productH} mm`,
+    colors: colors || '4x4 (Colorido)',
+    finishings: selectedFinishings.length > 0 ? selectedFinishings.map(f => f.name.replace('Positiva - ', '').replace('JetaPrint - ', '')).join(', ') : 'Corte e Refile Guilhotina',
+    quantity: budgetResult?.quantity || 1000,
+    unitPrice: budgetResult?.costs?.unitPrice || 0,
+    totalPrice: budgetResult?.costs?.finalPrice || 0
+  };
+
+  const [items, setItems] = useState([initialItem]);
+
+  // Form para inclusão de novo item
+  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newItemPaper, setNewItemPaper] = useState('Couché 150g');
+  const [newItemDim, setNewItemDim] = useState('210 x 297 mm (A4)');
+  const [newItemColors, setNewItemColors] = useState('4x4 (Colorido Frente e Verso)');
+  const [newItemFinishings, setNewItemFinishings] = useState('Corte e Refile');
+  const [newItemQty, setNewItemQty] = useState(500);
+  const [newItemUnitPrice, setNewItemUnitPrice] = useState(0.50);
+
+  const handleAddItem = () => {
+    if (!newItemDesc.trim()) return;
+    const qty = Number(newItemQty) || 1;
+    const unitP = Number(newItemUnitPrice) || 0;
+    const totalP = qty * unitP;
+
+    const added = {
+      id: `item-${Date.now()}`,
+      description: newItemDesc,
+      paperName: newItemPaper,
+      dimensions: newItemDim,
+      colors: newItemColors,
+      finishings: newItemFinishings,
+      quantity: qty,
+      unitPrice: unitP,
+      totalPrice: totalP
+    };
+
+    setItems([...items, added]);
+    setNewItemDesc('');
+  };
+
+  const handleRemoveItem = (id) => {
+    if (items.length <= 1) return;
+    setItems(items.filter(i => i.id !== id));
+  };
+
+  const grandTotal = items.reduce((acc, item) => acc + (Number(item.totalPrice) || 0), 0);
 
   const handleSelectClient = (clientId) => {
     setSelectedClientId(clientId);
@@ -52,8 +108,30 @@ export default function QuoteGenerator({
     setTimeout(() => setSavedSuccessMsg(false), 2500);
   };
 
+  const handleDownloadPdf = () => {
+    const element = document.getElementById('printable-quote');
+    if (!element) return;
+
+    setIsExportingPdf(true);
+
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     `Proposta_JetaPrint_${clientName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      setIsExportingPdf(false);
+    }).catch(err => {
+      console.error(err);
+      setIsExportingPdf(false);
+      window.print();
+    });
+  };
+
   const todayStr = new Date().toLocaleDateString('pt-BR');
-  const costs = budgetResult ? budgetResult.costs : {};
 
   return (
     <div style={{
@@ -74,8 +152,8 @@ export default function QuoteGenerator({
       
       <div className="glass-card" style={{
         width: '100%',
-        maxWidth: '880px',
-        maxHeight: '90vh',
+        maxWidth: '920px',
+        maxHeight: '92vh',
         overflowY: 'auto',
         background: '#ffffff',
         color: '#0f172a',
@@ -87,15 +165,34 @@ export default function QuoteGenerator({
         {/* Modal Action Controls (Hidden on Print) */}
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--brand-navy)', margin: 0 }}>
-              Gerador de Proposta Comercial JETAPRINT
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#17355B', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText color="#00a8e8" size={22} /> Gerador de Proposta Comercial JETAPRINT
             </h3>
             <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
-              Dados oficiais: CNPJ 49.460.198/0001-85 | I.E. 91140286-62 (Sarandi - PR)
+              Dados oficiais: CNPJ 49.460.198/0001-85 | Sarandi - PR
             </p>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isExportingPdf}
+              style={{
+                padding: '10px 18px',
+                background: 'linear-gradient(135deg, #00a8e8, #0077b6)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <Download size={16} /> {isExportingPdf ? 'Gerando PDF...' : 'Baixar PDF Direto'}
+            </button>
+
             <button
               onClick={() => window.print()}
               style={{
@@ -111,8 +208,9 @@ export default function QuoteGenerator({
                 gap: '8px'
               }}
             >
-              <Printer size={16} /> Imprimir / PDF
+              <Printer size={16} /> Imprimir
             </button>
+
             <button
               onClick={onClose}
               style={{
@@ -128,93 +226,171 @@ export default function QuoteGenerator({
           </div>
         </div>
 
-        {/* Form para preenchimento de Dados do Cliente (No-Print) */}
-        <div className="no-print" style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', marginBottom: '24px', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-              Dados do Cliente para o Orçamento:
+        {/* Painel de Edição (No-Print) */}
+        <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#f8fafc', padding: '18px', borderRadius: '12px', marginBottom: '24px', border: '1px solid #e2e8f0' }}>
+          
+          {/* Dados do Cliente */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                1. Dados do Cliente
+              </h4>
+
+              {clients.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Selecionar Cadastrado:</span>
+                  <select
+                    value={selectedClientId}
+                    onChange={(e) => handleSelectClient(e.target.value)}
+                    style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem', background: '#ffffff' }}
+                  >
+                    <option value="">-- Buscar no CRM --</option>
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id}>[{c.code || 'CLI'}] {c.tradeName || c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
+              <input
+                type="text"
+                placeholder="Nome / Razão Social"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+              <input
+                type="text"
+                placeholder="CNPJ / CPF"
+                value={clientDoc}
+                onChange={(e) => setClientDoc(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+              <input
+                type="text"
+                placeholder="Telefone / Whats"
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+              <input
+                type="text"
+                placeholder="E-mail"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+              <button
+                type="button"
+                onClick={handleQuickSaveClient}
+                style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: 700, background: '#e0f2fe', color: '#0284c7', border: '1px solid #7dd3fc', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                💾 Salvar no CRM
+              </button>
+            </div>
+          </div>
+
+          {/* Adicionar Múltiplos Itens ao Orçamento */}
+          <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '12px' }}>
+            <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
+              2. Adicionar Outro Item / Produto ao Orçamento Multi-Itens
             </h4>
 
-            {/* Client Select Dropdown */}
-            {clients.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Buscar Cliente:</span>
-                <select
-                  value={selectedClientId}
-                  onChange={(e) => handleSelectClient(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem', background: '#ffffff', fontWeight: 600 }}
-                >
-                  <option value="">-- Selecionar da Base --</option>
-                  {clients.map(c => (
-                    <option key={c.id} value={c.id}>[{c.code || 'CLI-A0000'}] {c.tradeName || c.name} ({c.doc || 'Sem Doc'})</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+              <input
+                type="text"
+                placeholder="Descrição do Material (ex: Cartão de Visita)"
+                value={newItemDesc}
+                onChange={(e) => setNewItemDesc(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+              <input
+                type="text"
+                placeholder="Papel (ex: Couché 300g)"
+                value={newItemPaper}
+                onChange={(e) => setNewItemPaper(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+              <input
+                type="number"
+                placeholder="Quantidade"
+                value={newItemQty}
+                onChange={(e) => setNewItemQty(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Valor Unit. (R$)"
+                value={newItemUnitPrice}
+                onChange={(e) => setNewItemUnitPrice(e.target.value)}
+                style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
+              />
+            </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-            <input
-              type="text"
-              placeholder="Nome / Razão Social do Cliente"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-            />
-            <input
-              type="text"
-              placeholder="CNPJ / CPF"
-              value={clientDoc}
-              onChange={(e) => setClientDoc(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-            />
-            <input
-              type="text"
-              placeholder="Telefone / WhatsApp"
-              value={clientPhone}
-              onChange={(e) => setClientPhone(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-            />
-            <input
-              type="text"
-              placeholder="E-mail"
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
-            />
-          </div>
-
-          {/* Quick Save to CRM button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '10px', alignItems: 'center' }}>
-            {savedSuccessMsg && (
-              <span style={{ fontSize: '0.8rem', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckCircle2 size={14} /> Salvo no Cadastro de Clientes!
-              </span>
-            )}
             <button
-              type="button"
-              onClick={handleQuickSaveClient}
+              onClick={handleAddItem}
               style={{
                 padding: '6px 12px',
                 fontSize: '0.8rem',
                 fontWeight: 700,
-                background: '#e0f2fe',
-                color: '#0284c7',
-                border: '1px solid #7dd3fc',
+                background: '#10b981',
+                color: '#ffffff',
+                border: 'none',
                 borderRadius: '6px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
               }}
             >
-              💾 Salvar como Novo Cliente no CRM
+              <Plus size={14} /> Incluir Produto na Tabela
             </button>
           </div>
+
+          {/* Condições & Observações Personalizadas */}
+          <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Validade:</label>
+              <input
+                type="text"
+                value={quoteValidity}
+                onChange={(e) => setQuoteValidity(e.target.value)}
+                style={{ width: '100%', padding: '6px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Prazo de Produção:</label>
+              <input
+                type="text"
+                value={deliveryTerm}
+                onChange={(e) => setDeliveryTerm(e.target.value)}
+                style={{ width: '100%', padding: '6px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Observações / Condições:</label>
+              <input
+                type="text"
+                value={generalNotes}
+                onChange={(e) => setGeneralNotes(e.target.value)}
+                style={{ width: '100%', padding: '6px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem' }}
+              />
+            </div>
+          </div>
+
         </div>
 
-        {/* PROPOSTA COMERCIAL IMPRESSA (FORMATAÇÃO OFICIAL) */}
-        <div id="printable-quote" style={{ fontFamily: "'Outfit', sans-serif" }}>
+        {/* ── PROPOSTA COMERCIAL IMPRESSA (PDF OFICIAL) ── */}
+        <div id="printable-quote" style={{ fontFamily: "'Outfit', sans-serif", padding: '10px', background: '#ffffff' }}>
           
           {/* Header com Logo Oficial JETAPRINT */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #17355B', paddingBottom: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #17355B', paddingBottom: '16px', marginBottom: '18px' }}>
             <div>
               <img 
                 src="/JETAPRINT_LOGO_01_2026-01.jpg" 
@@ -236,128 +412,118 @@ export default function QuoteGenerator({
             </div>
           </div>
 
-          {/* Box Cliente & Empresa Emissora com CNPJ/IE Oficial */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px', fontSize: '0.85rem' }}>
+          {/* Box Cliente & Emissor com CNPJ/IE */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px', fontSize: '0.82rem' }}>
             
-            {/* Dados da Gráfica */}
-            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontWeight: 700, color: '#17355B', marginBottom: '4px', textTransform: 'uppercase' }}>
+            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#17355B', marginBottom: '4px', textTransform: 'uppercase', fontSize: '0.75rem' }}>
                 EMISSOR / GRÁFICA:
               </div>
               <div><strong>JETA PRINT GRAFICA MULTIMIDIA LTDA</strong></div>
-              <div><strong>CNPJ:</strong> 49.460.198/0001-85</div>
-              <div><strong>Inscrição Estadual:</strong> 91140286-62 (PR)</div>
-              <div>Rua Ignácio Pelchibeski, 1244 - Jd. Nova Independência</div>
-              <div>Sarandi - PR | CEP: 87.114-665</div>
-              <div><strong>Contato:</strong> (44) 9956-8620 / (44) 3028-1300</div>
-              <div><strong>E-mail:</strong> jeferson.arte@gmail.com</div>
+              <div><strong>CNPJ:</strong> 49.460.198/0001-85 | <strong>I.E.:</strong> 91140286-62</div>
+              <div>Rua Ignácio Pelchibeski, 1244 - Sarandi - PR</div>
+              <div><strong>Contato:</strong> (44) 9956-8620 / jeferson.arte@gmail.com</div>
             </div>
 
-            {/* Dados do Cliente */}
-            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontWeight: 700, color: '#17355B', marginBottom: '4px', textTransform: 'uppercase' }}>
+            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#17355B', marginBottom: '4px', textTransform: 'uppercase', fontSize: '0.75rem' }}>
                 DADOS DO CLIENTE:
               </div>
               <div><strong>Cliente:</strong> {clientName}</div>
               <div><strong>CNPJ/CPF:</strong> {clientDoc}</div>
               <div><strong>Telefone:</strong> {clientPhone}</div>
               <div><strong>E-mail:</strong> {clientEmail}</div>
-              <div style={{ marginTop: '8px', fontSize: '0.75rem', color: '#64748b' }}>
-                Regime Tributário Emissor: <strong>Simples Nacional</strong>
-              </div>
             </div>
 
           </div>
 
-          {/* Especificações Técnicas do Produto */}
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#17355B', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', marginBottom: '12px' }}>
-            ESPECIFICAÇÕES TÉCNICAS DO MATERIAL
+          {/* Tabela de Produtos / Itens da Proposta */}
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#17355B', borderBottom: '2px solid #17355B', paddingBottom: '4px', marginBottom: '10px', textTransform: 'uppercase' }}>
+            ESPECIFICAÇÕES DOS MATERIAIS & TABELA DE PREÇOS
           </h4>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', marginBottom: '20px' }}>
-            <tbody>
-              <tr style={{ background: '#f1f5f9' }}>
-                <td style={{ padding: '8px 12px', fontWeight: 700, width: '30%' }}>Modalidade de Impressão:</td>
-                <td style={{ padding: '8px 12px' }}>
-                  {mode === 'digital' ? 'Impressão Digital de Alta Definição' : mode === 'offset' ? 'Impressão Off-set Industrial' : 'Comunicação Visual Grande Formato'}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '8px 12px', fontWeight: 700 }}>Substrato / Papel:</td>
-                <td style={{ padding: '8px 12px' }}>{selectedPaper.name || 'Couché 150g'}</td>
-              </tr>
-              <tr style={{ background: '#f1f5f9' }}>
-                <td style={{ padding: '8px 12px', fontWeight: 700 }}>Formato Acabado:</td>
-                <td style={{ padding: '8px 12px' }}>{productW} x {productH} mm</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '8px 12px', fontWeight: 700 }}>Cores / Impressão:</td>
-                <td style={{ padding: '8px 12px' }}>{colors}</td>
-              </tr>
-              <tr style={{ background: '#f1f5f9' }}>
-                <td style={{ padding: '8px 12px', fontWeight: 700 }}>Acabamentos Incluídos:</td>
-                <td style={{ padding: '8px 12px' }}>
-                  {selectedFinishings.length > 0 ? selectedFinishings.map(f => f.name.replace('Positiva - ', '').replace('JetaPrint - ', '')).join(', ') : 'Corte e Refile Standard em Guilhotina'}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '8px 12px', fontWeight: 700 }}>Prazo de Produção:</td>
-                <td style={{ padding: '8px 12px' }}>{deliveryTerm} após aprovação da arte final</td>
-              </tr>
-            </tbody>
-          </table>
-
-          {/* Tabela de Preços & Valores */}
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#17355B', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', marginBottom: '12px' }}>
-            INVESTIMENTO & CONDIÇÕES
-          </h4>
-
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '20px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', marginBottom: '18px' }}>
             <thead>
               <tr style={{ background: '#17355B', color: '#ffffff', textAlign: 'left' }}>
-                <th style={{ padding: '10px 12px' }}>Item / Descrição</th>
-                <th style={{ padding: '10px 12px', textAlign: 'center' }}>Quantidade</th>
-                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Valor Unitário</th>
-                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Valor Total</th>
+                <th style={{ padding: '8px 10px', width: '40%' }}>Descrição do Material & Papel</th>
+                <th style={{ padding: '8px 10px' }}>Dimensões / Acabamento</th>
+                <th style={{ padding: '8px 10px', textAlign: 'center' }}>Qtd</th>
+                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Unitário</th>
+                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Total</th>
+                <th className="no-print" style={{ padding: '8px', width: '30px' }}></th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '12px' }}>
-                  <strong>Produção Gráfica Completa JETAPRINT</strong>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                    Inclui papel, impressões, acabamentos e controle de qualidade.
-                  </div>
-                </td>
-                <td style={{ padding: '12px', textAlign: 'center', fontWeight: 700 }}>
-                  {budgetResult.quantity ? budgetResult.quantity.toLocaleString() : 1} un
-                </td>
-                <td style={{ padding: '12px', textAlign: 'right' }}>
-                  R$ {Number(costs.unitPrice || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </td>
-                <td style={{ padding: '12px', textAlign: 'right', fontWeight: 800, color: '#17355B', fontSize: '1rem' }}>
-                  R$ {Number(costs.finalPrice || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
+              {items.map((item, idx) => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                  <td style={{ padding: '10px' }}>
+                    <strong style={{ color: '#0f172a' }}>{item.description}</strong>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                      Substrato: <strong>{item.paperName}</strong> | Cores: {item.colors}
+                    </div>
+                  </td>
+                  <td style={{ padding: '10px', fontSize: '0.78rem', color: '#334155' }}>
+                    <div><strong>Tam:</strong> {item.dimensions}</div>
+                    <div><strong>Acab:</strong> {item.finishings}</div>
+                  </td>
+                  <td style={{ padding: '10px', textAlign: 'center', fontWeight: 700 }}>
+                    {item.quantity.toLocaleString()} un
+                  </td>
+                  <td style={{ padding: '10px', textAlign: 'right' }}>
+                    R$ {Number(item.unitPrice || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 3 })}
+                  </td>
+                  <td style={{ padding: '10px', textAlign: 'right', fontWeight: 800, color: '#17355B' }}>
+                    R$ {Number(item.totalPrice || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="no-print" style={{ padding: '6px', textAlign: 'center' }}>
+                    {items.length > 1 && (
+                      <button
+                        onClick={() => handleRemoveItem(item.id)}
+                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                        title="Remover Item"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
+            <tfoot>
+              <tr style={{ background: '#f1f5f9', fontWeight: 800 }}>
+                <td colSpan={4} style={{ padding: '10px', textAlign: 'right', fontSize: '0.9rem', color: '#17355B' }}>
+                  INVESTIMENTO TOTAL DA PROPOSTA:
+                </td>
+                <td style={{ padding: '10px', textAlign: 'right', fontSize: '1.1rem', color: '#00a8e8' }}>
+                  R$ {grandTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </td>
+                <td className="no-print"></td>
+              </tr>
+            </tfoot>
           </table>
 
-          {/* Condições de Pagamento */}
-          <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px', fontSize: '0.85rem' }}>
+          {/* Condições de Pagamento e Observações */}
+          <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px', fontSize: '0.8rem' }}>
             <div style={{ fontWeight: 700, color: '#17355B', marginBottom: '4px' }}>CONDIÇÕES DE PAGAMENTO & INFORMAÇÕES BANCÁRIAS:</div>
             <div>• <strong>Pagamento:</strong> {paymentTerms}</div>
+            <div>• <strong>Prazo de Entrega:</strong> {deliveryTerm} após aprovação da arte final</div>
             <div>• <strong>Chave PIX Oficial (CNPJ):</strong> 49.460.198/0001-85 (JETA PRINT GRAFICA MULTIMIDIA LTDA)</div>
+            {generalNotes && (
+              <div style={{ marginTop: '4px', color: '#64748b' }}>
+                • <strong>Observações:</strong> {generalNotes}
+              </div>
+            )}
           </div>
 
           {/* Assinatura e Aceite */}
-          <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '0.8rem', color: '#475569' }}>
-            <div style={{ textAlign: 'center', width: '250px' }}>
+          <div style={{ marginTop: '30px', paddingTop: '16px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '0.78rem', color: '#475569' }}>
+            <div style={{ textAlign: 'center', width: '240px' }}>
               <div style={{ borderBottom: '1px solid #0f172a', marginBottom: '4px' }}></div>
               JETA PRINT GRAFICA MULTIMIDIA LTDA<br />
               CNPJ: 49.460.198/0001-85
             </div>
 
-            <div style={{ textAlign: 'center', width: '250px' }}>
+            <div style={{ textAlign: 'center', width: '240px' }}>
               <div style={{ borderBottom: '1px solid #0f172a', marginBottom: '4px' }}></div>
               ACEITE DO CLIENTE (DATA / ASSINATURA)
             </div>

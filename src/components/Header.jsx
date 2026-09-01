@@ -76,7 +76,7 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
               border: 'none',
               background: activeTab === 'digital' ? 'linear-gradient(135deg, #00A8E8, #0077b6)' : 'var(--bg-input)',
               color: activeTab === 'digital' ? '#ffffff' : 'var(--text-muted)',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: '0.9rem',
               cursor: 'pointer',
               display: 'flex',
@@ -87,7 +87,7 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
             }}
           >
             <Printer size={18} />
-            Digital & Folha
+            Digital & Orçamentos
           </button>
 
           <button
@@ -132,6 +132,8 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
             <Layers size={18} />
             Grande Formato
           </button>
+
+
 
           <button
             onClick={() => setActiveTab('clients')}

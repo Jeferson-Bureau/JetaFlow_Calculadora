@@ -18,8 +18,23 @@ import {
   Activity,
   ChevronRight,
   ShieldCheck,
-  Percent
+  Percent,
+  PieChart as PieIcon,
+  BarChart2
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend
+} from 'recharts';
 
 export default function DashboardOverview({
   biddings = [],
@@ -41,6 +56,7 @@ export default function DashboardOverview({
     const totalValueAll = biddings.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
     const totalValueAgendadas = agendadas.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
     const totalValueHomologadas = homologadas.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
+    const totalValueEmAnalise = emAnalise.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
 
     // Próximas licitações ordenadas por data da sessão
     const proximas = [...agendadas].sort((a, b) => {
@@ -48,6 +64,13 @@ export default function DashboardOverview({
       const db = new Date(`${b.sessionDate || '9999-12-31'}T${b.sessionTime || '00:00'}`);
       return da - db;
     }).slice(0, 4);
+
+    // Dados formatados para o gráfico de pizza de licitações
+    const pieData = [
+      { name: 'Agendadas (Disputa)', value: totalValueAgendadas, count: agendadas.length, color: '#8b5cf6' },
+      { name: 'Homologadas/Vencidas', value: totalValueHomologadas, count: homologadas.length, color: '#10b981' },
+      { name: 'Em Análise/Proposta', value: totalValueEmAnalise, count: emAnalise.length, color: '#00a8e8' }
+    ].filter(item => item.value > 0 || item.count > 0);
 
     return {
       total,
@@ -57,7 +80,9 @@ export default function DashboardOverview({
       totalValueAll,
       totalValueAgendadas,
       totalValueHomologadas,
-      proximas
+      totalValueEmAnalise,
+      proximas,
+      pieData
     };
   }, [biddings]);
 
@@ -69,12 +94,19 @@ export default function DashboardOverview({
     const maringaCount = clients.filter(c => (c.city || '').toLowerCase().includes('maringá') || (c.city || '').toLowerCase().includes('maringa')).length;
     const regiaoCount = total - maringaCount;
 
+    // Dados para gráfico de barras comparativo de Clientes
+    const barData = [
+      { category: 'Tipo de Documento', PJ: cnpjCount, PF: cpfCount },
+      { category: 'Localização', Maringá: maringaCount, Região: regiaoCount }
+    ];
+
     return {
       total,
       cnpjCount,
       cpfCount,
       maringaCount,
       regiaoCount,
+      barData,
       recentes: clients.slice(0, 4)
     };
   }, [clients]);
@@ -87,19 +119,40 @@ export default function DashboardOverview({
     const comunicacaoCount = suppliers.filter(s => s.category === 'comunicacao_visual').length;
     const outrosCount = total - (papeisCount + acabamentoCount + comunicacaoCount);
 
+    const categoryData = [
+      { name: 'Papéis & Mídias', Qtd: papeisCount, fill: '#f7b500' },
+      { name: 'Acabamentos', Qtd: acabamentoCount, fill: '#00a8e8' },
+      { name: 'Comunicação Visual', Qtd: comunicacaoCount, fill: '#e62e6b' },
+      { name: 'Serviços/Outros', Qtd: outrosCount, fill: '#8b5cf6' }
+    ];
+
     return {
       total,
       papeisCount,
       acabamentoCount,
       comunicacaoCount,
-      outrosCount
+      outrosCount,
+      categoryData
     };
   }, [suppliers]);
 
   // ── 4. Parque Gráfico & Configurações ──
   const xeroxEquip = equipments.find(e => e.id === 'xerox-c8035') || equipments[0];
   const canonEquip = equipments.find(e => e.id === 'canon-gx7010');
-  const bannerCutEquip = equipments.find(e => e.id === 'bannercut-pro-60');
+
+  // Dados para comparação do Parque de Impressão (Custo de Clique A4)
+  const equipmentComparisonData = useMemo(() => [
+    {
+      nome: 'Xerox C8035 (Laser)',
+      ColorA4: Number(xeroxEquip?.clickColor || 0.305),
+      PBA4: Number(xeroxEquip?.clickMono || 0.072)
+    },
+    {
+      nome: 'Canon GX7010 (MegaTank)',
+      ColorA4: 0.040,
+      PBA4: 0.020
+    }
+  ], [xeroxEquip]);
 
   const formatCurrency = (val) => {
     return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -254,6 +307,80 @@ export default function DashboardOverview({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', fontSize: '0.78rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
             <span>{supplierStats.papeisCount} Papelarias / {supplierStats.acabamentoCount} Acabamentos</span>
             <strong style={{ color: 'var(--brand-yellow)' }}>{papers.length} papéis ativos</strong>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── SEÇÃO DE GRÁFICOS ANALÍTICOS (NOVO) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+        
+        {/* Gráfico 1: Pipeline de Licitações por Estágio (Rosca/Pie) */}
+        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <PieIcon size={18} color="#8b5cf6" />
+              Volume Financeiro por Estágio (PNCP)
+            </h3>
+          </div>
+          <div style={{ height: '230px', width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={biddingStats.pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {biddingStats.pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [formatCurrency(value), 'Valor Total']}
+                  contentStyle={{ background: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '0.8rem' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Legenda customizada */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center', marginTop: '10px', fontSize: '0.75rem' }}>
+            {biddingStats.pieData.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: item.color }} />
+                <span style={{ color: 'var(--text-muted)' }}>{item.name}:</span>
+                <strong style={{ color: '#fff' }}>{formatCurrency(item.value)} ({item.count})</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gráfico 2: Comparativo Custo de Impressão por Máquina (Bar) */}
+        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChart2 size={18} color="var(--brand-cyan)" />
+              Comparativo de Custos de Impressão (A4)
+            </h3>
+          </div>
+          <div style={{ height: '230px', width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={equipmentComparisonData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="nome" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickFormatter={(val) => `R$ ${val}`} />
+                <Tooltip
+                  formatter={(val) => [`R$ ${Number(val).toFixed(3)}`, 'Custo por Folha']}
+                  contentStyle={{ background: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '0.8rem' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '0.75rem', paddingTop: '8px' }} />
+                <Bar dataKey="ColorA4" name="Color (R$/A4)" fill="#00a8e8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="PBA4" name="P&B (R$/A4)" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 

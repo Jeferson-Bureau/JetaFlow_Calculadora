@@ -194,7 +194,73 @@ export function calculateBudget(config) {
 
   const formatRatio = sheetSize.formatRatio || 4;
 
-  if (mode === 'large_format') {
+  // ── SUPORTE A PRODUTOS MULTI-COMPONENTES (ex: Calendário de Mesa, Kits, Caixas Multi-Papel) ──
+  if (config.components && Array.isArray(config.components) && config.components.length > 0) {
+    let accumPaperCost = 0;
+    let accumPrintCost = 0;
+    let accumGrossSheets = 0;
+    let accumReqSheets = 0;
+    let accumRemaSheets = 0;
+
+    config.components.forEach(comp => {
+      const compQty = qty * (Number(comp.multiplier) || 1); // ex: 12 folhas de miolo por calendário
+      const compPaper = comp.paper || paper;
+      const compSheetSize = comp.sheetSize || sheetSize;
+      const compW = Number(comp.productW || productW);
+      const compH = Number(comp.productH || productH);
+      const compColors = comp.colors || colors;
+
+      const compLayout = calculateSheetLayout(
+        compSheetSize.printableW || 310,
+        compSheetSize.printableH || 440,
+        compW,
+        compH,
+        bleed
+      );
+      const compNup = Math.max(1, compLayout.nUp);
+      const compReqSheets = Math.ceil(compQty / compNup);
+      const techLossPct = Number(financialConfig.technicalLossPercent || 5) / 100;
+      const compGrossSheets = Math.ceil(compReqSheets * (1 + techLossPct));
+
+      const compRatio = compSheetSize.formatRatio || 4;
+      const compRemaSheets = Math.ceil(compGrossSheets / compRatio);
+
+      const compPaperPrice = Number(compPaper.pricePerSheetSra3 || 0.50);
+      const compPartPaperCost = compGrossSheets * compPaperPrice;
+
+      let compFormatFactor = 1.0;
+      if (digitalClickRates.formatMultipliers) {
+        compFormatFactor = digitalClickRates.formatMultipliers[compSheetSize.id] || 1.0;
+      } else {
+        if (compSheetSize.id === 'sra3' || compSheetSize.id === 'maxi-digital') compFormatFactor = 2.3;
+        else if (compSheetSize.id === 'a3') compFormatFactor = 2.0;
+        else if (compSheetSize.id === 'banner-digital') compFormatFactor = 3.5;
+      }
+
+      let compBaseClick = digitalClickRates.clickColorSimplex || 0.305;
+      if (compColors === '4/4') compBaseClick = digitalClickRates.clickColorDuplex || 0.610;
+      else if (compColors === '1/0') compBaseClick = digitalClickRates.clickMonoSimplex || 0.072;
+      else if (compColors === '1/1') compBaseClick = digitalClickRates.clickMonoDuplex || 0.144;
+
+      const compClickRate = compBaseClick * compFormatFactor;
+      const compPartPrintCost = compGrossSheets * compClickRate;
+
+      accumPaperCost += compPartPaperCost;
+      accumPrintCost += compPartPrintCost;
+      accumGrossSheets += compGrossSheets;
+      accumReqSheets += compReqSheets;
+      accumRemaSheets += compRemaSheets;
+    });
+
+    paperCost = accumPaperCost;
+    printCost = accumPrintCost;
+    grossSheets = accumGrossSheets;
+    requiredSheets = accumReqSheets;
+    remaFullSheets = accumRemaSheets;
+    totalRefiledPieces = qty;
+    layout = calculateSheetLayout(sheetSize.printableW || 310, sheetSize.printableH || 440, productW, productH, bleed);
+  } else if (mode === 'large_format') {
+
     const areaM2Unit = Number(largeFormat.widthM) * Number(largeFormat.heightM);
     const totalAreaM2 = areaM2Unit * qty;
     paperCost = totalAreaM2 * Number(largeFormat.materialPriceM2 || 0);

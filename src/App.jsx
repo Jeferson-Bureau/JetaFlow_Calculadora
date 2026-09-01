@@ -12,6 +12,7 @@ import ClientManager from './components/ClientManager';
 import SupplierManager from './components/SupplierManager';
 import LicitacaoManager from './components/LicitacaoManager';
 import DashboardOverview from './components/DashboardOverview';
+import QuoteHistoryManager from './components/QuoteHistoryManager';
 
 import {
   DEFAULT_EQUIPMENTS,
@@ -31,6 +32,61 @@ import { calculateBudget, generateTierMatrix, generateNextClientCode, generateNe
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Quotes History Storage
+  const [quotesHistory, setQuotesHistory] = useState(() => {
+    const saved = localStorage.getItem('jetaflow_quotes_v1');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      {
+        id: 'orc-001',
+        code: 'ORC-A0001',
+        date: new Date().toLocaleDateString('pt-BR'),
+        clientName: 'Prefeitura Municipal de Maringá',
+        clientDoc: '76.282.656/0001-06',
+        description: 'Panfletos Informativos A5 — Impressão Digital SRA3',
+        paperName: 'Couché 150g',
+        dimensions: '140 x 210 mm',
+        quantity: 5000,
+        totalValue: 680.00,
+        status: 'enviado'
+      }
+    ];
+  });
+
+  const handleSaveQuoteToHistory = (quoteData) => {
+    const nextNum = quotesHistory.length + 1;
+    const code = `ORC-A${String(nextNum).padStart(4, '0')}`;
+    const newQuote = {
+      id: `orc-${Date.now()}`,
+      code,
+      date: new Date().toLocaleDateString('pt-BR'),
+      status: 'enviado',
+      ...quoteData
+    };
+    const updated = [newQuote, ...quotesHistory];
+    setQuotesHistory(updated);
+    localStorage.setItem('jetaflow_quotes_v1', JSON.stringify(updated));
+  };
+
+  const handleUpdateQuoteInHistory = (updatedQuote) => {
+    const updated = quotesHistory.map(q => q.id === updatedQuote.id ? updatedQuote : q);
+    setQuotesHistory(updated);
+    localStorage.setItem('jetaflow_quotes_v1', JSON.stringify(updated));
+  };
+
+  const handleDeleteQuoteFromHistory = (id) => {
+    const updated = quotesHistory.filter(q => q.id !== id);
+    setQuotesHistory(updated);
+    localStorage.setItem('jetaflow_quotes_v1', JSON.stringify(updated));
+  };
 
   // Input Data Databases
   const [equipments] = useState(DEFAULT_EQUIPMENTS);
@@ -178,6 +234,16 @@ export default function App() {
     const updated = biddings.filter(b => b.id !== id);
     setBiddings(updated);
     localStorage.setItem('jetaflow_biddings_v2', JSON.stringify(updated));
+  };
+
+  const handleReopenQuoteInCalculator = (quote) => {
+    setProductCategory('flat');
+    if (quote.quantity) setQuantity(Number(quote.quantity));
+    if (quote.paperId) setSelectedPaperId(quote.paperId);
+    if (quote.sheetId) setSelectedSheetId(quote.sheetId);
+    if (quote.productW) setProductW(Number(quote.productW));
+    if (quote.productH) setProductH(Number(quote.productH));
+    if (quote.colors) setColors(quote.colors);
   };
 
   const handleResetClients = () => {
@@ -385,102 +451,121 @@ export default function App() {
           onDeleteBidding={handleDeleteBidding}
           onResetBiddings={handleResetBiddings}
         />
+      ) : activeTab === 'quotes' ? (
+        <QuoteHistoryManager
+          quotes={quotesHistory}
+          onUpdateQuote={handleUpdateQuoteInHistory}
+          onDeleteQuote={handleDeleteQuoteFromHistory}
+          onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           {/* Top Section: Form Inputs & 2D Sheet Viewer */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-            
-            {/* Left Column: Specific Calculator Inputs */}
-            {activeTab === 'digital' && (
-              <DigitalCalculator
-                papers={papers}
-                sheetSizes={sheetSizes}
-                equipments={equipments}
-                selectedEquipmentId={selectedEquipmentId}
-                setSelectedEquipmentId={setSelectedEquipmentId}
-                selectedPaperId={selectedPaperId}
-                setSelectedPaperId={setSelectedPaperId}
-                selectedSheetId={selectedSheetId}
-                setSelectedSheetId={setSelectedSheetId}
-                productW={productW}
-                setProductW={setProductW}
-                productH={productH}
-                setProductH={setProductH}
-                bleed={bleed}
-                setBleed={setBleed}
-                colors={colors}
-                setColors={setColors}
-                quantity={quantity}
-                setQuantity={setQuantity}
-                productCategory={productCategory}
-                setProductCategory={setProductCategory}
-                editorial={editorial}
-                setEditorial={setEditorial}
-                spineMm={budgetResult.spineMm || 0}
+          {activeTab === 'digital' && productCategory === 'quotes_history' ? (
+            <QuoteHistoryManager
+              quotes={quotesHistory}
+              onUpdateQuote={handleUpdateQuoteInHistory}
+              onDeleteQuote={handleDeleteQuoteFromHistory}
+              onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
+              onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+            />
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+                
+                {/* Left Column: Specific Calculator Inputs */}
+                {activeTab === 'digital' && (
+                  <DigitalCalculator
+                    papers={papers}
+                    sheetSizes={sheetSizes}
+                    equipments={equipments}
+                    selectedEquipmentId={selectedEquipmentId}
+                    setSelectedEquipmentId={setSelectedEquipmentId}
+                    selectedPaperId={selectedPaperId}
+                    setSelectedPaperId={setSelectedPaperId}
+                    selectedSheetId={selectedSheetId}
+                    setSelectedSheetId={setSelectedSheetId}
+                    productW={productW}
+                    setProductW={setProductW}
+                    productH={productH}
+                    setProductH={setProductH}
+                    bleed={bleed}
+                    setBleed={setBleed}
+                    colors={colors}
+                    setColors={setColors}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                    productCategory={productCategory}
+                    setProductCategory={setProductCategory}
+                    editorial={editorial}
+                    setEditorial={setEditorial}
+                    spineMm={budgetResult.spineMm || 0}
+                  />
+                )}
+
+                {activeTab === 'offset' && (
+                  <OffsetCalculator
+                    papers={papers}
+                    sheetSizes={sheetSizes}
+                    selectedPaperId={selectedPaperId}
+                    setSelectedPaperId={setSelectedPaperId}
+                    selectedSheetId={selectedSheetId}
+                    setSelectedSheetId={setSelectedSheetId}
+                    productW={productW}
+                    setProductW={setProductW}
+                    productH={productH}
+                    setProductH={setProductH}
+                    bleed={bleed}
+                    setBleed={setBleed}
+                    colors={colors}
+                    setColors={setColors}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                    offsetSettings={offsetSettings}
+                    setOffsetSettings={setOffsetSettings}
+                  />
+                )}
+
+                {activeTab === 'large_format' && (
+                  <LargeFormatCalculator
+                    largeFormat={largeFormat}
+                    setLargeFormat={setLargeFormat}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                  />
+                )}
+
+                {/* Right Column: Sheet Visualizer */}
+                {activeTab !== 'large_format' && (
+                  <SheetViewer
+                    layout={budgetResult.layout}
+                    sheetSize={selectedSheet}
+                    productW={productCategory === 'editorial' ? ((2 * productW) + (budgetResult.spineMm || 0) + (2 * (editorial.flapW || 0))) : productW}
+                    productH={productH}
+                    bleed={bleed}
+                  />
+                )}
+
+              </div>
+
+              {/* Middle Section: Finishings */}
+              <FinishingSelector
+                availableFinishings={availableFinishings}
+                selectedFinishings={selectedFinishings}
+                setSelectedFinishings={setSelectedFinishings}
               />
-            )}
 
-            {activeTab === 'offset' && (
-              <OffsetCalculator
-                papers={papers}
-                sheetSizes={sheetSizes}
-                selectedPaperId={selectedPaperId}
-                setSelectedPaperId={setSelectedPaperId}
-                selectedSheetId={selectedSheetId}
-                setSelectedSheetId={setSelectedSheetId}
-                productW={productW}
-                setProductW={setProductW}
-                productH={productH}
-                setProductH={setProductH}
-                bleed={bleed}
-                setBleed={setBleed}
-                colors={colors}
-                setColors={setColors}
-                quantity={quantity}
-                setQuantity={setQuantity}
-                offsetSettings={offsetSettings}
-                setOffsetSettings={setOffsetSettings}
+              {/* Bottom Section: DRE Financial Breakdown & Tier Matrix */}
+              <FinancialSummary
+                budgetResult={budgetResult}
+                tierMatrix={tierMatrix}
+                financialConfig={financialConfig}
+                setFinancialConfig={handleSetFinancialConfig}
+                onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
               />
-            )}
-
-            {activeTab === 'large_format' && (
-              <LargeFormatCalculator
-                largeFormat={largeFormat}
-                setLargeFormat={setLargeFormat}
-                quantity={quantity}
-                setQuantity={setQuantity}
-              />
-            )}
-
-            {/* Right Column: Sheet Visualizer */}
-            {activeTab !== 'large_format' && (
-              <SheetViewer
-                layout={budgetResult.layout}
-                sheetSize={selectedSheet}
-                productW={productCategory === 'editorial' ? ((2 * productW) + (budgetResult.spineMm || 0) + (2 * (editorial.flapW || 0))) : productW}
-                productH={productH}
-                bleed={bleed}
-              />
-            )}
-
-          </div>
-
-          {/* Middle Section: Finishings */}
-          <FinishingSelector
-            availableFinishings={availableFinishings}
-            selectedFinishings={selectedFinishings}
-            setSelectedFinishings={setSelectedFinishings}
-          />
-
-          {/* Bottom Section: DRE Financial Breakdown & Tier Matrix */}
-          <FinancialSummary
-            budgetResult={budgetResult}
-            tierMatrix={tierMatrix}
-            financialConfig={financialConfig}
-            setFinancialConfig={handleSetFinancialConfig}
-            onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
-          />
+            </>
+          )}
 
         </div>
       )}

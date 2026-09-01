@@ -38,12 +38,12 @@ export default function DigitalCalculator({
   return (
     <div className="glass-card" style={{ padding: '20px' }}>
       
-      {/* Category Toggle: Avulso vs Editorial */}
+      {/* Category Toggle: Comercial / Editorial / Histórico de Orçamentos */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FileText size={20} color="var(--brand-cyan)" />
           <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
-            Engenharia do Produto & Equipamento
+            Orçamento & Engenharia Digital
           </h2>
         </div>
 
@@ -83,6 +83,26 @@ export default function DigitalCalculator({
             }}
           >
             <BookOpen size={14} /> Editorial (Livros/Catálogos)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setProductCategory('quotes_history')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '8px',
+              border: 'none',
+              background: productCategory === 'quotes_history' ? 'linear-gradient(135deg, #8b5cf6, #6d28d9)' : 'transparent',
+              color: '#ffffff',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <FileText size={14} /> Orçamentos Salvos
           </button>
         </div>
       </div>
