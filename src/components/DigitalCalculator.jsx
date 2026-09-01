@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, FileText, Palette, Hash, Box, BookOpen, Bookmark, Printer, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Layers, FileText, Palette, Hash, Box, BookOpen, Bookmark, Printer, AlertTriangle, CheckCircle2, User } from 'lucide-react';
 
 export default function DigitalCalculator({
   papers,
@@ -25,7 +25,10 @@ export default function DigitalCalculator({
   setProductCategory,
   editorial,
   setEditorial,
-  spineMm
+  spineMm,
+  clients = [],
+  selectedClientId,
+  setSelectedClientId
 }) {
   const selectedEquipment = equipments.find(e => e.id === selectedEquipmentId) || equipments[0];
   const selectedPaper = papers.find(p => p.id === selectedPaperId) || papers[0];
@@ -107,41 +110,81 @@ export default function DigitalCalculator({
         </div>
       </div>
 
-      {/* SELEÇÃO DO EQUIPAMENTO DE IMPRESSÃO */}
-      <div className="form-group" style={{ background: 'rgba(0, 168, 232, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(0, 168, 232, 0.2)', marginBottom: '16px' }}>
-        <label className="form-label" style={{ color: 'var(--brand-cyan)' }}>
-          <Printer size={16} /> Impressora Digital Selecionada
-        </label>
-        <select
-          className="form-select"
-          style={{ fontWeight: 700, fontSize: '0.95rem' }}
-          value={selectedEquipmentId}
-          onChange={(e) => setSelectedEquipmentId(e.target.value)}
-        >
-          {equipments.filter(eq => eq.type !== 'offset').map((eq) => (
-            <option key={eq.id} value={eq.id}>
-              {eq.name} (Máx: {eq.maxGsm}g | Formato Máx: {eq.maxW}x{eq.maxH}mm)
-            </option>
-          ))}
-        </select>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-          {selectedEquipment.notes}
-        </div>
-      </div>
+      {productCategory !== 'quotes_history' && (
+        <>
+          {/* VINCULAÇÃO DE CLIENTE AO ORÇAMENTO (DROPDOWN + AUTOCOMPLETE + NOVO CLIENTE) */}
+          <div className="form-group" style={{ background: 'rgba(16, 185, 129, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.25)', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+              <label className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <User size={16} /> Cliente Vinculado ao Orçamento (Dropdown CRM ou Avulso)
+              </label>
 
-      {/* AVISOS AUTOMÁTICOS DE INCOMPATIBILIDADE TÉCNICA */}
-      {gsmExceeded && (
-        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <AlertTriangle size={16} color="var(--danger)" />
-          Atenção: A gramatura de {selectedPaper.weightGsm}g excede o limite máximo suportado pela {selectedEquipment.name} ({selectedEquipment.maxGsm}g). Escolha a Xerox C8035 ou Impressão Off-set.
-        </div>
-      )}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {selectedClientId ? (
+                  <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--success)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                    ✓ Cliente Vinculado
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.75rem', background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '4px' }}>
+                    Balcão / Avulso
+                  </span>
+                )}
+              </div>
+            </div>
 
-      {sizeExceeded && (
-        <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid var(--warning)', borderRadius: '8px', color: '#fcd34d', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <AlertTriangle size={16} color="var(--warning)" />
-          Atenção: O formato da folha ({selectedSheet.widthMm}x{selectedSheet.heightMm}mm) excede o tamanho máximo de gaveta da {selectedEquipment.name} ({selectedEquipment.maxW}x{selectedEquipment.maxH}mm).
-        </div>
+            {/* Dropdown de Seleção Automática de Cliente do CRM */}
+            <select
+              className="form-select"
+              style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', background: 'var(--bg-input)' }}
+              value={selectedClientId || ''}
+              onChange={(e) => setSelectedClientId && setSelectedClientId(e.target.value)}
+            >
+              <option value="">-- Selecionar Cliente do CRM (ou deixar Avulso) --</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  [{c.code || 'CLI'}] {c.tradeName || c.name} ({c.doc || 'Sem Doc'}) - {c.city || 'Maringá'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* SELEÇÃO DO EQUIPAMENTO DE IMPRESSÃO */}
+          <div className="form-group" style={{ background: 'rgba(0, 168, 232, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(0, 168, 232, 0.2)', marginBottom: '16px' }}>
+            <label className="form-label" style={{ color: 'var(--brand-cyan)' }}>
+              <Printer size={16} /> Impressora Digital Selecionada
+            </label>
+            <select
+              className="form-select"
+              style={{ fontWeight: 700, fontSize: '0.95rem' }}
+              value={selectedEquipmentId}
+              onChange={(e) => setSelectedEquipmentId(e.target.value)}
+            >
+              {equipments.filter(eq => eq.type !== 'offset').map((eq) => (
+                <option key={eq.id} value={eq.id}>
+                  {eq.name} (Máx: {eq.maxGsm}g | Formato Máx: {eq.maxW}x{eq.maxH}mm)
+                </option>
+              ))}
+            </select>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              {selectedEquipment.notes}
+            </div>
+          </div>
+
+          {/* AVISOS AUTOMÁTICOS DE INCOMPATIBILIDADE TÉCNICA */}
+          {gsmExceeded && (
+            <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={16} color="var(--danger)" />
+              Atenção: A gramatura de {selectedPaper.weightGsm}g excede o limite máximo suportado pela {selectedEquipment.name} ({selectedEquipment.maxGsm}g). Escolha a Xerox C8035 ou Impressão Off-set.
+            </div>
+          )}
+
+          {sizeExceeded && (
+            <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid var(--warning)', borderRadius: '8px', color: '#fcd34d', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={16} color="var(--warning)" />
+              Atenção: O formato da folha ({selectedSheet.widthMm}x{selectedSheet.heightMm}mm) excede o tamanho máximo de gaveta da {selectedEquipment.name} ({selectedEquipment.maxW}x{selectedEquipment.maxH}mm).
+            </div>
+          )}
+        </>
       )}
 
       {productCategory === 'flat' ? (
@@ -464,47 +507,72 @@ export default function DigitalCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Sangria (mm)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={bleed}
-              onChange={(e) => setBleed(Math.max(0, parseInt(e.target.value) || 0))}
-            />
-          </div>
-        </div>
 
-        {/* Formatos Editoriais Rápidos */}
-        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Atalhos Rápidos:</span>
-          <button
-            type="button"
-            onClick={() => { setProductW(90); setProductH(50); }}
-            style={{ padding: '4px 10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-main)', fontSize: '0.75rem', cursor: 'pointer' }}
-          >
-            Cartão (90x50mm)
-          </button>
-          <button
-            type="button"
-            onClick={() => { setProductW(140); setProductH(210); }}
-            style={{ padding: '4px 10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-main)', fontSize: '0.75rem', cursor: 'pointer' }}
-          >
-            14x21cm (Livro/A5)
-          </button>
-          <button
-            type="button"
-            onClick={() => { setProductW(160); setProductH(230); }}
-            style={{ padding: '4px 10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-main)', fontSize: '0.75rem', cursor: 'pointer' }}
-          >
-            16x23cm (Livro Padrão)
-          </button>
-          <button
-            type="button"
-            onClick={() => { setProductW(210); setProductH(280); }}
-            style={{ padding: '4px 10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-main)', fontSize: '0.75rem', cursor: 'pointer' }}
-          >
-            21x28cm (Revista/Catálogo)
-          </button>
+            {/* Formatos & Presets de Produtos Comerciais Rápidos */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--brand-cyan)', fontWeight: 700, alignSelf: 'center' }}>⚡ Presets de Produtos com 1-Clique:</span>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setProductW(90);
+                  setProductH(50);
+                  setColors('4/4');
+                  setQuantity(1000);
+                  const couche300 = papers.find(p => p.name.includes('300g') || p.weightGsm === 300);
+                  if (couche300) setSelectedPaperId(couche300.id);
+                }}
+                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                💳 Cartão de Visita 9x5cm (300g 4x4)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setProductW(140);
+                  setProductH(210);
+                  setColors('4/0');
+                  setQuantity(2500);
+                  const couche150 = papers.find(p => p.weightGsm === 150);
+                  if (couche150) setSelectedPaperId(couche150.id);
+                }}
+                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                📄 Panfleto A5 (14x21cm 150g 4x0)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setProductW(210);
+                  setProductH(297);
+                  setColors('4/4');
+                  setQuantity(1000);
+                  const couche150 = papers.find(p => p.weightGsm === 150);
+                  if (couche150) setSelectedPaperId(couche150.id);
+                }}
+                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                📜 Folder A4 2 Dobras (21x29,7cm 4x4)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setProductW(50);
+                  setProductH(180);
+                  setColors('4/4');
+                  setQuantity(1000);
+                  const couche300 = papers.find(p => p.weightGsm === 300);
+                  if (couche300) setSelectedPaperId(couche300.id);
+                }}
+                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                🔖 Marcador de Páginas (5x18cm 300g 4x4)
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,17 +1,37 @@
 import React, { useState } from 'react';
-import { DollarSign, PieChart, TrendingUp, FileCheck, Layers, ChevronDown, ChevronUp, Package, Printer, Scissors, Hash, Box, CheckSquare, Sparkles } from 'lucide-react';
+import { DollarSign, PieChart, TrendingUp, FileCheck, Layers, ChevronDown, ChevronUp, Package, Printer, Scissors, Hash, Box, CheckSquare, Sparkles, BookmarkPlus, CheckCircle2 } from 'lucide-react';
 
 export default function FinancialSummary({
   budgetResult,
   tierMatrix,
   financialConfig,
   setFinancialConfig,
-  onOpenQuoteModal
+  onOpenQuoteModal,
+  onSaveQuoteToHistory
 }) {
   const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(true);
+  const [savedMsg, setSavedMsg] = useState(false);
   const costs = budgetResult ? budgetResult.costs : {};
   const finishingsDetail = budgetResult ? budgetResult.finishingsDetail || [] : [];
   const qty = budgetResult.quantity || 1;
+
+  const handleQuickSave = () => {
+    if (!onSaveQuoteToHistory || !budgetResult) return;
+
+    const quoteData = {
+      clientName: 'Cliente Balcão',
+      clientDoc: 'Não Informado',
+      description: `Produção Gráfica — ${qty.toLocaleString()} un`,
+      paperName: 'Couché 150g',
+      dimensions: 'Formato Personalizado',
+      quantity: qty,
+      totalValue: Number(costs.finalPrice || 0)
+    };
+
+    onSaveQuoteToHistory(quoteData);
+    setSavedMsg(true);
+    setTimeout(() => setSavedMsg(false), 2500);
+  };
 
   // Percentage distribution calculations
   const direct = costs.directCost || 1;
@@ -32,27 +52,56 @@ export default function FinancialSummary({
               Formação do Preço de Venda
             </h3>
           </div>
-          <button
-            onClick={onOpenQuoteModal}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '10px',
-              border: 'none',
-              background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 15px rgba(0, 168, 232, 0.4)',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <FileCheck size={18} />
-            Gerar Proposta Comercial PDF
-          </button>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {savedMsg && (
+              <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle2 size={16} /> Salvo no Histórico!
+              </span>
+            )}
+
+            <button
+              onClick={handleQuickSave}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(139, 92, 246, 0.4)',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(109, 40, 217, 0.3))',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <BookmarkPlus size={16} color="#a78bfa" />
+              Salvar no Histórico
+            </button>
+
+            <button
+              onClick={onOpenQuoteModal}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 15px rgba(0, 168, 232, 0.4)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <FileCheck size={18} />
+              Gerar Proposta Comercial PDF
+            </button>
+          </div>
         </div>
 
         {/* Big Numbers Grid */}

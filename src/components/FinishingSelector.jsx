@@ -113,6 +113,50 @@ export default function FinishingSelector({
         </div>
       </div>
 
+      {/* Preset de Acabamentos Rápidos com 1-Clique */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--brand-cyan)', fontWeight: 700 }}>✨ Combinações Rápidas de Acabamento:</span>
+        
+        <button
+          onClick={() => {
+            const matches = availableFinishings.filter(f => f.name.includes('Laminação Fosca') || f.name.includes('Verniz Localizado'));
+            setSelectedFinishings(matches);
+          }}
+          style={{ padding: '4px 8px', background: 'rgba(0, 168, 232, 0.15)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Cartão Luxo (Laminação Fosca + Verniz Local)
+        </button>
+
+        <button
+          onClick={() => {
+            const matches = availableFinishings.filter(f => f.category === 'bannercut' && f.name.includes('Meio-Corte'));
+            setSelectedFinishings(matches);
+          }}
+          style={{ padding: '4px 8px', background: 'rgba(247, 181, 0, 0.15)', border: '1px solid rgba(247, 181, 0, 0.3)', borderRadius: '6px', color: 'var(--brand-yellow)', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
+        >
+          Adesivo (Meio-Corte BannerCut CCD)
+        </button>
+
+        <button
+          onClick={() => {
+            const matches = availableFinishings.filter(f => f.name.includes('Dobra') || f.name.includes('Vincado'));
+            setSelectedFinishings(matches);
+          }}
+          style={{ padding: '4px 8px', background: 'rgba(230, 46, 107, 0.15)', border: '1px solid rgba(230, 46, 107, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Folder / Encarte (Dobra ou Vinco)
+        </button>
+
+        {selectedFinishings.length > 0 && (
+          <button
+            onClick={() => setSelectedFinishings([])}
+            style={{ padding: '4px 8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#ef4444', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', marginLeft: 'auto' }}
+          >
+            Limpar Acabamentos ({selectedFinishings.length})
+          </button>
+        )}
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
         {filteredList.map((f) => {
           const isSelected = selectedFinishings.some(sf => sf.id === f.id);

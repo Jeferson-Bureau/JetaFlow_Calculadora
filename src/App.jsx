@@ -64,11 +64,16 @@ export default function App() {
   const handleSaveQuoteToHistory = (quoteData) => {
     const nextNum = quotesHistory.length + 1;
     const code = `ORC-A${String(nextNum).padStart(4, '0')}`;
+    const linkedClient = clients.find(c => c.id === selectedClientId);
+
     const newQuote = {
       id: `orc-${Date.now()}`,
       code,
       date: new Date().toLocaleDateString('pt-BR'),
       status: 'enviado',
+      clientId: selectedClientId || '',
+      clientName: linkedClient ? (linkedClient.tradeName || linkedClient.name) : (quoteData.clientName || 'Cliente Balcão'),
+      clientDoc: linkedClient ? linkedClient.doc : (quoteData.clientDoc || 'Não Informado'),
       ...quoteData
     };
     const updated = [newQuote, ...quotesHistory];
@@ -263,6 +268,7 @@ export default function App() {
 
 
   // Active Quote Parameters
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [productCategory, setProductCategory] = useState('flat');
   const [selectedPaperId, setSelectedPaperId] = useState('paper-9'); // Couche 150g
   const [selectedSheetId, setSelectedSheetId] = useState('sra3');
@@ -272,6 +278,8 @@ export default function App() {
   const [colors, setColors] = useState('4/0');
   const [quantity, setQuantity] = useState(500);
   const [selectedFinishings, setSelectedFinishings] = useState([]);
+
+
   
   // Editorial Book / Catalog Parameters
   const [editorial, setEditorial] = useState({
@@ -463,13 +471,44 @@ export default function App() {
           
           {/* Top Section: Form Inputs & 2D Sheet Viewer */}
           {activeTab === 'digital' && productCategory === 'quotes_history' ? (
-            <QuoteHistoryManager
-              quotes={quotesHistory}
-              onUpdateQuote={handleUpdateQuoteInHistory}
-              onDeleteQuote={handleDeleteQuoteFromHistory}
-              onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
-              onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <DigitalCalculator
+                papers={papers}
+                sheetSizes={sheetSizes}
+                equipments={equipments}
+                selectedEquipmentId={selectedEquipmentId}
+                setSelectedEquipmentId={setSelectedEquipmentId}
+                selectedPaperId={selectedPaperId}
+                setSelectedPaperId={setSelectedPaperId}
+                selectedSheetId={selectedSheetId}
+                setSelectedSheetId={setSelectedSheetId}
+                productW={productW}
+                setProductW={setProductW}
+                productH={productH}
+                setProductH={setProductH}
+                bleed={bleed}
+                setBleed={setBleed}
+                colors={colors}
+                setColors={setColors}
+                quantity={quantity}
+                setQuantity={setQuantity}
+                productCategory={productCategory}
+                setProductCategory={setProductCategory}
+                editorial={editorial}
+                setEditorial={setEditorial}
+                spineMm={budgetResult.spineMm || 0}
+                clients={clients}
+                selectedClientId={selectedClientId}
+                setSelectedClientId={setSelectedClientId}
+              />
+              <QuoteHistoryManager
+                quotes={quotesHistory}
+                onUpdateQuote={handleUpdateQuoteInHistory}
+                onDeleteQuote={handleDeleteQuoteFromHistory}
+                onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
+                onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+              />
+            </div>
           ) : (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
@@ -563,6 +602,7 @@ export default function App() {
                 financialConfig={financialConfig}
                 setFinancialConfig={handleSetFinancialConfig}
                 onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
+                onSaveQuoteToHistory={handleSaveQuoteToHistory}
               />
             </>
           )}
