@@ -251,35 +251,44 @@ export default function SettingsManager({
       {/* Subtab Content: Cliques Digitais */}
       {activeSubTab === 'digital' && (
         <div className="glass-card" style={{ padding: '20px' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '14px' }}>
-            Valores por Clique / Impressão Digital
-          </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
+              Valores por Clique Base (Formato A4) — Xerox AltaLink C8035
+            </h4>
+            <span style={{ fontSize: '0.75rem', background: 'rgba(0, 168, 232, 0.1)', color: 'var(--brand-cyan)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(0, 168, 232, 0.2)' }}>
+              Maringá/PR • Equipamento Próprio
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
             
             <div className="form-group">
-              <label className="form-label">Colorido Frente (4/0) - R$/Clique</label>
+              <label className="form-label">Colorido Frente (4/0) - A4 (R$/Clique)</label>
               <input
                 type="number"
                 step="0.01"
                 className="form-input"
+                style={{ fontWeight: 700, color: 'var(--brand-cyan)' }}
                 value={digitalClickRates.clickColorSimplex}
                 onChange={(e) => setDigitalClickRates({ ...digitalClickRates, clickColorSimplex: parseFloat(e.target.value) || 0 })}
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Colorido Frente e Verso (4/4) - R$/Clique</label>
+              <label className="form-label">Colorido Frente e Verso (4/4) - A4 (R$/Clique)</label>
               <input
                 type="number"
                 step="0.01"
                 className="form-input"
+                style={{ fontWeight: 700, color: 'var(--brand-cyan)' }}
                 value={digitalClickRates.clickColorDuplex}
                 onChange={(e) => setDigitalClickRates({ ...digitalClickRates, clickColorDuplex: parseFloat(e.target.value) || 0 })}
               />
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>2x o clique face (4/0 + 4/0)</span>
             </div>
 
             <div className="form-group">
-              <label className="form-label">PB Frente (1/0) - R$/Clique</label>
+              <label className="form-label">PB Frente (1/0) - A4 (R$/Clique)</label>
               <input
                 type="number"
                 step="0.01"
@@ -290,7 +299,7 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">PB Frente e Verso (1/1) - R$/Clique</label>
+              <label className="form-label">PB Frente e Verso (1/1) - A4 (R$/Clique)</label>
               <input
                 type="number"
                 step="0.01"
@@ -298,6 +307,7 @@ export default function SettingsManager({
                 value={digitalClickRates.clickMonoDuplex}
                 onChange={(e) => setDigitalClickRates({ ...digitalClickRates, clickMonoDuplex: parseFloat(e.target.value) || 0 })}
               />
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>2x o clique face (1/0 + 1/0)</span>
             </div>
 
             <div className="form-group">
@@ -311,6 +321,51 @@ export default function SettingsManager({
               />
             </div>
 
+          </div>
+
+          {/* Tabela de Conversão Dinâmica por Formato */}
+          <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-light)' }}>
+              📊 Tabela de Custo Efetivo por Formato de Folha (Multiplicador Automático)
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                  <th style={{ padding: '6px' }}>Formato da Folha</th>
+                  <th style={{ padding: '6px' }}>Fator</th>
+                  <th style={{ padding: '6px' }}>Preto 1/0</th>
+                  <th style={{ padding: '6px' }}>Preto 1/1 (Duplex)</th>
+                  <th style={{ padding: '6px' }}>Colorido 4/0</th>
+                  <th style={{ padding: '6px' }}>Colorido 4/4 (Duplex)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '6px', fontWeight: 600 }}>A4 Padronizado (210 x 297 mm)</td>
+                  <td style={{ padding: '6px', color: 'var(--text-muted)' }}>1,0x</td>
+                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoSimplex || 0.13).toFixed(2)}</td>
+                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoDuplex || 0.26).toFixed(2)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorSimplex || 0.55).toFixed(2)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorDuplex || 1.10).toFixed(2)}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '6px', fontWeight: 600 }}>A3 Padrão (297 x 420 mm)</td>
+                  <td style={{ padding: '6px', color: 'var(--text-muted)' }}>2,0x</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.13) * 2).toFixed(2)}</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.26) * 2).toFixed(2)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorSimplex || 0.55) * 2).toFixed(2)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorDuplex || 1.10) * 2).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '6px', fontWeight: 700, color: 'var(--brand-yellow)' }}>SRA3 / Super A3 (Gráfica Rápida)</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-yellow)', fontWeight: 700 }}>2,3x</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.13) * 2.3).toFixed(2)}</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.26) * 2.3).toFixed(2)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorSimplex || 0.55) * 2.3).toFixed(2)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorDuplex || 1.10) * 2.3).toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}

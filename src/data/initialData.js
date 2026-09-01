@@ -10,11 +10,20 @@ export const DEFAULT_EQUIPMENTS = [
     maxH: 480,
     maxGsm: 256,
     speedPpm: 35,
-    clickMono: 0.12,
-    clickColor: 0.45,
-    clickMonoDuplex: 0.20,
-    clickColorDuplex: 0.85,
-    notes: 'Ideal para papéis até 256g em formato SRA3/A3. Impressão laser de alta resolução.'
+    // Custos Base A4 (Maringá/Equipamento Próprio)
+    clickMono: 0.13,        // A4 Preto (1/0)
+    clickColor: 0.55,       // A4 Colorido (4/0)
+    clickMonoDuplex: 0.26,  // A4 Preto Duplex (1/1 = 2x)
+    clickColorDuplex: 1.10, // A4 Colorido Duplex (4/4 = 2x)
+    // Multiplicadores por formato de folha
+    formatMultipliers: {
+      a4: 1.0,              // A4: 1x (Preto: 0,13 / Color: 0,55)
+      a3: 2.0,              // A3: 2x (Preto: 0,26 / Color: 1,10)
+      sra3: 2.3,            // SRA3: 2,3x (Preto: 0,30 / Color: 1,265)
+      'maxi-digital': 2.3,   // Super A3 Extra: 2,3x
+      'banner-digital': 3.5 // Banner Digital (33x66cm): 3,5x
+    },
+    notes: 'Base A4: PB R$ 0,13 / Color R$ 0,55 | Multiplicadores: A3 (2x), SRA3 (2,3x). Duplex = 2x face.'
   },
   {
     id: 'canon-gx7010',
@@ -74,6 +83,7 @@ export const DEFAULT_PAPERS = [
 export const DEFAULT_SHEET_SIZES = [
   { id: 'sra3', name: 'SRA3 (320 x 450 mm)', widthMm: 320, heightMm: 450, printableW: 310, printableH: 440, baseFormat: '66x96', formatRatio: 4 },
   { id: 'maxi-digital', name: 'Super A3 Extra (330 x 480 mm)', widthMm: 330, heightMm: 480, printableW: 320, printableH: 470, baseFormat: '66x96', formatRatio: 4 },
+  { id: 'a3', name: 'A3 Padrão (297 x 420 mm)', widthMm: 297, heightMm: 420, printableW: 287, printableH: 410, baseFormat: '66x96', formatRatio: 4 },
   { id: 'banner-digital', name: 'Banner Digital (330 x 660 mm)', widthMm: 330, heightMm: 660, printableW: 320, printableH: 650, baseFormat: '66x96', formatRatio: 3 },
   { id: 'a4', name: 'A4 Padronizado (210 x 297 mm)', widthMm: 210, heightMm: 297, printableW: 200, printableH: 287, baseFormat: '66x96', formatRatio: 8 },
   { id: 'full-66x96', name: 'Folha Inteira Offset (660 x 960 mm)', widthMm: 660, heightMm: 960, printableW: 640, printableH: 940, baseFormat: '66x96', formatRatio: 1 },
@@ -82,10 +92,10 @@ export const DEFAULT_SHEET_SIZES = [
 ];
 
 export const DEFAULT_DIGITAL_CLICKS = {
-  clickColorSimplex: 0.45,   // 4/0
-  clickColorDuplex: 0.85,    // 4/4
-  clickMonoSimplex: 0.12,    // 1/0
-  clickMonoDuplex: 0.20,     // 1/1
+  clickColorSimplex: 0.55,   // 4/0 Base A4
+  clickColorDuplex: 1.10,    // 4/4 Base A4 (2x)
+  clickMonoSimplex: 0.13,    // 1/0 Base A4
+  clickMonoDuplex: 0.26,     // 1/1 Base A4 (2x)
   largeFormatM2Tinta: 12.00  // Impressão m² Comunicação Visual
 };
 

@@ -241,8 +241,11 @@ export default function FinancialSummary({
 
               {showDetailedBreakdown && (
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', paddingLeft: '20px' }}>
-                  • {budgetResult.grossSheets || 0} passadas de máquina.<br />
-                  • Custo de impressão unitário: R$ {((costs.printCost || 0) / qty).toFixed(4)}/un.
+                  • {budgetResult.grossSheets || 0} passadas de máquina (folhas brutas).<br />
+                  {costs.clickRate > 0 && (
+                    <>• Custo efetivo por clique: <strong>R$ {Number(costs.clickRate).toFixed(3)}</strong>/folha (Fator formato: {costs.formatFactor || 1.0}x).<br /></>
+                  )}
+                  • Custo de impressão unitário por produto: R$ {((costs.printCost || 0) / qty).toFixed(4)}/un.
                 </div>
               )}
             </div>

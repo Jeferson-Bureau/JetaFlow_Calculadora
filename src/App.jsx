@@ -248,7 +248,8 @@ export default function App() {
         clickColorSimplex: selectedEquipment.clickColor,
         clickColorDuplex: selectedEquipment.clickColorDuplex,
         clickMonoSimplex: selectedEquipment.clickMono,
-        clickMonoDuplex: selectedEquipment.clickMonoDuplex
+        clickMonoDuplex: selectedEquipment.clickMonoDuplex,
+        formatMultipliers: selectedEquipment.formatMultipliers || { a4: 1.0, a3: 2.0, sra3: 2.3, 'maxi-digital': 2.3 }
       };
     } else if (selectedEquipment.id === 'xerox-c8035') {
       return {
@@ -256,10 +257,14 @@ export default function App() {
         clickColorSimplex: selectedEquipment.clickColor,
         clickColorDuplex: selectedEquipment.clickColorDuplex,
         clickMonoSimplex: selectedEquipment.clickMono,
-        clickMonoDuplex: selectedEquipment.clickMonoDuplex
+        clickMonoDuplex: selectedEquipment.clickMonoDuplex,
+        formatMultipliers: selectedEquipment.formatMultipliers || { a4: 1.0, a3: 2.0, sra3: 2.3, 'maxi-digital': 2.3, 'banner-digital': 3.5 }
       };
     }
-    return digitalClickRates;
+    return {
+      ...digitalClickRates,
+      formatMultipliers: { a4: 1.0, a3: 2.0, sra3: 2.3, 'maxi-digital': 2.3, 'banner-digital': 3.5 }
+    };
   }, [selectedEquipment, digitalClickRates]);
 
   // Current Budget Calculation
