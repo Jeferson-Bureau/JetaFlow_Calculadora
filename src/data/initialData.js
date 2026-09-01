@@ -10,20 +10,20 @@ export const DEFAULT_EQUIPMENTS = [
     maxH: 480,
     maxGsm: 256,
     speedPpm: 35,
-    // Custos Base A4 (Maringá/Equipamento Próprio)
-    clickMono: 0.13,        // A4 Preto (1/0)
-    clickColor: 0.55,       // A4 Colorido (4/0)
-    clickMonoDuplex: 0.26,  // A4 Preto Duplex (1/1 = 2x)
-    clickColorDuplex: 1.10, // A4 Colorido Duplex (4/4 = 2x)
+    // Custos Base A4 (-20% de desconto aplicado)
+    clickMono: 0.10,        // A4 Preto (1/0) - era 0.13 (-20%)
+    clickColor: 0.44,       // A4 Colorido (4/0) - era 0.55 (-20%)
+    clickMonoDuplex: 0.20,  // A4 Preto Duplex (1/1 = 2x) - era 0.26 (-20%)
+    clickColorDuplex: 0.88, // A4 Colorido Duplex (4/4 = 2x) - era 1.10 (-20%)
     // Multiplicadores por formato de folha
     formatMultipliers: {
-      a4: 1.0,              // A4: 1x (Preto: 0,13 / Color: 0,55)
-      a3: 2.0,              // A3: 2x (Preto: 0,26 / Color: 1,10)
-      sra3: 2.3,            // SRA3: 2,3x (Preto: 0,30 / Color: 1,265)
+      a4: 1.0,              // A4: 1x (Preto: 0,10 / Color: 0,44)
+      a3: 2.0,              // A3: 2x (Preto: 0,20 / Color: 0,88)
+      sra3: 2.3,            // SRA3: 2,3x (Preto: 0,23 / Color: 1,012)
       'maxi-digital': 2.3,   // Super A3 Extra: 2,3x
       'banner-digital': 3.5 // Banner Digital (33x66cm): 3,5x
     },
-    notes: 'Base A4: PB R$ 0,13 / Color R$ 0,55 | Multiplicadores: A3 (2x), SRA3 (2,3x). Duplex = 2x face.'
+    notes: 'Base A4 (-20%): PB R$ 0,10 / Color R$ 0,44 | Multiplicadores: A3 (2x), SRA3 (2,3x). Duplex = 2x face.'
   },
   {
     id: 'canon-gx7010',
@@ -92,10 +92,10 @@ export const DEFAULT_SHEET_SIZES = [
 ];
 
 export const DEFAULT_DIGITAL_CLICKS = {
-  clickColorSimplex: 0.55,   // 4/0 Base A4
-  clickColorDuplex: 1.10,    // 4/4 Base A4 (2x)
-  clickMonoSimplex: 0.13,    // 1/0 Base A4
-  clickMonoDuplex: 0.26,     // 1/1 Base A4 (2x)
+  clickColorSimplex: 0.44,   // 4/0 Base A4 (-20%)
+  clickColorDuplex: 0.88,    // 4/4 Base A4 (2x) (-20%)
+  clickMonoSimplex: 0.10,    // 1/0 Base A4 (-20%)
+  clickMonoDuplex: 0.20,     // 1/1 Base A4 (2x) (-20%)
   largeFormatM2Tinta: 12.00  // Impressão m² Comunicação Visual
 };
 
