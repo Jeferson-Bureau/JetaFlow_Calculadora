@@ -343,26 +343,26 @@ export default function SettingsManager({
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <td style={{ padding: '6px', fontWeight: 600 }}>A4 Padronizado (210 x 297 mm)</td>
                   <td style={{ padding: '6px', color: 'var(--text-muted)' }}>1,0x</td>
-                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoSimplex || 0.076).toFixed(3)}</td>
-                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoDuplex || 0.152).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorSimplex || 0.321).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorDuplex || 0.642).toFixed(3)}</td>
+                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoSimplex || 0.072).toFixed(3)}</td>
+                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoDuplex || 0.144).toFixed(3)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorSimplex || 0.305).toFixed(3)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorDuplex || 0.610).toFixed(3)}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <td style={{ padding: '6px', fontWeight: 600 }}>A3 Padrão (297 x 420 mm)</td>
                   <td style={{ padding: '6px', color: 'var(--text-muted)' }}>2,0x</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.076) * 2).toFixed(3)}</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.152) * 2).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorSimplex || 0.321) * 2).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorDuplex || 0.642) * 2).toFixed(3)}</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.072) * 2).toFixed(3)}</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.144) * 2).toFixed(3)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorSimplex || 0.305) * 2).toFixed(3)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorDuplex || 0.610) * 2).toFixed(3)}</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '6px', fontWeight: 700, color: 'var(--brand-yellow)' }}>SRA3 / Super A3 (Gráfica Rápida)</td>
                   <td style={{ padding: '6px', color: 'var(--brand-yellow)', fontWeight: 700 }}>2,3x</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.076) * 2.3).toFixed(3)}</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.152) * 2.3).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorSimplex || 0.321) * 2.3).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorDuplex || 0.642) * 2.3).toFixed(3)}</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.072) * 2.3).toFixed(3)}</td>
+                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.144) * 2.3).toFixed(3)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorSimplex || 0.305) * 2.3).toFixed(3)}</td>
+                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorDuplex || 0.610) * 2.3).toFixed(3)}</td>
                 </tr>
               </tbody>
             </table>
