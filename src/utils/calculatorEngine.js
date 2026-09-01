@@ -240,10 +240,10 @@ export function calculateBudget(config) {
       else if (sheetSize.id === 'banner-digital') editorialFormatFactor = 3.5;
     }
 
-    let baseCoverClick = digitalClickRates.clickColorSimplex || 0.495;
-    if (editorial.coverColors === '4/4') baseCoverClick = digitalClickRates.clickColorDuplex || 0.99;
-    else if (editorial.coverColors === '1/0') baseCoverClick = digitalClickRates.clickMonoSimplex || 0.117;
-    else if (editorial.coverColors === '1/1') baseCoverClick = digitalClickRates.clickMonoDuplex || 0.234;
+    let baseCoverClick = digitalClickRates.clickColorSimplex || 0.605;
+    if (editorial.coverColors === '4/4') baseCoverClick = digitalClickRates.clickColorDuplex || 1.21;
+    else if (editorial.coverColors === '1/0') baseCoverClick = digitalClickRates.clickMonoSimplex || 0.143;
+    else if (editorial.coverColors === '1/1') baseCoverClick = digitalClickRates.clickMonoDuplex || 0.286;
 
     const coverClickRate = baseCoverClick * editorialFormatFactor;
     const coverPrintCost = grossCoverSheets * coverClickRate;
@@ -259,10 +259,10 @@ export function calculateBudget(config) {
     const mioloPaperPrice = Number(mioloPaper.pricePerSheetSra3 || 0.35);
     const mioloPaperCost = grossMioloSheets * mioloPaperPrice;
 
-    let baseMioloClick = digitalClickRates.clickMonoDuplex || 0.234;
-    if (editorial.mioloColors === '4/4') baseMioloClick = digitalClickRates.clickColorDuplex || 0.99;
-    else if (editorial.mioloColors === '1/0') baseMioloClick = digitalClickRates.clickMonoSimplex || 0.117;
-    else if (editorial.mioloColors === '4/0') baseMioloClick = digitalClickRates.clickColorSimplex || 0.495;
+    let baseMioloClick = digitalClickRates.clickMonoDuplex || 0.286;
+    if (editorial.mioloColors === '4/4') baseMioloClick = digitalClickRates.clickColorDuplex || 1.21;
+    else if (editorial.mioloColors === '1/0') baseMioloClick = digitalClickRates.clickMonoSimplex || 0.143;
+    else if (editorial.mioloColors === '4/0') baseMioloClick = digitalClickRates.clickColorSimplex || 0.605;
 
     const mioloClickRate = baseMioloClick * editorialFormatFactor;
     const mioloPrintCost = grossMioloSheets * mioloClickRate;
@@ -311,10 +311,10 @@ export function calculateBudget(config) {
       else if (sheetSize.id === 'a4') formatFactor = 1.0;
     }
 
-    let baseClick = digitalClickRates.clickColorSimplex || 0.495;
-    if (colors === '4/4') baseClick = digitalClickRates.clickColorDuplex || 0.99;
-    else if (colors === '1/0') baseClick = digitalClickRates.clickMonoSimplex || 0.117;
-    else if (colors === '1/1') baseClick = digitalClickRates.clickMonoDuplex || 0.234;
+    let baseClick = digitalClickRates.clickColorSimplex || 0.605;
+    if (colors === '4/4') baseClick = digitalClickRates.clickColorDuplex || 1.21;
+    else if (colors === '1/0') baseClick = digitalClickRates.clickMonoSimplex || 0.143;
+    else if (colors === '1/1') baseClick = digitalClickRates.clickMonoDuplex || 0.286;
 
     clickRate = baseClick * formatFactor;
 
