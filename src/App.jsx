@@ -11,6 +11,7 @@ import SettingsManager from './components/SettingsManager';
 import ClientManager from './components/ClientManager';
 import SupplierManager from './components/SupplierManager';
 import LicitacaoManager from './components/LicitacaoManager';
+import DashboardOverview from './components/DashboardOverview';
 
 import {
   DEFAULT_EQUIPMENTS,
@@ -29,7 +30,7 @@ import { calculateBudget, generateTierMatrix, generateNextClientCode, generateNe
 
 export default function App() {
   // Navigation
-  const [activeTab, setActiveTab] = useState('digital');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Input Data Databases
   const [equipments] = useState(DEFAULT_EQUIPMENTS);
@@ -336,7 +337,18 @@ export default function App() {
       />
 
       {/* Main Workspace Tabs */}
-      {activeTab === 'settings' ? (
+      {activeTab === 'dashboard' ? (
+        <DashboardOverview
+          biddings={biddings}
+          clients={clients}
+          suppliers={suppliers}
+          papers={papers}
+          equipments={equipments}
+          financialConfig={financialConfig}
+          digitalClickRates={digitalClickRates}
+          setActiveTab={setActiveTab}
+        />
+      ) : activeTab === 'settings' ? (
         <SettingsManager
           papers={papers}
           setPapers={setPapers}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Printer, Cpu, Sliders, FileText, Layers, RefreshCw, Users, Truck, Award } from 'lucide-react';
+import { LayoutDashboard, Printer, Cpu, Sliders, FileText, Layers, RefreshCw, Users, Truck, Award } from 'lucide-react';
 
 export default function Header({ activeTab, setActiveTab, onReset }) {
   return (
@@ -47,6 +47,27 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
 
         {/* Tab Navigation Buttons */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'dashboard' ? 'linear-gradient(135deg, #00A8E8, #0077b6)' : 'var(--bg-input)',
+              color: activeTab === 'dashboard' ? '#ffffff' : 'var(--text-muted)',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'dashboard' ? '0 0 15px rgba(0, 168, 232, 0.5)' : 'none'
+            }}
+          >
+            <LayoutDashboard size={18} />
+            Dashboard
+          </button>
           <button
             onClick={() => setActiveTab('digital')}
             style={{
