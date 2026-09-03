@@ -429,8 +429,8 @@ export const DEFAULT_SUPPLIERS = [
     createdAt: '2026-02-28'
   },
   {
-    id: 'sup-3',
-    code: 'FOR-A0003',
+    id: 'sup-100',
+    code: 'FOR-A0100',
     name: 'INDUSPEL EMBALAGENS LTDA',
     tradeName: 'Induspel',
     category: 'papeis',

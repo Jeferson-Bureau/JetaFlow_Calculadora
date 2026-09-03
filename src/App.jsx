@@ -132,7 +132,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         const isOldFictitious = parsed.some(c => (c.name || '').includes('Brasil Ltda') || c.doc === '12.345.678/0001-90');
-        if (Array.isArray(parsed) && parsed.length > 0 && !isOldFictitious) return parsed;
+        if (Array.isArray(parsed) && !isOldFictitious) return parsed;
       } catch (e) {
         console.error(e);
       }
@@ -148,7 +148,16 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         const isOldFictitious = parsed.some(s => (s.name || '').includes('Battaglia Distribuidora') || s.doc === '61.123.456/0001-88');
-        if (Array.isArray(parsed) && parsed.length > 0 && !isOldFictitious) return parsed;
+        if (Array.isArray(parsed) && !isOldFictitious) {
+          if (!parsed.find(s => s.doc === '07.688.318/0001-56')) {
+            const induspel = DEFAULT_SUPPLIERS.find(s => s.doc === '07.688.318/0001-56');
+            if (induspel) {
+              parsed.push(induspel);
+              localStorage.setItem('jetaflow_suppliers_v2', JSON.stringify(parsed));
+            }
+          }
+          return parsed;
+        }
       } catch (e) {
         console.error(e);
       }
@@ -163,7 +172,7 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error(e);
       }
