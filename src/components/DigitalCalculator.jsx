@@ -1,5 +1,6 @@
 import React from 'react';
-import { Layers, FileText, Palette, Hash, Box, BookOpen, Bookmark, Printer, AlertTriangle, CheckCircle2, User } from 'lucide-react';
+import { Layers, FileText, Palette, Hash, Box, BookOpen, Bookmark, Printer, AlertTriangle, CheckCircle2, User, PackageSearch } from 'lucide-react';
+import ProductConfigurator from './ProductConfigurator';
 
 export default function DigitalCalculator({
   papers,
@@ -107,52 +108,129 @@ export default function DigitalCalculator({
           >
             <FileText size={14} /> Orçamentos Salvos
           </button>
+          
+          <button
+            type="button"
+            onClick={() => setProductCategory('configurable')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '8px',
+              border: 'none',
+              background: productCategory === 'configurable' ? 'linear-gradient(135deg, #ec4899, #be185d)' : 'transparent',
+              color: productCategory === 'configurable' ? '#ffffff' : 'var(--text-muted)',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <PackageSearch size={14} /> Produtos Personalizados
+          </button>
         </div>
       </div>
 
       {productCategory !== 'quotes_history' && (
         <>
-          {/* VINCULAÇÃO DE CLIENTE AO ORÇAMENTO (DROPDOWN + AUTOCOMPLETE + NOVO CLIENTE) */}
-          <div className="form-group" style={{ background: 'rgba(16, 185, 129, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.25)', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-              <label className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <User size={16} /> Cliente Vinculado ao Orçamento (Dropdown CRM ou Avulso)
+          {/* VINCULAÇÃO DE CLIENTE AO ORÇAMENTO (CÓDIGO DO CLIENTE & NOME FANTASIA) */}
+          <div className="form-group" style={{ background: 'rgba(16, 185, 129, 0.06)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+              <label className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
+                <User size={18} /> Vinculação do Cliente (CRM)
               </label>
 
-              <div style={{ display: 'flex', gap: '6px' }}>
-                {selectedClientId ? (
-                  <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--success)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+              {selectedClientId ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--success)', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.4)' }}>
                     ✓ Cliente Vinculado
                   </span>
-                ) : (
-                  <span style={{ fontSize: '0.75rem', background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '4px' }}>
-                    Balcão / Avulso
-                  </span>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedClientId && setSelectedClientId('')}
+                    style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
+                  >
+                    Desvincular
+                  </button>
+                </div>
+              ) : (
+                <span style={{ fontSize: '0.75rem', background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-muted)', padding: '3px 10px', borderRadius: '6px' }}>
+                  Atendimento Balcão / Avulso
+                </span>
+              )}
+            </div>
+
+            {/* Grid com Campos Específicos: Código do Cliente & Nome Fantasia */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+              
+              {/* Campo 1: Código do Cliente (Com auto-preenchimento e busca rápida) */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Código do Cliente (Ex: CLI-A0001)
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Digite o código (ex: CLI-A0001)..."
+                  style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--brand-cyan)', background: '#0f172a', border: '1px solid rgba(0, 168, 232, 0.4)' }}
+                  value={
+                    clients.find(c => c.id === selectedClientId)?.code || ''
+                  }
+                  onChange={(e) => {
+                    const codeTyped = e.target.value.trim().toUpperCase();
+                    const found = clients.find(c => c.code && c.code.toUpperCase() === codeTyped);
+                    if (found) {
+                      setSelectedClientId(found.id);
+                    } else if (codeTyped === '') {
+                      setSelectedClientId('');
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Campo 2: Nome Fantasia (Auto-preenchimento + Dropdown de Clientes) */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Nome Fantasia do Cliente
+                </label>
+                <select
+                  className="form-select"
+                  style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', background: '#0f172a', border: '1px solid rgba(16, 185, 129, 0.4)' }}
+                  value={selectedClientId || ''}
+                  onChange={(e) => setSelectedClientId && setSelectedClientId(e.target.value)}
+                >
+                  <option value="">-- Selecionar Nome Fantasia (ou Balcão) --</option>
+                  {clients && clients.length > 0 && clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.tradeName || c.name} — ({c.code || 'CLI'}) [{c.doc || 'Sem Doc'}]
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Dropdown de Seleção Automática de Cliente do CRM */}
-            <select
-              className="form-select"
-              style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', background: 'var(--bg-input)' }}
-              value={selectedClientId || ''}
-              onChange={(e) => setSelectedClientId && setSelectedClientId(e.target.value)}
-            >
-              <option value="">-- Selecionar Cliente do CRM (ou deixar Avulso) --</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  [{c.code || 'CLI'}] {c.tradeName || c.name} ({c.doc || 'Sem Doc'}) - {c.city || 'Maringá'}
-                </option>
-              ))}
-            </select>
+            {/* Resumo do Cliente Selecionado */}
+            {selectedClientId && (() => {
+              const currentClient = clients.find(c => c.id === selectedClientId);
+              if (!currentClient) return null;
+              return (
+                <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)', display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.8rem' }}>
+                  <div><strong style={{ color: 'var(--text-muted)' }}>Razão Social:</strong> {currentClient.name}</div>
+                  <div><strong style={{ color: 'var(--text-muted)' }}>CNPJ/CPF:</strong> {currentClient.doc}</div>
+                  <div><strong style={{ color: 'var(--text-muted)' }}>Cidade:</strong> {currentClient.city || 'Maringá'}</div>
+                  <div><strong style={{ color: 'var(--text-muted)' }}>Contato:</strong> {currentClient.phone || 'N/A'}</div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* SELEÇÃO DO EQUIPAMENTO DE IMPRESSÃO */}
-          <div className="form-group" style={{ background: 'rgba(0, 168, 232, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(0, 168, 232, 0.2)', marginBottom: '16px' }}>
-            <label className="form-label" style={{ color: 'var(--brand-cyan)' }}>
-              <Printer size={16} /> Impressora Digital Selecionada
-            </label>
+          {productCategory !== 'configurable' && (
+            <>
+              <div className="form-group" style={{ background: 'rgba(0, 168, 232, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(0, 168, 232, 0.2)', marginBottom: '16px' }}>
+                <label className="form-label" style={{ color: 'var(--brand-cyan)' }}>
+                  <Printer size={16} /> Impressora Digital Selecionada
+                </label>
             <select
               className="form-select"
               style={{ fontWeight: 700, fontSize: '0.95rem' }}
@@ -184,10 +262,14 @@ export default function DigitalCalculator({
               Atenção: O formato da folha ({selectedSheet.widthMm}x{selectedSheet.heightMm}mm) excede o tamanho máximo de gaveta da {selectedEquipment.name} ({selectedEquipment.maxW}x{selectedEquipment.maxH}mm).
             </div>
           )}
+          </>
+          )}
         </>
       )}
 
-      {productCategory === 'flat' ? (
+      {productCategory === 'configurable' ? (
+        <ProductConfigurator papers={papers} />
+      ) : productCategory === 'flat' ? (
         /* --- PRODUTO COMERCIAL / AVULSO --- */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
           <div className="form-group">
@@ -480,6 +562,7 @@ export default function DigitalCalculator({
       )}
 
       {/* Dimensões do Produto Fechado */}
+      {productCategory !== 'configurable' && (
       <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
         <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Tamanho do Produto Fechado (mm)
@@ -505,76 +588,8 @@ export default function DigitalCalculator({
               onChange={(e) => setProductH(Math.max(1, parseInt(e.target.value) || 1))}
             />
           </div>
-
-          <div className="form-group">
-
-            {/* Formatos & Presets de Produtos Comerciais Rápidos */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--brand-cyan)', fontWeight: 700, alignSelf: 'center' }}>⚡ Presets de Produtos com 1-Clique:</span>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  setProductW(90);
-                  setProductH(50);
-                  setColors('4/4');
-                  setQuantity(1000);
-                  const couche300 = papers.find(p => p.name.includes('300g') || p.weightGsm === 300);
-                  if (couche300) setSelectedPaperId(couche300.id);
-                }}
-                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                💳 Cartão de Visita 9x5cm (300g 4x4)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setProductW(140);
-                  setProductH(210);
-                  setColors('4/0');
-                  setQuantity(2500);
-                  const couche150 = papers.find(p => p.weightGsm === 150);
-                  if (couche150) setSelectedPaperId(couche150.id);
-                }}
-                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                📄 Panfleto A5 (14x21cm 150g 4x0)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setProductW(210);
-                  setProductH(297);
-                  setColors('4/4');
-                  setQuantity(1000);
-                  const couche150 = papers.find(p => p.weightGsm === 150);
-                  if (couche150) setSelectedPaperId(couche150.id);
-                }}
-                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                📜 Folder A4 2 Dobras (21x29,7cm 4x4)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setProductW(50);
-                  setProductH(180);
-                  setColors('4/4');
-                  setQuantity(1000);
-                  const couche300 = papers.find(p => p.weightGsm === 300);
-                  if (couche300) setSelectedPaperId(couche300.id);
-                }}
-                style={{ padding: '5px 10px', background: 'rgba(0, 168, 232, 0.12)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                🔖 Marcador de Páginas (5x18cm 300g 4x4)
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

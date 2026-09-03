@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Printer, Cpu, Sliders, FileText, Layers, RefreshCw, Users, Truck, Award } from 'lucide-react';
+import { LayoutDashboard, Printer, Cpu, Sliders, FileText, Layers, RefreshCw, Users, Truck, Award, PackageSearch, Tag } from 'lucide-react';
 
 export default function Header({ activeTab, setActiveTab, onReset }) {
   return (
@@ -199,6 +199,28 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
           >
             <Award size={18} />
             Licitações
+          </button>
+
+          <button
+            onClick={() => setActiveTab('labels')}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'labels' ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'var(--bg-input)',
+              color: activeTab === 'labels' ? '#ffffff' : 'var(--text-muted)',
+              fontWeight: activeTab === 'labels' ? 800 : 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'labels' ? '0 0 15px rgba(244, 63, 94, 0.4)' : 'none'
+            }}
+          >
+            <Tag size={18} />
+            Etiquetas
           </button>
 
           <button

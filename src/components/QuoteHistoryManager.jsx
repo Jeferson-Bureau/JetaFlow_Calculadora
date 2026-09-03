@@ -3,6 +3,7 @@ import { FileText, Search, Plus, Trash2, Printer, Eye, Copy, CheckCircle2, Clock
 
 export default function QuoteHistoryManager({
   quotes = [],
+  clients = [],
   onUpdateQuote,
   onDeleteQuote,
   onOpenQuoteModal,
@@ -245,10 +246,24 @@ export default function QuoteHistoryManager({
                   <input
                     type="text"
                     className="form-input"
+                    list="history-clients-list"
                     value={editingQuote.clientName || ''}
-                    onChange={(e) => setEditingQuote({ ...editingQuote, clientName: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const matchedClient = clients.find(c => c.name === val || c.tradeName === val);
+                      setEditingQuote({ 
+                        ...editingQuote, 
+                        clientName: val,
+                        clientDoc: matchedClient ? (matchedClient.doc || '') : editingQuote.clientDoc
+                      });
+                    }}
                     required
                   />
+                  <datalist id="history-clients-list">
+                    {clients.map(c => (
+                      <option key={c.id} value={c.name}>{c.tradeName && `(${c.tradeName})`}</option>
+                    ))}
+                  </datalist>
                 </div>
 
                 <div className="form-group">

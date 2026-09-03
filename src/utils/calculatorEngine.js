@@ -168,6 +168,7 @@ export function calculateBudget(config) {
     finishings = [],
     financialConfig = {},
     largeFormat = { widthM: 1, heightM: 1, materialPriceM2: 25 },
+    equipment = {},
     editorial = {
       pagesCount: 32,
       mioloPaper: {},
@@ -386,14 +387,86 @@ export function calculateBudget(config) {
 
     printCost = grossSheets * clickRate;
   } else if (mode === 'offset') {
-    layout = calculateSheetLayout(sheetSize.printableW || 640, sheetSize.printableH || 940, productW, productH, bleed);
-    const nUp = Math.max(1, layout.nUp);
-    requiredSheets = Math.ceil(qty / nUp);
+    // AUTOMATIC SHEET CUTTING LOGIC FOR OFFSET PRINTERS
+    // We calculate how many machine-sheets we can get from the purchased full sheet
+    // that fit into the selected offset equipment, maximizing the product yield.
+    
+    let cutW = sheetSize.widthMm || 660;
+    let cutH = sheetSize.heightMm || 960;
+    let printW = sheetSize.printableW || 640;
+    let printH = sheetSize.printableH || 940;
+    
+    const maxEqW = equipment.maxW || 9999;
+    const maxEqH = equipment.maxH || 9999;
 
-    const makeReadySheets = Number(offsetSettings.makeReadySheets || 200);
-    grossSheets = requiredSheets + makeReadySheets;
+    // Classic graphic industry cuts: 1 (full), 2 (half), 3 (third), 4 (quarter), 8 (eighth)
+    const cutOptions = [
+      { cuts: 1, w: cutW, h: cutH, pw: printW, ph: printH, name: 'Inteira' },
+      { cuts: 2, w: cutH/2, h: cutW, pw: printH/2, ph: printW, name: 'Meia Folha' },
+      { cuts: 3, w: cutW/3, h: cutH, pw: printW/3, ph: printH, name: 'Um Terço' },
+      { cuts: 3, w: cutH/3, h: cutW, pw: printH/3, ph: printW, name: 'Um Terço (Invertido)' },
+      { cuts: 4, w: cutW/2, h: cutH/2, pw: printW/2, ph: printH/2, name: 'Um Quarto' },
+      { cuts: 8, w: cutW/4, h: cutH/2, pw: printW/4, ph: printH/2, name: 'Um Oitavo' },
+      { cuts: 9, w: cutW/3, h: cutH/3, pw: printW/3, ph: printH/3, name: 'Um Nono' }
+    ];
+
+    let bestCut = null;
+    let maxTotalProducts = -1;
+    let bestMachineLayout = null;
+
+    for (let option of cutOptions) {
+      // Check physical fit in the machine
+      const fitsNormal = option.w <= maxEqW && option.h <= maxEqH;
+      const fitsRotated = option.h <= maxEqW && option.w <= maxEqH;
+
+      if (fitsNormal || fitsRotated) {
+        // Equipment printable margins (approx 10mm width, 5mm height for grippers)
+        const effPrintW = Math.min(option.pw, maxEqW - 10);
+        const effPrintH = Math.min(option.ph, maxEqH - 5);
+        
+        const subLayout = calculateSheetLayout(effPrintW, effPrintH, productW, productH, bleed);
+        const productsInCut = Math.max(0, subLayout.nUp);
+        const totalProducts = productsInCut * option.cuts;
+
+        if (totalProducts > maxTotalProducts) {
+          maxTotalProducts = totalProducts;
+          bestCut = option;
+          bestMachineLayout = subLayout;
+        } else if (totalProducts === maxTotalProducts && maxTotalProducts > 0) {
+           // Tiebreaker: fewer cuts means less machine runs (less turns = cheaper print cost)
+           if (bestCut && option.cuts < bestCut.cuts) {
+             bestCut = option;
+             bestMachineLayout = subLayout;
+           }
+        }
+      }
+    }
+
+    // Fallback if no cut fits or no products fit
+    if (!bestCut) {
+      bestCut = cutOptions[0];
+      bestMachineLayout = calculateSheetLayout(Math.min(bestCut.pw, maxEqW), Math.min(bestCut.ph, maxEqH), productW, productH, bleed);
+    }
+
+    layout = {
+      ...bestMachineLayout,
+      cutName: bestCut.name,
+      cutsPerFullSheet: bestCut.cuts,
+      machineFormat: `${Math.round(bestCut.w)}x${Math.round(bestCut.h)} mm`,
+      machineW: bestCut.w,
+      machineH: bestCut.h
+    };
+
+    const machineSheetsNeeded = Math.ceil(qty / Math.max(1, bestMachineLayout.nUp));
+    requiredSheets = Math.ceil(machineSheetsNeeded / bestCut.cuts); // convert machine sheets back to FULL purchased sheets
+
+    // Make ready sheets are added to the MACHINE sheets, then we convert back to full sheets to buy
+    const makeReadyMachineSheets = Number(offsetSettings.makeReadySheets || 200);
+    const totalMachineSheets = machineSheetsNeeded + makeReadyMachineSheets;
+    
+    grossSheets = Math.ceil(totalMachineSheets / bestCut.cuts); // Full sheets to buy
     remaFullSheets = Math.ceil(grossSheets / formatRatio);
-    totalRefiledPieces = grossSheets * nUp;
+    totalRefiledPieces = totalMachineSheets * bestMachineLayout.nUp;
 
     const sheetW_m = (sheetSize.widthMm || 660) / 1000;
     const sheetH_m = (sheetSize.heightMm || 960) / 1000;
@@ -413,7 +486,7 @@ export function calculateBudget(config) {
     const ctpTotalCost = numPlates * ctpPrice;
 
     const passes = (colors === '4/4' || colors === '1/1') ? 2 : 1;
-    const totalTurns = grossSheets * passes;
+    const totalTurns = totalMachineSheets * passes;
     const ratePer1000 = Number(offsetSettings.costPerThousandTurns || 35);
     const minFee = Number(offsetSettings.minTurnFee || 70);
     const turnCost = Math.max(minFee, Math.ceil(totalTurns / 1000) * ratePer1000);

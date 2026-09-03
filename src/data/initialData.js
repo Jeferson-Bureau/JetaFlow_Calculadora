@@ -59,6 +59,17 @@ export const DEFAULT_EQUIPMENTS = [
     maxGsm: 350,
     speedPpm: 200,
     notes: 'Produção industrial de grandes tiragens com chapas CTP.'
+  },
+  {
+    id: 'roland-202-tob',
+    name: 'Roland 202 TOB - Ano 1993 (Bicolor)',
+    type: 'offset',
+    maxW: 520,
+    maxH: 740,
+    maxGsm: 450,
+    minGsm: 40,
+    speedPpm: 200, // 12000 fl/h / 60 = 200 folhas por minuto
+    notes: 'Bicolor (2/0). Molha Alcolor. Formato máx de impressão 510x735mm.'
   }
 ];
 

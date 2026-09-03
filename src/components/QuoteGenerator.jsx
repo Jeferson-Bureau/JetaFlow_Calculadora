@@ -235,32 +235,34 @@ export default function QuoteGenerator({
               <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
                 1. Dados do Cliente
               </h4>
-
-              {clients.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Selecionar Cadastrado:</span>
-                  <select
-                    value={selectedClientId}
-                    onChange={(e) => handleSelectClient(e.target.value)}
-                    style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem', background: '#ffffff' }}
-                  >
-                    <option value="">-- Buscar no CRM --</option>
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>[{c.code || 'CLI'}] {c.tradeName || c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
               <input
                 type="text"
                 placeholder="Nome / Razão Social"
+                list="quote-clients-list"
                 value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setClientName(val);
+                  const matchedClient = clients.find(c => c.name === val || c.tradeName === val);
+                  if (matchedClient) {
+                    setSelectedClientId(matchedClient.id);
+                    setClientDoc(matchedClient.doc || '');
+                    setClientPhone(matchedClient.phone || '');
+                    setClientEmail(matchedClient.email || '');
+                  } else {
+                    setSelectedClientId('');
+                  }
+                }}
                 style={{ padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.85rem' }}
               />
+              <datalist id="quote-clients-list">
+                {clients.map(c => (
+                  <option key={c.id} value={c.name}>{c.tradeName && `(${c.tradeName})`}</option>
+                ))}
+              </datalist>
               <input
                 type="text"
                 placeholder="CNPJ / CPF"

@@ -13,6 +13,8 @@ import SupplierManager from './components/SupplierManager';
 import LicitacaoManager from './components/LicitacaoManager';
 import DashboardOverview from './components/DashboardOverview';
 import QuoteHistoryManager from './components/QuoteHistoryManager';
+import ProductConfigurator from './components/ProductConfigurator';
+import LabelGenerator from './components/LabelGenerator';
 
 import {
   DEFAULT_EQUIPMENTS,
@@ -358,11 +360,12 @@ export default function App() {
     finishings: selectedFinishings,
     financialConfig,
     largeFormat,
+    equipment: selectedEquipment,
     editorial
   }), [
     activeTab, productCategory, quantity, selectedPaper, selectedSheet, productW, productH,
     bleed, colors, activeDigitalClickRates, offsetSettings, selectedFinishings,
-    financialConfig, largeFormat, editorial
+    financialConfig, largeFormat, selectedEquipment, editorial
   ]);
 
   const budgetResult = useMemo(() => {
@@ -462,9 +465,15 @@ export default function App() {
       ) : activeTab === 'quotes' ? (
         <QuoteHistoryManager
           quotes={quotesHistory}
+          clients={clients}
           onUpdateQuote={handleUpdateQuoteInHistory}
           onDeleteQuote={handleDeleteQuoteFromHistory}
           onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
+        />
+      ) : activeTab === 'labels' ? (
+        <LabelGenerator
+          quotes={quotesHistory}
+          clients={clients}
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -540,11 +549,17 @@ export default function App() {
                     editorial={editorial}
                     setEditorial={setEditorial}
                     spineMm={budgetResult.spineMm || 0}
+                    clients={clients}
+                    selectedClientId={selectedClientId}
+                    setSelectedClientId={setSelectedClientId}
                   />
                 )}
 
                 {activeTab === 'offset' && (
                   <OffsetCalculator
+                    equipments={equipments}
+                    selectedEquipmentId={selectedEquipmentId}
+                    setSelectedEquipmentId={setSelectedEquipmentId}
                     papers={papers}
                     sheetSizes={sheetSizes}
                     selectedPaperId={selectedPaperId}
@@ -576,7 +591,7 @@ export default function App() {
                 )}
 
                 {/* Right Column: Sheet Visualizer */}
-                {activeTab !== 'large_format' && (
+                {activeTab !== 'large_format' && productCategory !== 'configurable' && (
                   <SheetViewer
                     layout={budgetResult.layout}
                     sheetSize={selectedSheet}
@@ -588,22 +603,26 @@ export default function App() {
 
               </div>
 
-              {/* Middle Section: Finishings */}
-              <FinishingSelector
-                availableFinishings={availableFinishings}
-                selectedFinishings={selectedFinishings}
-                setSelectedFinishings={setSelectedFinishings}
-              />
+              {productCategory !== 'configurable' && (
+                <>
+                  {/* Middle Section: Finishings */}
+                  <FinishingSelector
+                    availableFinishings={availableFinishings}
+                    selectedFinishings={selectedFinishings}
+                    setSelectedFinishings={setSelectedFinishings}
+                  />
 
-              {/* Bottom Section: DRE Financial Breakdown & Tier Matrix */}
-              <FinancialSummary
-                budgetResult={budgetResult}
-                tierMatrix={tierMatrix}
-                financialConfig={financialConfig}
-                setFinancialConfig={handleSetFinancialConfig}
-                onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
-                onSaveQuoteToHistory={handleSaveQuoteToHistory}
-              />
+                  {/* Bottom Section: DRE Financial Breakdown & Tier Matrix */}
+                  <FinancialSummary
+                    budgetResult={budgetResult}
+                    tierMatrix={tierMatrix}
+                    financialConfig={financialConfig}
+                    setFinancialConfig={handleSetFinancialConfig}
+                    onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
+                    onSaveQuoteToHistory={handleSaveQuoteToHistory}
+                  />
+                </>
+              )}
             </>
           )}
 

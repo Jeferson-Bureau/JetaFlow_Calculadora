@@ -19,8 +19,19 @@ export default function OffsetCalculator({
   quantity,
   setQuantity,
   offsetSettings,
-  setOffsetSettings
+  setOffsetSettings,
+  equipments,
+  selectedEquipmentId,
+  setSelectedEquipmentId
 }) {
+  const selectedEquipment = equipments?.find(e => e.id === selectedEquipmentId) || equipments?.find(e => e.type === 'offset') || {};
+  const selectedPaper = papers.find(p => p.id === selectedPaperId) || papers[0];
+  const selectedSheet = sheetSizes.find(s => s.id === selectedSheetId) || sheetSizes[0];
+
+  // Technical Compatibility Checks
+  const gsmExceeded = selectedPaper.weightGsm > (selectedEquipment.maxGsm || 450);
+  const sizeExceeded = (selectedSheet.widthMm > selectedEquipment.maxW || selectedSheet.heightMm > selectedEquipment.maxH);
+
   return (
     <div className="glass-card" style={{ padding: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -34,6 +45,43 @@ export default function OffsetCalculator({
           Grandes Rodagens
         </span>
       </div>
+
+      {/* SELEÇÃO DO EQUIPAMENTO DE IMPRESSÃO */}
+      <div className="form-group" style={{ background: 'rgba(230, 46, 107, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(230, 46, 107, 0.2)', marginBottom: '16px' }}>
+        <label className="form-label" style={{ color: 'var(--brand-magenta)' }}>
+          Impressora Off-set Selecionada
+        </label>
+        <select
+          className="form-select"
+          style={{ fontWeight: 700, fontSize: '0.95rem' }}
+          value={selectedEquipmentId}
+          onChange={(e) => setSelectedEquipmentId(e.target.value)}
+        >
+          {equipments?.filter(eq => eq.type === 'offset').map((eq) => (
+            <option key={eq.id} value={eq.id}>
+              {eq.name} (Máx: {eq.maxGsm}g | Formato Máx: {eq.maxW}x{eq.maxH}mm)
+            </option>
+          ))}
+        </select>
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          {selectedEquipment.notes}
+        </div>
+      </div>
+
+      {/* AVISOS AUTOMÁTICOS DE INCOMPATIBILIDADE TÉCNICA */}
+      {gsmExceeded && (
+        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} color="var(--danger)" />
+          Atenção: A gramatura de {selectedPaper.weightGsm}g excede o limite máximo suportado pela {selectedEquipment.name} ({selectedEquipment.maxGsm}g).
+        </div>
+      )}
+
+      {sizeExceeded && (
+        <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid var(--warning)', borderRadius: '8px', color: '#fcd34d', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} color="var(--warning)" />
+          Atenção: O formato da folha ({selectedSheet.widthMm}x{selectedSheet.heightMm}mm) excede o tamanho máximo de cilindro da {selectedEquipment.name} ({selectedEquipment.maxW}x{selectedEquipment.maxH}mm).
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         

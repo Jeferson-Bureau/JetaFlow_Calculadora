@@ -15,10 +15,10 @@ export default function SheetViewer({ layout, sheetSize, productW, productH, ble
     ctx.fillStyle = '#0d1525';
     ctx.fillRect(0, 0, width, height);
 
-    const sheetW = sheetSize.widthMm || 320;
-    const sheetH = sheetSize.heightMm || 450;
-    const printableW = sheetSize.printableW || (sheetW - 10);
-    const printableH = sheetSize.printableH || (sheetH - 10);
+    const sheetW = (layout && layout.machineW) ? layout.machineW : (sheetSize.widthMm || 320);
+    const sheetH = (layout && layout.machineH) ? layout.machineH : (sheetSize.heightMm || 450);
+    const printableW = (layout && layout.machineW) ? sheetW - 10 : (sheetSize.printableW || (sheetW - 10));
+    const printableH = (layout && layout.machineH) ? sheetH - 10 : (sheetSize.printableH || (sheetH - 10));
 
     // Padding inside canvas
     const padding = 25;
@@ -152,7 +152,12 @@ export default function SheetViewer({ layout, sheetSize, productW, productH, ble
       </div>
 
       <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-        Simulação visual de corte para o formato <strong>{productW}x{productH} mm</strong> na folha <strong>{sheetSize.name || 'SRA3'}</strong>.
+        Simulação visual de montagem para o formato <strong>{productW}x{productH} mm</strong> na folha de entrada <strong>{(layout && layout.machineFormat) || sheetSize.name || 'SRA3'}</strong>.
+        {layout && layout.cutName && (
+          <span style={{ display: 'block', color: 'var(--brand-magenta)', marginTop: '4px' }}>
+            <strong>Corte Inteligente (Off-set):</strong> A folha de compra inteira ({sheetSize.name}) será dividida em <strong>{layout.cutsPerFullSheet} pedaço(s)</strong> ({layout.cutName}) para rodar na máquina. O desenho acima exibe 1 pedaço de máquina.
+          </span>
+        )}
       </p>
 
       {/* Canvas Drawing Container */}
