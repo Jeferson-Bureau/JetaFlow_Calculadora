@@ -431,6 +431,22 @@ export const DEFAULT_SUPPLIERS = [
   {
     id: 'sup-3',
     code: 'FOR-A0003',
+    name: 'INDUSPEL EMBALAGENS LTDA',
+    tradeName: 'Induspel',
+    category: 'papeis',
+    docType: 'cnpj',
+    doc: '07.688.318/0001-56',
+    street: 'Rua Gouber Pinto Dionisio, 85',
+    neighborhood: 'Cidade Industrial',
+    city: 'Curitiba',
+    state: 'PR',
+    zipCode: '81460-140',
+    notes: 'Fabricação de embalagens de cartolina e papel-cartão.',
+    createdAt: new Date().toISOString().split('T')[0]
+  },
+  {
+    id: 'sup-3',
+    code: 'FOR-A0003',
     name: 'F. L. NEGRI SERVIÇOS GRÁFICOS LTDA-ME',
     tradeName: 'POSITIVOS ACABAMENTOS GRÁFICOS',
     category: 'acabamento',

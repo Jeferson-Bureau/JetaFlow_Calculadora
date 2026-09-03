@@ -776,28 +776,7 @@ export default function LicitacaoManager({
             <Zap size={16} /> Colar Alerta (E-mail)
           </button>
 
-          {onResetBiddings && (
-            <button
-              type="button"
-              onClick={onResetBiddings}
-              title="Recarregar licitações iniciais"
-              style={{
-                padding: '12px 16px',
-                borderRadius: '10px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                background: 'var(--bg-input)',
-                color: '#ffffff',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              🔄 Recarregar
-            </button>
-          )}
+
 
           <button
             onClick={openNewBiddingModal}

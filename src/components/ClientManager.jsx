@@ -159,28 +159,7 @@ export default function ClientManager({
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          {onResetClients && (
-            <button
-              type="button"
-              onClick={onResetClients}
-              title="Recarregar a lista inicial dos 13 clientes oficial"
-              style={{
-                padding: '12px 16px',
-                borderRadius: '10px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                background: 'var(--bg-input)',
-                color: '#ffffff',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              🔄 Recarregar 13 Clientes
-            </button>
-          )}
+
 
           <button
             onClick={openNewClientModal}
@@ -317,22 +296,7 @@ export default function ClientManager({
           <p style={{ fontSize: '0.85rem', margin: '0 0 16px 0' }}>
             {searchTerm ? 'Tente buscar com outros termos ou limpe o campo de busca.' : 'A base de clientes está vazia ou aguardando sincronização.'}
           </p>
-          {onResetClients && (
-            <button
-              onClick={onResetClients}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
-                color: '#ffffff',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              🔄 Carregar 13 Clientes da Lista Oficial
-            </button>
-          )}
+
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
