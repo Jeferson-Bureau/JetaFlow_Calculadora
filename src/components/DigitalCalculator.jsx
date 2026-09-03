@@ -589,6 +589,7 @@ export default function DigitalCalculator({
             />
           </div>
         </div>
+      </div>
       )}
     </div>
   );
