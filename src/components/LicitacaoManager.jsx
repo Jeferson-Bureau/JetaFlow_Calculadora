@@ -933,22 +933,7 @@ export default function LicitacaoManager({
           <p style={{ fontSize: '0.85rem', margin: '0 0 16px 0' }}>
             {searchTerm ? 'Tente buscar com outros termos ou limpe o campo de busca.' : 'Cadastre sua primeira licitação clicando em "+ Nova Licitação" ou "⚡ Colar Alerta (E-mail)".'}
           </p>
-          {onResetBiddings && (
-            <button
-              onClick={onResetBiddings}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                color: '#ffffff',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              🔄 Recarregar Licitações Padrão
-            </button>
-          )}
+
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>
