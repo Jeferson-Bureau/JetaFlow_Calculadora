@@ -34,8 +34,8 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
   // ── Search Filters ───────────────────────────────────────
   const defaults = getDefaultDateRange(7);
   const [searchType, setSearchType] = useState('publicacao'); // 'publicacao' | 'proposta'
-  const [modalidade, setModalidade] = useState(8); // Dispensa
-  const [uf, setUf] = useState('SP');
+  const [modalidade, setModalidade] = useState(8); // Dispensa de Licitação
+  const [uf, setUf] = useState('PR'); // Padrão Paraná (Maringá)
   const [dataInicial, setDataInicial] = useState(defaults.dataInicial);
   const [dataFinal, setDataFinal] = useState(defaults.dataFinal);
   const [keyword, setKeyword] = useState('');
@@ -235,6 +235,32 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                 <option key={u.sigla} value={u.sigla}>{u.label}</option>
               ))}
             </select>
+            <div style={{ display: 'flex', gap: '4px', marginTop: '5px', flexWrap: 'wrap' }}>
+              {[
+                { sigla: 'PR', label: 'PR (Maringá)' },
+                { sigla: 'SP', label: 'SP' },
+                { sigla: 'SC', label: 'SC' },
+                { sigla: '', label: 'Brasil (Todos)' }
+              ].map(u => (
+                <button
+                  key={u.sigla}
+                  type="button"
+                  onClick={() => setUf(u.sigla)}
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    fontSize: '0.68rem',
+                    fontWeight: uf === u.sigla ? 800 : 500,
+                    border: uf === u.sigla ? '1px solid var(--brand-cyan)' : '1px solid rgba(255,255,255,0.08)',
+                    background: uf === u.sigla ? 'rgba(6, 182, 212, 0.2)' : 'transparent',
+                    color: uf === u.sigla ? 'var(--brand-cyan)' : 'var(--text-muted)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {u.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -293,7 +319,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           )}
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '0.75rem' }}>Palavra-chave (filtro local)</label>
+            <label className="form-label" style={{ fontSize: '0.75rem' }}>Palavra-chave (filtro)</label>
             <div style={{ position: 'relative' }}>
               <Filter size={14} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
@@ -337,32 +363,85 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           </button>
         </div>
 
-        {/* Quick Period Buttons (only for publicação) */}
-        {searchType === 'publicacao' && (
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Período rápido:</span>
+        {/* Row 3: Quick Graphic Keyword Chips & Quick Period */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--brand-yellow)', fontWeight: 700 }}>Atalhos Gráfica:</span>
             {[
-              { label: 'Últimos 3 dias', days: 3 },
-              { label: 'Última semana', days: 7 },
-              { label: 'Últimos 15 dias', days: 15 },
-              { label: 'Último mês', days: 30 }
-            ].map(p => (
-              <button key={p.days} type="button" onClick={() => setQuickPeriod(p.days)} style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: '1px solid var(--border-color)',
-                background: 'var(--bg-input)',
-                color: 'var(--text-muted)',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}>
-                {p.label}
+              { label: '🖨️ Impressão / Gráfica', term: 'impressão' },
+              { label: '📖 Cartilhas & Livros', term: 'cartilha' },
+              { label: '✉️ Envelopes & Pastas', term: 'envelope' },
+              { label: '🏷️ Banners & Adesivos', term: 'adesivo' },
+              { label: '📄 Blocos & Formulários', term: 'bloco' },
+              { label: '📦 Agendas & Cadernos', term: 'agenda' }
+            ].map(chip => {
+              const isSelected = keyword.toLowerCase() === chip.term.toLowerCase();
+              return (
+                <button
+                  key={chip.term}
+                  type="button"
+                  onClick={() => handleKeywordChange(isSelected ? '' : chip.term)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '0.72rem',
+                    fontWeight: isSelected ? 800 : 600,
+                    border: isSelected ? '1px solid var(--brand-yellow)' : '1px solid var(--border-color)',
+                    background: isSelected ? 'rgba(247, 181, 0, 0.2)' : 'var(--bg-input)',
+                    color: isSelected ? 'var(--brand-yellow)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+            {keyword && (
+              <button
+                type="button"
+                onClick={() => handleKeywordChange('')}
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ef4444',
+                  cursor: 'pointer'
+                }}
+              >
+                ✕ Limpar Filtro
               </button>
-            ))}
+            )}
           </div>
-        )}
+
+          {searchType === 'publicacao' && (
+            <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Período rápido:</span>
+              {[
+                { label: '3 dias', days: 3 },
+                { label: '7 dias', days: 7 },
+                { label: '15 dias', days: 15 },
+                { label: '30 dias', days: 30 }
+              ].map(p => (
+                <button key={p.days} type="button" onClick={() => setQuickPeriod(p.days)} style={{
+                  padding: '3px 8px',
+                  borderRadius: '5px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-input)',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </form>
 
       {/* Error State */}

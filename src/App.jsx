@@ -168,19 +168,40 @@ export default function App() {
   });
 
   const [biddings, setBiddings] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_biddings_v2');
-    if (saved) {
+    // 1. Checar se já existe o armazenamento limpo v3
+    const savedV3 = localStorage.getItem('jetaflow_biddings_v3');
+    if (savedV3) {
       try {
-        let parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        const parsed = JSON.parse(savedV3);
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       } catch (e) {
         console.error(e);
       }
     }
-    localStorage.setItem('jetaflow_biddings_v2', JSON.stringify(DEFAULT_BIDDINGS));
-    return DEFAULT_BIDDINGS;
+
+    // 2. Migrar de v2 preservando apenas licitações reais importadas ou adicionadas pelo usuário
+    const savedV2 = localStorage.getItem('jetaflow_biddings_v2');
+    if (savedV2) {
+      try {
+        const parsed = JSON.parse(savedV2);
+        if (Array.isArray(parsed)) {
+          const realBiddings = parsed.filter(b => b.id !== 'lic-1' && b.id !== 'lic-2' && b.id !== 'lic-3');
+          localStorage.removeItem('jetaflow_biddings_v2');
+          localStorage.setItem('jetaflow_biddings_v3', JSON.stringify(realBiddings));
+          return realBiddings;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    localStorage.removeItem('jetaflow_biddings');
+    localStorage.removeItem('jetaflow_biddings_v1');
+    localStorage.removeItem('jetaflow_biddings_v2');
+    localStorage.setItem('jetaflow_biddings_v3', JSON.stringify([]));
+    return [];
   });
 
   const handleSetFinancialConfig = (newConfig) => {
@@ -239,19 +260,19 @@ export default function App() {
     };
     const updated = [biddingWithCode, ...biddings];
     setBiddings(updated);
-    localStorage.setItem('jetaflow_biddings_v2', JSON.stringify(updated));
+    localStorage.setItem('jetaflow_biddings_v3', JSON.stringify(updated));
   };
 
   const handleUpdateBidding = (updatedBidding) => {
     const updated = biddings.map(b => b.id === updatedBidding.id ? updatedBidding : b);
     setBiddings(updated);
-    localStorage.setItem('jetaflow_biddings_v2', JSON.stringify(updated));
+    localStorage.setItem('jetaflow_biddings_v3', JSON.stringify(updated));
   };
 
   const handleDeleteBidding = (id) => {
     const updated = biddings.filter(b => b.id !== id);
     setBiddings(updated);
-    localStorage.setItem('jetaflow_biddings_v2', JSON.stringify(updated));
+    localStorage.setItem('jetaflow_biddings_v3', JSON.stringify(updated));
   };
 
   const handleReopenQuoteInCalculator = (quote) => {
@@ -275,8 +296,8 @@ export default function App() {
   };
 
   const handleResetBiddings = () => {
-    setBiddings(DEFAULT_BIDDINGS);
-    localStorage.setItem('jetaflow_biddings_v2', JSON.stringify(DEFAULT_BIDDINGS));
+    setBiddings([]);
+    localStorage.setItem('jetaflow_biddings_v3', JSON.stringify([]));
   };
 
 

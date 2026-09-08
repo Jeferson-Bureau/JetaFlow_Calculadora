@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { KNOWN_PNCP_DATABASE } from '../data/initialData';
 import { getContratacao, mapPncpToBidding, searchBiddingByUasgAndEdital } from '../services/pncpService';
+import PncpSearchPanel from './PncpSearchPanel';
 
 export function parseBrlCurrencyToFloat(str) {
   if (!str && str !== 0) return 0;
@@ -429,6 +430,36 @@ export default function LicitacaoManager({
   const [editingBidding, setEditingBidding] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [isPncpSearchOpen, setIsPncpSearchOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const handleImportBiddingFromPncp = (pncpData) => {
+    const existing = biddings.find(b => 
+      (pncpData.pncpUrl && b.pncpUrl === pncpData.pncpUrl) ||
+      (b.biddingNumber && b.biddingNumber.toLowerCase() === (pncpData.biddingNumber || '').toLowerCase() && b.agencyCnpj === pncpData.agencyCnpj)
+    );
+
+    if (existing) {
+      setToastMessage(`Aviso: Licitação já cadastrada (${existing.code || existing.biddingNumber})`);
+      setTimeout(() => setToastMessage(null), 3500);
+      return;
+    }
+
+    const nextNum = biddings.length + 1;
+    const nextCode = `LIC-A${String(nextNum).padStart(4, '0')}`;
+    const newBidding = {
+      id: `lic-${Date.now()}`,
+      code: nextCode,
+      ...pncpData,
+      totalValue: parseBrlCurrencyToFloat(pncpData.totalValue),
+      status: pncpData.status || 'agendada',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    onAddBidding(newBidding);
+    setToastMessage(`✓ Licitação importada: ${nextCode} — ${newBidding.biddingNumber}`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Atualizar preview do parser em tempo real conforme o usuário digita/cola texto
   useEffect(() => {
@@ -757,6 +788,29 @@ export default function LicitacaoManager({
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
+            onClick={() => setIsPncpSearchOpen(true)}
+            title="Buscar contratações públicas e dispensas ao vivo na base oficial do PNCP"
+            style={{
+              padding: '12px 18px',
+              borderRadius: '10px',
+              border: '1px solid rgba(6, 182, 212, 0.4)',
+              background: 'rgba(6, 182, 212, 0.15)',
+              color: '#06b6d4',
+              fontWeight: 800,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.2)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Globe size={16} /> Buscar no PNCP (Ao Vivo)
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsImportModalOpen(true)}
             title="Importar e-mail de Alerta Licitação em 1 clique"
             style={{
@@ -775,8 +829,6 @@ export default function LicitacaoManager({
           >
             <Zap size={16} /> Colar Alerta (E-mail)
           </button>
-
-
 
           <button
             onClick={openNewBiddingModal}
@@ -910,9 +962,50 @@ export default function LicitacaoManager({
           <FileText size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
           <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: '0 0 6px 0' }}>Nenhuma licitação encontrada</h3>
           <p style={{ fontSize: '0.85rem', margin: '0 0 16px 0' }}>
-            {searchTerm ? 'Tente buscar com outros termos ou limpe o campo de busca.' : 'Cadastre sua primeira licitação clicando em "+ Nova Licitação" ou "⚡ Colar Alerta (E-mail)".'}
+            {searchTerm ? 'Tente buscar com outros termos ou limpe o campo de busca.' : 'Cadastre sua primeira licitação ou busque oportunidades ao vivo na base do governo:'}
           </p>
 
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setIsPncpSearchOpen(true)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '8px',
+                border: '1px solid rgba(6, 182, 212, 0.4)',
+                background: 'rgba(6, 182, 212, 0.15)',
+                color: '#06b6d4',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Globe size={16} /> Buscar no PNCP (Ao Vivo)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '8px',
+                border: '1px solid rgba(247, 181, 0, 0.4)',
+                background: 'rgba(247, 181, 0, 0.15)',
+                color: 'var(--brand-yellow)',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Zap size={16} /> Colar Alerta (E-mail)
+            </button>
+          </div>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>
@@ -1768,6 +1861,62 @@ export default function LicitacaoManager({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Modal: Live PNCP Search Panel */}
+      {isPncpSearchOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '1100px',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            borderRadius: '16px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)'
+          }}>
+            <PncpSearchPanel
+              onImportBidding={handleImportBiddingFromPncp}
+              onClose={() => setIsPncpSearchOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+          color: '#ffffff',
+          padding: '14px 22px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 30px rgba(6, 182, 212, 0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          zIndex: 100000,
+          fontWeight: 700,
+          fontSize: '0.9rem',
+          border: '1px solid rgba(255, 255, 255, 0.25)'
+        }}>
+          <CheckCircle size={20} />
+          <span>{toastMessage}</span>
         </div>
       )}
 

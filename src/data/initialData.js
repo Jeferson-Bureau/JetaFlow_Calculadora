@@ -511,67 +511,7 @@ export const DEFAULT_SUPPLIERS = [
   }
 ];
 
-export const DEFAULT_BIDDINGS = [
-  {
-    id: 'lic-1',
-    code: 'LIC-A0001',
-    uasg: '791513',
-    biddingNumber: 'Pregão Eletrônico nº 05/2026',
-    agency: 'FUNDAÇÃO UNIVERSIDADE ESTADUAL DE MARINGÁ - UEM',
-    agencyCnpj: '79.151.312/0001-56',
-    objectDescription: 'Registro de preços para confecção e fornecimento de material impresso gráfico (Agendas Institucionais, Cartilhas, Guias Acadêmicos A5 e Envelopes de Provas).',
-    catser: '18244 - SERVIÇOS DE IMPRESSÃO GRÁFICA',
-    totalValue: 48500.00,
-    sessionDate: '2026-09-10',
-    sessionTime: '08:00',
-    modality: 'Pregão Eletrônico',
-    platform: 'Compras.gov.br (Comprasnet)',
-    deliveryAddress: 'Almoxarifado Central UEM - Av. Colombo, 5790, Bloco M02 - Maringá/PR',
-    status: 'agendada',
-    notes: 'Exige envio de amostras físicas de capa em até 3 dias úteis após homologação.',
-    createdAt: '2026-02-28'
-  },
-  {
-    id: 'lic-2',
-    code: 'LIC-A0002',
-    uasg: '987654',
-    biddingNumber: 'Dispensa Eletrônica nº 12/2026',
-    agency: 'PREFEITURA MUNICIPAL DE PEABIRU',
-    agencyCnpj: '75.792.805/0001-44',
-    objectDescription: 'Contratação de empresa especializada para impressão de Blocos de Aritmética, Blocos de Notificação de Saúde e Panfletos Informativos Dengue.',
-    catser: '24180 - CONFECÇÃO DE IMPRESSOS EM GERAL',
-    totalValue: 18200.00,
-    sessionDate: '2026-09-15',
-    sessionTime: '08:00',
-    modality: 'Dispensa de Licitação',
-    platform: 'BLL Compras',
-    deliveryAddress: 'Secretaria Municipal de Saúde - Av. Brasil, 120 - Peabiru/PR',
-    status: 'proposta_enviada',
-    notes: 'Prazo de entrega em até 10 dias corridos após emissão da Ordem de Serviço.',
-    createdAt: '2026-02-28'
-  },
-  {
-    id: 'lic-3',
-    code: 'LIC-A0003',
-    uasg: '480319',
-    biddingNumber: 'Contratação Direta PNCP nº 2151/2026',
-    agency: 'UNIVERSIDADE ESTADUAL PAULISTA JULIO DE MESQUITA FILHO',
-    agencyCnpj: '48.031.918/0001-24',
-    objectDescription: 'Contratação de empresa para confecção e fornecimento de material impresso gráfico conforme especificações do edital PNCP.',
-    catser: '18244 - SERVIÇOS DE IMPRESSÃO GRÁFICA',
-    totalValue: 400.00,
-    sessionDate: '2026-03-01',
-    sessionTime: '09:00',
-    modality: 'Dispensa de Licitação',
-    platform: 'Portal Nacional (PNCP)',
-    deliveryAddress: 'Almoxarifado Geral UNESP - Câmpus Universitário',
-    status: 'agendada',
-    pncpUrl: 'https://pncp.gov.br/app/editais/48031918000124/2026/2151',
-    editalUrl: 'https://alertalicitacao.com.br/!licitacao/PNCP-48031918000124-1-002151-2026',
-    notes: 'Importado via Alerta Licitação (jeferson.arte@gmail.com)',
-    createdAt: '2026-02-28'
-  }
-];
+export const DEFAULT_BIDDINGS = [];
 
 
 // ── Banco de dados de referência para parsing rápido de alertas PNCP ───
