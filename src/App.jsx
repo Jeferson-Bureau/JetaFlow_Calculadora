@@ -171,8 +171,10 @@ export default function App() {
     const saved = localStorage.getItem('jetaflow_biddings_v2');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        let parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       } catch (e) {
         console.error(e);
       }

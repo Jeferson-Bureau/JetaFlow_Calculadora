@@ -162,7 +162,7 @@ export default function DashboardOverview({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Banner de Boas-Vindas / Hero do Dashboard */}
-      <div className="glass-card" style={{
+      <div className="glass-card animate-fade-in" style={{
         padding: '24px',
         background: 'linear-gradient(135deg, rgba(23, 53, 91, 0.85) 0%, rgba(13, 21, 37, 0.95) 100%)',
         border: '1px solid rgba(0, 168, 232, 0.3)',
@@ -227,7 +227,7 @@ export default function DashboardOverview({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
         
         {/* KPI 1: Licitações em Disputa / Agendadas */}
-        <div className="glass-card" style={{ padding: '20px', cursor: 'pointer', transition: 'transform 0.2s ease' }} onClick={() => setActiveTab('biddings')}>
+        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', transition: 'transform 0.2s ease', animationDelay: '0.1s' }} onClick={() => setActiveTab('biddings')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase' }}>
@@ -248,7 +248,7 @@ export default function DashboardOverview({
         </div>
 
         {/* KPI 2: Total Licitações no Pipeline */}
-        <div className="glass-card" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveTab('biddings')}>
+        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.2s' }} onClick={() => setActiveTab('biddings')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-cyan)', textTransform: 'uppercase' }}>
@@ -269,7 +269,7 @@ export default function DashboardOverview({
         </div>
 
         {/* KPI 3: Clientes Cadastrados (CRM) */}
-        <div className="glass-card" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveTab('clients')}>
+        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.3s' }} onClick={() => setActiveTab('clients')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--success)', textTransform: 'uppercase' }}>
@@ -290,7 +290,7 @@ export default function DashboardOverview({
         </div>
 
         {/* KPI 4: Fornecedores & Catálogo de Papéis */}
-        <div className="glass-card" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => setActiveTab('suppliers')}>
+        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.4s' }} onClick={() => setActiveTab('suppliers')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-yellow)', textTransform: 'uppercase' }}>
@@ -316,7 +316,7 @@ export default function DashboardOverview({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
         
         {/* Gráfico 1: Pipeline de Licitações por Estágio (Rosca/Pie) */}
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card animate-fade-in hover-scale" style={{ padding: '20px', display: 'flex', flexDirection: 'column', animationDelay: '0.5s' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <PieIcon size={18} color="#8b5cf6" />
@@ -359,7 +359,7 @@ export default function DashboardOverview({
         </div>
 
         {/* Gráfico 2: Comparativo Custo de Impressão por Máquina (Bar) */}
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card animate-fade-in hover-scale" style={{ padding: '20px', display: 'flex', flexDirection: 'column', animationDelay: '0.6s' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <BarChart2 size={18} color="var(--brand-cyan)" />
@@ -390,7 +390,7 @@ export default function DashboardOverview({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
         
         {/* Lado Esquerdo: Agenda de Licitações Críticas */}
-        <div className="glass-card" style={{ padding: '20px' }}>
+        <div className="glass-card animate-fade-in" style={{ padding: '20px', animationDelay: '0.7s' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Calendar size={18} color="#8b5cf6" />
@@ -422,6 +422,20 @@ export default function DashboardOverview({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {biddingStats.proximas.map((lic) => {
                 const isUrgent = lic.sessionDate === new Date().toISOString().split('T')[0];
+                const daysLeft = lic.sessionDate ? (() => {
+                  const targetDate = new Date(lic.sessionDate + 'T00:00:00');
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const diffTime = targetDate - today;
+                  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                })() : null;
+                
+                const daysBadgeText = daysLeft === null ? '' :
+                                      daysLeft < 0 ? 'ENCERRADA' :
+                                      daysLeft === 0 ? 'HOJE' :
+                                      daysLeft === 1 ? 'AMANHÃ' :
+                                      `EM ${daysLeft} DIAS`;
+
                 return (
                   <div
                     key={lic.id}
@@ -432,42 +446,36 @@ export default function DashboardOverview({
                       padding: '12px 14px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px'
+                      gap: '10px',
+                      fontSize: '0.85rem',
+                      fontWeight: 800,
+                      color: 'var(--brand-cyan)',
+                      flexWrap: 'wrap'
                     }}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{
-                          background: '#8b5cf6',
-                          color: '#ffffff',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          {lic.biddingNumber || lic.code}
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          UASG: {lic.uasg || 'S/N'}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {lic.agency}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {lic.objectDescription}
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Calendar size={15} color="var(--brand-cyan)" />
+                      Sessão: {lic.sessionDate ? lic.sessionDate.split('-').reverse().join('/') : '--/--/----'}
                     </div>
-
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#a78bfa' }}>
-                        {formatCurrency(lic.totalValue)}
+                    
+                    {daysBadgeText && (
+                      <div style={{
+                        background: '#0d1829',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        border: '1px solid rgba(0, 168, 232, 0.2)'
+                      }}>
+                        <span>📅</span>
+                        <span style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>{daysBadgeText}</span>
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: isUrgent ? 'var(--danger)' : 'var(--brand-yellow)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                        <Clock size={12} />
-                        {lic.sessionDate ? lic.sessionDate.split('-').reverse().join('/') : '--/--/----'} {lic.sessionTime || '09:00'}
-                      </div>
+                    )}
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Clock size={15} color="var(--brand-cyan)" />
+                      {lic.sessionTime || '09:00'}h
                     </div>
                   </div>
                 );
@@ -477,7 +485,7 @@ export default function DashboardOverview({
         </div>
 
         {/* Lado Direito: Parque de Máquinas & Tarifas de Produção */}
-        <div className="glass-card" style={{ padding: '20px' }}>
+        <div className="glass-card animate-fade-in" style={{ padding: '20px', animationDelay: '0.8s' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Printer size={18} color="var(--brand-cyan)" />
@@ -576,7 +584,7 @@ export default function DashboardOverview({
       </div>
 
       {/* Acesso Rápido às Rotinas da Gráfica */}
-      <div className="glass-card" style={{ padding: '20px' }}>
+      <div className="glass-card animate-fade-in" style={{ padding: '20px', animationDelay: '0.9s' }}>
         <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Atalhos de Trabalho Rápido
         </h4>
@@ -594,8 +602,12 @@ export default function DashboardOverview({
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
-              gap: '6px'
+              gap: '6px',
+              transition: 'all 0.2s ease',
+              transform: 'scale(1)',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(0, 168, 232, 0.3)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: 'var(--brand-cyan)' }}>
               <Printer size={16} /> Novo Orçamento Digital
