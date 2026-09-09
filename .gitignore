@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+# Vite transient config bundle
+vite.config.js.timestamp-*
