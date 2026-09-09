@@ -6,6 +6,11 @@ PNCP), histórico de orçamentos, proposta comercial em PDF e etiquetas de exped
 
 SPA em React + Vite. Sem backend: todo o estado fica no `localStorage` do navegador.
 
+## Auditoria técnica
+
+Estado do código e status das melhorias em [`docs/AUDITORIA.md`](docs/AUDITORIA.md)
+(versão visual: <https://claude.ai/code/artifact/d98f1c1a-e5d5-47eb-80d1-172fde03af6e>).
+
 ## Desenvolvimento
 
 ```bash
