@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // recharts (Dashboard) e html2pdf.js (gerador de proposta) já ficam em chunks
+    // assíncronos próprios via React.lazy — não precisam de manualChunks.
+    chunkSizeWarningLimit: 1100
+  },
   server: {
     port: 3000,
     open: true,

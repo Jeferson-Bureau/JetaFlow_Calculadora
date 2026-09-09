@@ -4,6 +4,7 @@ import html2pdf from 'html2pdf.js';
 
 export default function QuoteGenerator({
   budgetResult,
+  sourceQuote = null,
   selectedPaper,
   selectedSheet,
   productW,
@@ -15,11 +16,25 @@ export default function QuoteGenerator({
   onAddClient,
   onClose
 }) {
-  const [selectedClientId, setSelectedClientId] = useState('');
-  const [clientName, setClientName] = useState(clients[0] ? clients[0].name : 'Cliente Exemplo Ltda');
-  const [clientDoc, setClientDoc] = useState(clients[0] ? clients[0].doc : '12.345.678/0001-90');
-  const [clientPhone, setClientPhone] = useState(clients[0] ? clients[0].phone : '(44) 99999-8888');
-  const [clientEmail, setClientEmail] = useState(clients[0] ? clients[0].email : 'contato@cliente.com.br');
+  // Quando a proposta vem do histórico ou de um produto configurável, os dados
+  // devem refletir ESSE orçamento — não o estado corrente da calculadora.
+  const srcClient = sourceQuote
+    ? (clients.find(c => c.id === sourceQuote.clientId) || clients.find(c => c.doc === sourceQuote.clientDoc) || null)
+    : null;
+
+  const [selectedClientId, setSelectedClientId] = useState(srcClient ? srcClient.id : '');
+  const [clientName, setClientName] = useState(
+    sourceQuote?.clientName || srcClient?.name || (clients[0] ? clients[0].name : 'Cliente Exemplo Ltda')
+  );
+  const [clientDoc, setClientDoc] = useState(
+    sourceQuote?.clientDoc || srcClient?.doc || (clients[0] ? clients[0].doc : '12.345.678/0001-90')
+  );
+  const [clientPhone, setClientPhone] = useState(
+    srcClient?.phone || (clients[0] ? clients[0].phone : '(44) 99999-8888')
+  );
+  const [clientEmail, setClientEmail] = useState(
+    srcClient?.email || (clients[0] ? clients[0].email : 'contato@cliente.com.br')
+  );
   const [quoteValidity, setQuoteValidity] = useState('7 Dias');
   const [deliveryTerm, setDeliveryTerm] = useState('3 a 5 Dias Úteis');
   const [paymentTerms, setPaymentTerms] = useState('50% Sinal no Pedido + 50% na Entrega / PIX ou Cartão');
@@ -27,8 +42,21 @@ export default function QuoteGenerator({
   const [savedSuccessMsg, setSavedSuccessMsg] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
-  // Item inicial vindo do cálculo atual
-  const initialItem = {
+  // Item inicial: do orçamento de origem (histórico/configurável) ou do cálculo atual
+  const srcQty = Number(sourceQuote?.quantity) || 0;
+  const initialItem = sourceQuote ? {
+    id: `item-${Date.now()}`,
+    description: sourceQuote.description || 'Produção Gráfica',
+    paperName: sourceQuote.paperName || selectedPaper?.name || '—',
+    dimensions: sourceQuote.dimensions || `${productW} x ${productH} mm`,
+    colors: sourceQuote.colors || 'Conforme especificação',
+    finishings: sourceQuote.finishingsSummary || sourceQuote.finishings || 'Conforme especificação',
+    quantity: srcQty || 1,
+    unitPrice: sourceQuote.unitValue != null
+      ? Number(sourceQuote.unitValue) || 0
+      : (srcQty ? (Number(sourceQuote.totalValue) || 0) / srcQty : 0),
+    totalPrice: Number(sourceQuote.totalValue) || 0
+  } : {
     id: `item-${Date.now()}`,
     description: `Produção Gráfica — ${mode === 'digital' ? 'Impressão Digital A3/SRA3' : mode === 'offset' ? 'Off-set Industrial CTP' : 'Comunicação Visual'}`,
     paperName: selectedPaper?.name || 'Couché 150g',

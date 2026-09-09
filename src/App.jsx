@@ -1,20 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, Suspense, lazy } from 'react';
 import Header from './components/Header';
-import DigitalCalculator from './components/DigitalCalculator';
-import OffsetCalculator from './components/OffsetCalculator';
-import LargeFormatCalculator from './components/LargeFormatCalculator';
-import SheetViewer from './components/SheetViewer';
-import FinishingSelector from './components/FinishingSelector';
-import FinancialSummary from './components/FinancialSummary';
-import QuoteGenerator from './components/QuoteGenerator';
-import SettingsManager from './components/SettingsManager';
-import ClientManager from './components/ClientManager';
-import SupplierManager from './components/SupplierManager';
-import LicitacaoManager from './components/LicitacaoManager';
-import DashboardOverview from './components/DashboardOverview';
-import QuoteHistoryManager from './components/QuoteHistoryManager';
-import ProductConfigurator from './components/ProductConfigurator';
-import LabelGenerator from './components/LabelGenerator';
 
 import {
   DEFAULT_EQUIPMENTS,
@@ -25,47 +10,67 @@ import {
   DEFAULT_FINISHINGS,
   DEFAULT_FINANCIAL_CONFIG,
   DEFAULT_CLIENTS,
-  DEFAULT_SUPPLIERS,
-  DEFAULT_BIDDINGS
+  DEFAULT_SUPPLIERS
 } from './data/initialData';
 
-import { calculateBudget, generateTierMatrix, generateNextClientCode, generateNextSupplierCode, generateNextBiddingCode } from './utils/calculatorEngine';
+import {
+  calculateBudget,
+  generateTierMatrix,
+  generateNextClientCode,
+  generateNextSupplierCode,
+  generateNextBiddingCode,
+  generateNextQuoteCode
+} from './utils/calculatorEngine';
+import { STORAGE_KEYS, loadJSON, saveJSON } from './utils/storage';
+import { usePersistentState } from './hooks/usePersistentState';
+
+// Módulos carregados sob demanda (code-splitting por aba).
+const DashboardOverview = lazy(() => import('./components/DashboardOverview'));
+const DigitalCalculator = lazy(() => import('./components/DigitalCalculator'));
+const OffsetCalculator = lazy(() => import('./components/OffsetCalculator'));
+const LargeFormatCalculator = lazy(() => import('./components/LargeFormatCalculator'));
+const SheetViewer = lazy(() => import('./components/SheetViewer'));
+const FinishingSelector = lazy(() => import('./components/FinishingSelector'));
+const FinancialSummary = lazy(() => import('./components/FinancialSummary'));
+const QuoteGenerator = lazy(() => import('./components/QuoteGenerator'));
+const SettingsManager = lazy(() => import('./components/SettingsManager'));
+const ClientManager = lazy(() => import('./components/ClientManager'));
+const SupplierManager = lazy(() => import('./components/SupplierManager'));
+const LicitacaoManager = lazy(() => import('./components/LicitacaoManager'));
+const QuoteHistoryManager = lazy(() => import('./components/QuoteHistoryManager'));
+const LabelGenerator = lazy(() => import('./components/LabelGenerator'));
+
+function TabLoader() {
+  return (
+    <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 600 }}>
+      Carregando módulo…
+    </div>
+  );
+}
 
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Quotes History Storage
-  const [quotesHistory, setQuotesHistory] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_quotes_v1');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        console.error(e);
-      }
+  const [quotesHistory, setQuotesHistory] = usePersistentState(STORAGE_KEYS.quotes, () => ([
+    {
+      id: 'orc-001',
+      code: 'ORC-A0001',
+      date: new Date().toLocaleDateString('pt-BR'),
+      clientName: 'Prefeitura Municipal de Maringá',
+      clientDoc: '76.282.656/0001-06',
+      description: 'Panfletos Informativos A5 — Impressão Digital SRA3',
+      paperName: 'Couché 150g',
+      dimensions: '140 x 210 mm',
+      quantity: 5000,
+      totalValue: 680.00,
+      status: 'enviado'
     }
-    return [
-      {
-        id: 'orc-001',
-        code: 'ORC-A0001',
-        date: new Date().toLocaleDateString('pt-BR'),
-        clientName: 'Prefeitura Municipal de Maringá',
-        clientDoc: '76.282.656/0001-06',
-        description: 'Panfletos Informativos A5 — Impressão Digital SRA3',
-        paperName: 'Couché 150g',
-        dimensions: '140 x 210 mm',
-        quantity: 5000,
-        totalValue: 680.00,
-        status: 'enviado'
-      }
-    ];
-  });
+  ]));
 
   const handleSaveQuoteToHistory = (quoteData) => {
-    const nextNum = quotesHistory.length + 1;
-    const code = `ORC-A${String(nextNum).padStart(4, '0')}`;
+    const code = generateNextQuoteCode(quotesHistory);
     const linkedClient = clients.find(c => c.id === selectedClientId);
 
     const newQuote = {
@@ -78,53 +83,40 @@ export default function App() {
       clientDoc: linkedClient ? linkedClient.doc : (quoteData.clientDoc || 'Não Informado'),
       ...quoteData
     };
-    const updated = [newQuote, ...quotesHistory];
-    setQuotesHistory(updated);
-    localStorage.setItem('jetaflow_quotes_v1', JSON.stringify(updated));
+    setQuotesHistory([newQuote, ...quotesHistory]);
   };
 
   const handleUpdateQuoteInHistory = (updatedQuote) => {
-    const updated = quotesHistory.map(q => q.id === updatedQuote.id ? updatedQuote : q);
-    setQuotesHistory(updated);
-    localStorage.setItem('jetaflow_quotes_v1', JSON.stringify(updated));
+    setQuotesHistory(quotesHistory.map(q => q.id === updatedQuote.id ? updatedQuote : q));
   };
 
   const handleDeleteQuoteFromHistory = (id) => {
-    const updated = quotesHistory.filter(q => q.id !== id);
-    setQuotesHistory(updated);
-    localStorage.setItem('jetaflow_quotes_v1', JSON.stringify(updated));
+    setQuotesHistory(quotesHistory.filter(q => q.id !== id));
   };
 
   // Input Data Databases
   const [equipments] = useState(DEFAULT_EQUIPMENTS);
   const [selectedEquipmentId, setSelectedEquipmentId] = useState('xerox-c8035');
 
-  const [papers, setPapers] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_papers');
-    return saved ? JSON.parse(saved) : DEFAULT_PAPERS;
-  });
-
+  const [papers, setPapers] = usePersistentState(STORAGE_KEYS.papers, DEFAULT_PAPERS);
   const [sheetSizes] = useState(DEFAULT_SHEET_SIZES);
+  const [digitalClickRates, setDigitalClickRates] = usePersistentState(STORAGE_KEYS.clicks, DEFAULT_DIGITAL_CLICKS);
+  const [offsetSettings, setOffsetSettings] = usePersistentState(STORAGE_KEYS.offset, DEFAULT_OFFSET_SETTINGS);
+  const [availableFinishings, setAvailableFinishings] = usePersistentState(STORAGE_KEYS.finishings, DEFAULT_FINISHINGS);
 
-  const [digitalClickRates, setDigitalClickRates] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_clicks');
-    return saved ? JSON.parse(saved) : DEFAULT_DIGITAL_CLICKS;
-  });
-
-  const [offsetSettings, setOffsetSettings] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_offset');
-    return saved ? JSON.parse(saved) : DEFAULT_OFFSET_SETTINGS;
-  });
-
-  const [availableFinishings, setAvailableFinishings] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_finishings');
-    return saved ? JSON.parse(saved) : DEFAULT_FINISHINGS;
-  });
-
-  const [financialConfig, setFinancialConfig] = useState(() => {
-    const saved = localStorage.getItem('jetaflow_financial');
-    return saved ? { ...DEFAULT_FINANCIAL_CONFIG, ...JSON.parse(saved) } : DEFAULT_FINANCIAL_CONFIG;
-  });
+  // financialConfig mantém a semântica antiga: mescla os defaults por cima do
+  // que estiver salvo, para que novas chaves apareçam em instalações antigas.
+  const [financialConfig, setFinancialConfigState] = useState(() => ({
+    ...DEFAULT_FINANCIAL_CONFIG,
+    ...loadJSON(STORAGE_KEYS.financial, {})
+  }));
+  const setFinancialConfig = (next) => {
+    setFinancialConfigState(prev => {
+      const merged = typeof next === 'function' ? next(prev) : next;
+      saveJSON(STORAGE_KEYS.financial, merged);
+      return merged;
+    });
+  };
 
   const [clients, setClients] = useState(() => {
     const saved = localStorage.getItem('jetaflow_clients_v2');
@@ -204,11 +196,6 @@ export default function App() {
     return [];
   });
 
-  const handleSetFinancialConfig = (newConfig) => {
-    setFinancialConfig(newConfig);
-    localStorage.setItem('jetaflow_financial', JSON.stringify(newConfig));
-  };
-
   const handleAddClient = (newClient) => {
     const clientWithCode = {
       ...newClient,
@@ -276,6 +263,7 @@ export default function App() {
   };
 
   const handleReopenQuoteInCalculator = (quote) => {
+    setActiveTab('digital');
     setProductCategory('flat');
     if (quote.quantity) setQuantity(Number(quote.quantity));
     if (quote.paperId) setSelectedPaperId(quote.paperId);
@@ -314,7 +302,6 @@ export default function App() {
   const [selectedFinishings, setSelectedFinishings] = useState([]);
 
 
-  
   // Editorial Book / Catalog Parameters
   const [editorial, setEditorial] = useState({
     pagesCount: 32,
@@ -335,6 +322,23 @@ export default function App() {
 
   // Proposal Modal
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  // Quando o modal é aberto a partir do histórico ou de um produto configurável,
+  // guardamos o orçamento de origem para a proposta refletir ESSE registro
+  // (e não o estado corrente da calculadora).
+  const [quoteModalSource, setQuoteModalSource] = useState(null);
+
+  const openLiveProposal = () => {
+    setQuoteModalSource(null);
+    setIsQuoteModalOpen(true);
+  };
+  const openQuoteProposal = (quote) => {
+    setQuoteModalSource(quote || null);
+    setIsQuoteModalOpen(true);
+  };
+  const closeProposal = () => {
+    setIsQuoteModalOpen(false);
+    setQuoteModalSource(null);
+  };
 
   // Selected Equipment & Paper
   const selectedEquipment = useMemo(() => {
@@ -429,15 +433,43 @@ export default function App() {
     setColors('4/0');
     setQuantity(500);
     setSelectedFinishings([]);
-    localStorage.removeItem('jetaflow_papers');
-    localStorage.removeItem('jetaflow_clicks');
-    localStorage.removeItem('jetaflow_offset');
-    localStorage.removeItem('jetaflow_finishings');
+  };
+
+  const digitalCalculatorProps = {
+    papers,
+    sheetSizes,
+    equipments,
+    selectedEquipmentId,
+    setSelectedEquipmentId,
+    selectedPaperId,
+    setSelectedPaperId,
+    selectedSheetId,
+    setSelectedSheetId,
+    productW,
+    setProductW,
+    productH,
+    setProductH,
+    bleed,
+    setBleed,
+    colors,
+    setColors,
+    quantity,
+    setQuantity,
+    productCategory,
+    setProductCategory,
+    editorial,
+    setEditorial,
+    spineMm: budgetResult.spineMm || 0,
+    clients,
+    selectedClientId,
+    setSelectedClientId,
+    onSaveQuoteToHistory: handleSaveQuoteToHistory,
+    onOpenProposal: openQuoteProposal
   };
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 16px 40px 16px' }}>
-      
+
       {/* Top Header */}
       <Header
         activeTab={activeTab}
@@ -445,237 +477,188 @@ export default function App() {
         onReset={handleResetDefaults}
       />
 
-      {/* Main Workspace Tabs */}
-      {activeTab === 'dashboard' ? (
-        <DashboardOverview
-          biddings={biddings}
-          clients={clients}
-          suppliers={suppliers}
-          papers={papers}
-          equipments={equipments}
-          financialConfig={financialConfig}
-          digitalClickRates={digitalClickRates}
-          setActiveTab={setActiveTab}
-        />
-      ) : activeTab === 'settings' ? (
-        <SettingsManager
-          papers={papers}
-          setPapers={setPapers}
-          digitalClickRates={digitalClickRates}
-          setDigitalClickRates={setDigitalClickRates}
-          offsetSettings={offsetSettings}
-          setOffsetSettings={setOffsetSettings}
-          availableFinishings={availableFinishings}
-          setAvailableFinishings={setAvailableFinishings}
-          onResetDefaults={handleResetDefaults}
-        />
-      ) : activeTab === 'clients' ? (
-        <ClientManager
-          clients={clients}
-          onAddClient={handleAddClient}
-          onUpdateClient={handleUpdateClient}
-          onDeleteClient={handleDeleteClient}
-          onResetClients={handleResetClients}
-        />
-      ) : activeTab === 'suppliers' ? (
-        <SupplierManager
-          suppliers={suppliers}
-          onAddSupplier={handleAddSupplier}
-          onUpdateSupplier={handleUpdateSupplier}
-          onDeleteSupplier={handleDeleteSupplier}
-          onResetSuppliers={handleResetSuppliers}
-        />
-      ) : activeTab === 'biddings' ? (
-        <LicitacaoManager
-          biddings={biddings}
-          clients={clients}
-          onAddBidding={handleAddBidding}
-          onUpdateBidding={handleUpdateBidding}
-          onDeleteBidding={handleDeleteBidding}
-          onResetBiddings={handleResetBiddings}
-        />
-      ) : activeTab === 'quotes' ? (
-        <QuoteHistoryManager
-          quotes={quotesHistory}
-          clients={clients}
-          onUpdateQuote={handleUpdateQuoteInHistory}
-          onDeleteQuote={handleDeleteQuoteFromHistory}
-          onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
-        />
-      ) : activeTab === 'labels' ? (
-        <LabelGenerator
-          quotes={quotesHistory}
-          clients={clients}
-        />
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* Top Section: Form Inputs & 2D Sheet Viewer */}
-          {activeTab === 'digital' && productCategory === 'quotes_history' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <DigitalCalculator
-                papers={papers}
-                sheetSizes={sheetSizes}
-                equipments={equipments}
-                selectedEquipmentId={selectedEquipmentId}
-                setSelectedEquipmentId={setSelectedEquipmentId}
-                selectedPaperId={selectedPaperId}
-                setSelectedPaperId={setSelectedPaperId}
-                selectedSheetId={selectedSheetId}
-                setSelectedSheetId={setSelectedSheetId}
-                productW={productW}
-                setProductW={setProductW}
-                productH={productH}
-                setProductH={setProductH}
-                bleed={bleed}
-                setBleed={setBleed}
-                colors={colors}
-                setColors={setColors}
-                quantity={quantity}
-                setQuantity={setQuantity}
-                productCategory={productCategory}
-                setProductCategory={setProductCategory}
-                editorial={editorial}
-                setEditorial={setEditorial}
-                spineMm={budgetResult.spineMm || 0}
-                clients={clients}
-                selectedClientId={selectedClientId}
-                setSelectedClientId={setSelectedClientId}
-              />
-              <QuoteHistoryManager
-                quotes={quotesHistory}
-                onUpdateQuote={handleUpdateQuoteInHistory}
-                onDeleteQuote={handleDeleteQuoteFromHistory}
-                onOpenQuoteModal={(quote) => setIsQuoteModalOpen(true)}
-                onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
-              />
-            </div>
-          ) : (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-                
-                {/* Left Column: Specific Calculator Inputs */}
-                {activeTab === 'digital' && (
-                  <DigitalCalculator
-                    papers={papers}
-                    sheetSizes={sheetSizes}
-                    equipments={equipments}
-                    selectedEquipmentId={selectedEquipmentId}
-                    setSelectedEquipmentId={setSelectedEquipmentId}
-                    selectedPaperId={selectedPaperId}
-                    setSelectedPaperId={setSelectedPaperId}
-                    selectedSheetId={selectedSheetId}
-                    setSelectedSheetId={setSelectedSheetId}
-                    productW={productW}
-                    setProductW={setProductW}
-                    productH={productH}
-                    setProductH={setProductH}
-                    bleed={bleed}
-                    setBleed={setBleed}
-                    colors={colors}
-                    setColors={setColors}
-                    quantity={quantity}
-                    setQuantity={setQuantity}
-                    productCategory={productCategory}
-                    setProductCategory={setProductCategory}
-                    editorial={editorial}
-                    setEditorial={setEditorial}
-                    spineMm={budgetResult.spineMm || 0}
-                    clients={clients}
-                    selectedClientId={selectedClientId}
-                    setSelectedClientId={setSelectedClientId}
-                  />
-                )}
+      <Suspense fallback={<TabLoader />}>
+        {/* Main Workspace Tabs */}
+        {activeTab === 'dashboard' ? (
+          <DashboardOverview
+            biddings={biddings}
+            clients={clients}
+            suppliers={suppliers}
+            papers={papers}
+            equipments={equipments}
+            financialConfig={financialConfig}
+            digitalClickRates={digitalClickRates}
+            setActiveTab={setActiveTab}
+          />
+        ) : activeTab === 'settings' ? (
+          <SettingsManager
+            papers={papers}
+            setPapers={setPapers}
+            digitalClickRates={digitalClickRates}
+            setDigitalClickRates={setDigitalClickRates}
+            offsetSettings={offsetSettings}
+            setOffsetSettings={setOffsetSettings}
+            availableFinishings={availableFinishings}
+            setAvailableFinishings={setAvailableFinishings}
+            onResetDefaults={handleResetDefaults}
+          />
+        ) : activeTab === 'clients' ? (
+          <ClientManager
+            clients={clients}
+            onAddClient={handleAddClient}
+            onUpdateClient={handleUpdateClient}
+            onDeleteClient={handleDeleteClient}
+            onResetClients={handleResetClients}
+          />
+        ) : activeTab === 'suppliers' ? (
+          <SupplierManager
+            suppliers={suppliers}
+            onAddSupplier={handleAddSupplier}
+            onUpdateSupplier={handleUpdateSupplier}
+            onDeleteSupplier={handleDeleteSupplier}
+            onResetSuppliers={handleResetSuppliers}
+          />
+        ) : activeTab === 'biddings' ? (
+          <LicitacaoManager
+            biddings={biddings}
+            clients={clients}
+            onAddBidding={handleAddBidding}
+            onUpdateBidding={handleUpdateBidding}
+            onDeleteBidding={handleDeleteBidding}
+            onResetBiddings={handleResetBiddings}
+          />
+        ) : activeTab === 'quotes' ? (
+          <QuoteHistoryManager
+            quotes={quotesHistory}
+            clients={clients}
+            onUpdateQuote={handleUpdateQuoteInHistory}
+            onDeleteQuote={handleDeleteQuoteFromHistory}
+            onOpenQuoteModal={openQuoteProposal}
+            onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+          />
+        ) : activeTab === 'labels' ? (
+          <LabelGenerator
+            quotes={quotesHistory}
+            clients={clients}
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-                {activeTab === 'offset' && (
-                  <OffsetCalculator
-                    equipments={equipments}
-                    selectedEquipmentId={selectedEquipmentId}
-                    setSelectedEquipmentId={setSelectedEquipmentId}
-                    papers={papers}
-                    sheetSizes={sheetSizes}
-                    selectedPaperId={selectedPaperId}
-                    setSelectedPaperId={setSelectedPaperId}
-                    selectedSheetId={selectedSheetId}
-                    setSelectedSheetId={setSelectedSheetId}
-                    productW={productW}
-                    setProductW={setProductW}
-                    productH={productH}
-                    setProductH={setProductH}
-                    bleed={bleed}
-                    setBleed={setBleed}
-                    colors={colors}
-                    setColors={setColors}
-                    quantity={quantity}
-                    setQuantity={setQuantity}
-                    offsetSettings={offsetSettings}
-                    setOffsetSettings={setOffsetSettings}
-                  />
-                )}
-
-                {activeTab === 'large_format' && (
-                  <LargeFormatCalculator
-                    largeFormat={largeFormat}
-                    setLargeFormat={setLargeFormat}
-                    quantity={quantity}
-                    setQuantity={setQuantity}
-                  />
-                )}
-
-                {/* Right Column: Sheet Visualizer */}
-                {activeTab !== 'large_format' && productCategory !== 'configurable' && (
-                  <SheetViewer
-                    layout={budgetResult.layout}
-                    sheetSize={selectedSheet}
-                    productW={productCategory === 'editorial' ? ((2 * productW) + (budgetResult.spineMm || 0) + (2 * (editorial.flapW || 0))) : productW}
-                    productH={productH}
-                    bleed={bleed}
-                  />
-                )}
-
+            {/* Top Section: Form Inputs & 2D Sheet Viewer */}
+            {activeTab === 'digital' && productCategory === 'quotes_history' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <DigitalCalculator {...digitalCalculatorProps} />
+                <QuoteHistoryManager
+                  quotes={quotesHistory}
+                  clients={clients}
+                  onUpdateQuote={handleUpdateQuoteInHistory}
+                  onDeleteQuote={handleDeleteQuoteFromHistory}
+                  onOpenQuoteModal={openQuoteProposal}
+                  onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+                />
               </div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
 
-              {productCategory !== 'configurable' && (
-                <>
-                  {/* Middle Section: Finishings */}
-                  <FinishingSelector
-                    availableFinishings={availableFinishings}
-                    selectedFinishings={selectedFinishings}
-                    setSelectedFinishings={setSelectedFinishings}
-                  />
+                  {/* Left Column: Specific Calculator Inputs */}
+                  {activeTab === 'digital' && (
+                    <DigitalCalculator {...digitalCalculatorProps} />
+                  )}
 
-                  {/* Bottom Section: DRE Financial Breakdown & Tier Matrix */}
-                  <FinancialSummary
-                    budgetResult={budgetResult}
-                    tierMatrix={tierMatrix}
-                    financialConfig={financialConfig}
-                    setFinancialConfig={handleSetFinancialConfig}
-                    onOpenQuoteModal={() => setIsQuoteModalOpen(true)}
-                    onSaveQuoteToHistory={handleSaveQuoteToHistory}
-                  />
-                </>
-              )}
-            </>
-          )}
+                  {activeTab === 'offset' && (
+                    <OffsetCalculator
+                      equipments={equipments}
+                      selectedEquipmentId={selectedEquipmentId}
+                      setSelectedEquipmentId={setSelectedEquipmentId}
+                      papers={papers}
+                      sheetSizes={sheetSizes}
+                      selectedPaperId={selectedPaperId}
+                      setSelectedPaperId={setSelectedPaperId}
+                      selectedSheetId={selectedSheetId}
+                      setSelectedSheetId={setSelectedSheetId}
+                      productW={productW}
+                      setProductW={setProductW}
+                      productH={productH}
+                      setProductH={setProductH}
+                      bleed={bleed}
+                      setBleed={setBleed}
+                      colors={colors}
+                      setColors={setColors}
+                      quantity={quantity}
+                      setQuantity={setQuantity}
+                      offsetSettings={offsetSettings}
+                      setOffsetSettings={setOffsetSettings}
+                    />
+                  )}
 
-        </div>
-      )}
+                  {activeTab === 'large_format' && (
+                    <LargeFormatCalculator
+                      largeFormat={largeFormat}
+                      setLargeFormat={setLargeFormat}
+                      quantity={quantity}
+                      setQuantity={setQuantity}
+                    />
+                  )}
+
+                  {/* Right Column: Sheet Visualizer */}
+                  {activeTab !== 'large_format' && productCategory !== 'configurable' && (
+                    <SheetViewer
+                      layout={budgetResult.layout}
+                      sheetSize={selectedSheet}
+                      productW={productCategory === 'editorial' ? ((2 * productW) + (budgetResult.spineMm || 0) + (2 * (editorial.flapW || 0))) : productW}
+                      productH={productH}
+                      bleed={bleed}
+                    />
+                  )}
+
+                </div>
+
+                {productCategory !== 'configurable' && (
+                  <>
+                    {/* Middle Section: Finishings */}
+                    <FinishingSelector
+                      availableFinishings={availableFinishings}
+                      selectedFinishings={selectedFinishings}
+                      setSelectedFinishings={setSelectedFinishings}
+                    />
+
+                    {/* Bottom Section: DRE Financial Breakdown & Tier Matrix */}
+                    <FinancialSummary
+                      budgetResult={budgetResult}
+                      tierMatrix={tierMatrix}
+                      financialConfig={financialConfig}
+                      setFinancialConfig={setFinancialConfig}
+                      onOpenQuoteModal={openLiveProposal}
+                      onSaveQuoteToHistory={handleSaveQuoteToHistory}
+                    />
+                  </>
+                )}
+              </>
+            )}
+
+          </div>
+        )}
+      </Suspense>
 
       {/* Printable / Exportable Quote Proposal Modal */}
       {isQuoteModalOpen && (
-        <QuoteGenerator
-          budgetResult={budgetResult}
-          selectedPaper={selectedPaper}
-          selectedSheet={selectedSheet}
-          productW={productW}
-          productH={productH}
-          colors={colors}
-          mode={activeTab}
-          selectedFinishings={selectedFinishings}
-          clients={clients}
-          onAddClient={handleAddClient}
-          onClose={() => setIsQuoteModalOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <QuoteGenerator
+            budgetResult={budgetResult}
+            sourceQuote={quoteModalSource}
+            selectedPaper={selectedPaper}
+            selectedSheet={selectedSheet}
+            productW={productW}
+            productH={productH}
+            colors={colors}
+            mode={activeTab}
+            selectedFinishings={selectedFinishings}
+            clients={clients}
+            onAddClient={handleAddClient}
+            onClose={closeProposal}
+          />
+        </Suspense>
       )}
 
     </div>

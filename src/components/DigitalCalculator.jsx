@@ -29,7 +29,9 @@ export default function DigitalCalculator({
   spineMm,
   clients = [],
   selectedClientId,
-  setSelectedClientId
+  setSelectedClientId,
+  onSaveQuoteToHistory,
+  onOpenProposal
 }) {
   const selectedEquipment = equipments.find(e => e.id === selectedEquipmentId) || equipments[0];
   const selectedPaper = papers.find(p => p.id === selectedPaperId) || papers[0];
@@ -268,7 +270,13 @@ export default function DigitalCalculator({
       )}
 
       {productCategory === 'configurable' ? (
-        <ProductConfigurator papers={papers} />
+        <ProductConfigurator
+          papers={papers}
+          clients={clients}
+          selectedClientId={selectedClientId}
+          onSaveQuoteToHistory={onSaveQuoteToHistory}
+          onOpenProposal={onOpenProposal}
+        />
       ) : productCategory === 'flat' ? (
         /* --- PRODUTO COMERCIAL / AVULSO --- */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>

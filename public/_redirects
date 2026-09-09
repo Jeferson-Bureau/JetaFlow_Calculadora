@@ -1,0 +1,6 @@
+# Proxies das APIs públicas (evita CORS no build estático) — Netlify
+/api/pncp/*      https://pncp.gov.br/api/consulta/:splat          200
+/api/compras/*   https://dadosabertos.compras.gov.br/:splat        200
+
+# Fallback SPA
+/*               /index.html                                        200

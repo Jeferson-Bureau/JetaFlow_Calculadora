@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Sliders, Save, RotateCcw, Plus, Trash2, Layers, Cpu, Scissors } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Sliders, Save, RotateCcw, Plus, Trash2, Layers, Cpu, Scissors, Download, Upload, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { downloadBackup, restoreBackup } from '../utils/storage';
 
 export default function SettingsManager({
   papers,
@@ -14,6 +15,29 @@ export default function SettingsManager({
 }) {
   const [activeSubTab, setActiveSubTab] = useState('papers');
   const [showSavedMsg, setShowSavedMsg] = useState(false);
+  const [restoreFeedback, setRestoreFeedback] = useState(null); // { type: 'ok' | 'error', text }
+  const [mergeOnImport, setMergeOnImport] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImportFile = async (event) => {
+    const file = event.target.files && event.target.files[0];
+    event.target.value = ''; // permite reimportar o mesmo arquivo
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const applied = restoreBackup(parsed, { merge: mergeOnImport });
+      setRestoreFeedback({
+        type: 'ok',
+        text: `${applied.length} conjunto(s) de dados restaurado(s). A página será recarregada…`
+      });
+      setTimeout(() => window.location.reload(), 1400);
+    } catch (err) {
+      console.error(err);
+      setRestoreFeedback({ type: 'error', text: `Falha ao importar: ${err.message}` });
+    }
+  };
 
   const saveToStorage = () => {
     localStorage.setItem('jetaflow_papers', JSON.stringify(papers));
@@ -186,7 +210,122 @@ export default function SettingsManager({
         >
           <Scissors size={16} /> Acabamentos
         </button>
+
+        <button
+          onClick={() => setActiveSubTab('backup')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: activeSubTab === 'backup' ? 'var(--brand-cyan)' : 'transparent',
+            color: activeSubTab === 'backup' ? '#ffffff' : 'var(--text-muted)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <ShieldCheck size={16} /> Backup & Restauração
+        </button>
       </div>
+
+      {/* Subtab Content: Backup & Restauração */}
+      {activeSubTab === 'backup' && (
+        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={18} color="var(--brand-cyan)" /> Backup Completo dos Dados
+            </h4>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '6px 0 0 0', lineHeight: 1.5 }}>
+              Todos os dados do JetaFlow (clientes, fornecedores, licitações, histórico de
+              orçamentos e tabelas de preços) ficam salvos apenas neste navegador. Exporte
+              um arquivo <code>.json</code> com frequência — limpar os dados do navegador,
+              trocar de computador ou de navegador apaga tudo.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              onClick={() => downloadBackup()}
+              style={{
+                padding: '12px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, var(--success), #059669)',
+                color: '#ffffff',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <Download size={16} /> Exportar Backup (.json)
+            </button>
+
+            <button
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              style={{
+                padding: '12px 20px',
+                borderRadius: '10px',
+                border: '1px solid var(--brand-cyan)',
+                background: 'rgba(0, 168, 232, 0.12)',
+                color: 'var(--brand-cyan)',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <Upload size={16} /> Importar Backup…
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={handleImportFile}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={mergeOnImport}
+              onChange={(e) => setMergeOnImport(e.target.checked)}
+              style={{ accentColor: 'var(--brand-cyan)' }}
+            />
+            Mesclar com os dados atuais (por <code>id</code>) em vez de substituir tudo
+          </label>
+
+          {!mergeOnImport && (
+            <div style={{ fontSize: '0.78rem', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <AlertCircle size={14} /> Importar substitui os dados atuais pelos do arquivo. Exporte antes, por segurança.
+            </div>
+          )}
+
+          {restoreFeedback && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: restoreFeedback.type === 'ok' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: restoreFeedback.type === 'ok' ? 'var(--success)' : '#fca5a5',
+              border: `1px solid ${restoreFeedback.type === 'ok' ? 'var(--success)' : 'var(--danger)'}`
+            }}>
+              {restoreFeedback.type === 'ok' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              {restoreFeedback.text}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Subtab Content: Papéis */}
       {activeSubTab === 'papers' && (

@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { calcularPreco } from '../utils/pricing';
 import { CALENDAR_CONFIG } from '../data/productConfig';
-import { AlertCircle, ShoppingCart, Tag, PackageSearch } from 'lucide-react';
+import { AlertCircle, ShoppingCart, Tag, PackageSearch, BookmarkPlus, FileCheck, CheckCircle2 } from 'lucide-react';
 
-export default function ProductConfigurator({ papers = [] }) {
+export default function ProductConfigurator({
+  papers = [],
+  clients = [],
+  selectedClientId = '',
+  onSaveQuoteToHistory,
+  onOpenProposal
+}) {
   const productData = useMemo(() => {
     // Clone original config to avoid mutating
     const config = JSON.parse(JSON.stringify(CALENDAR_CONFIG));
@@ -70,6 +76,54 @@ export default function ProductConfigurator({ papers = [] }) {
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  };
+
+  const [savedMsg, setSavedMsg] = useState(false);
+
+  const optionName = (groupId) => {
+    const group = productData.attribute_groups.find(g => g.id === groupId);
+    if (!group) return '';
+    const opt = group.options.find(o => o.id === selectedOptions[groupId]);
+    return opt ? opt.name : '';
+  };
+
+  const configSummary = useMemo(() => (
+    productData.attribute_groups
+      .map(g => `${g.name}: ${optionName(g.id) || '—'}`)
+      .join(' | ')
+  ), [productData, selectedOptions]);
+
+  const linkedClient = clients.find(c => c.id === selectedClientId) || null;
+
+  const buildQuoteData = () => ({
+    description: `${productData.name} — ${configSummary}`,
+    paperName: optionName('base_paper') || optionName('miolo_paper') || '—',
+    dimensions: optionName('base_format') || 'Formato personalizado',
+    colors: '4/4',
+    quantity: Number(quantity) || 0,
+    totalValue: Number(priceResult.totalPrice) || 0,
+    unitValue: Number(priceResult.unitPrice) || 0,
+    finishingsSummary: configSummary,
+    productType: 'configurable'
+  });
+
+  const handleSaveToHistory = () => {
+    if (priceResult.error || !onSaveQuoteToHistory) return;
+    onSaveQuoteToHistory(buildQuoteData());
+    setSavedMsg(true);
+    setTimeout(() => setSavedMsg(false), 2500);
+  };
+
+  const handleGenerateProposal = () => {
+    if (priceResult.error || !onOpenProposal) return;
+    onOpenProposal({
+      ...buildQuoteData(),
+      code: 'ORÇAMENTO',
+      date: new Date().toLocaleDateString('pt-BR'),
+      clientId: selectedClientId || '',
+      clientName: linkedClient ? (linkedClient.tradeName || linkedClient.name) : 'Cliente Balcão',
+      clientDoc: linkedClient ? linkedClient.doc : 'Não Informado'
+    });
   };
 
   return (
@@ -196,28 +250,62 @@ export default function ProductConfigurator({ papers = [] }) {
             )}
           </div>
 
-          <button 
-            disabled={!!priceResult.error}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: priceResult.error ? 'var(--bg-input)' : 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
-              color: priceResult.error ? 'var(--text-muted)' : '#ffffff',
-              border: priceResult.error ? '1px solid var(--border-color)' : 'none',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: 800,
-              cursor: priceResult.error ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s',
-              boxShadow: priceResult.error ? 'none' : '0 4px 15px rgba(0, 168, 232, 0.4)'
-            }}
-          >
-            {priceResult.error ? 'Verifique os Erros' : 'Adicionar ao Carrinho'}
-          </button>
+          {savedMsg && (
+            <div style={{ marginBottom: '10px', fontSize: '0.8rem', color: '#34d399', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} /> Salvo no Histórico de Orçamentos!
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              type="button"
+              disabled={!!priceResult.error}
+              onClick={handleSaveToHistory}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: priceResult.error ? 'var(--bg-input)' : 'linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(109, 40, 217, 0.35))',
+                color: priceResult.error ? 'var(--text-muted)' : '#ffffff',
+                border: priceResult.error ? '1px solid var(--border-color)' : '1px solid rgba(139, 92, 246, 0.4)',
+                borderRadius: '8px',
+                fontSize: '0.95rem',
+                fontWeight: 800,
+                cursor: priceResult.error ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <BookmarkPlus size={16} /> Salvar no Histórico
+            </button>
+
+            <button
+              type="button"
+              disabled={!!priceResult.error}
+              onClick={handleGenerateProposal}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: priceResult.error ? 'var(--bg-input)' : 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
+                color: priceResult.error ? 'var(--text-muted)' : '#ffffff',
+                border: priceResult.error ? '1px solid var(--border-color)' : 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: 800,
+                cursor: priceResult.error ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s',
+                boxShadow: priceResult.error ? 'none' : '0 4px 15px rgba(0, 168, 232, 0.4)'
+              }}
+            >
+              <FileCheck size={16} /> {priceResult.error ? 'Verifique os Erros' : 'Gerar Proposta Comercial PDF'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

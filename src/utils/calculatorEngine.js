@@ -617,106 +617,40 @@ export function generateTierMatrix(config, tiers = [100, 250, 500, 1000, 2500, 5
 }
 
 /**
- * Generates next sequential client code in the format CLI-A0001, CLI-A0002, etc.
+ * Gera o próximo código sequencial no formato PREFIXO-A0001, PREFIXO-A0002, …
+ * A numeração é derivada do MAIOR código existente (não da contagem da lista),
+ * para não colidir quando itens são excluídos no meio.
  */
-export function generateNextClientCode(clients = []) {
-  if (!clients || clients.length === 0) return 'CLI-A0001';
-
+export function generateSequentialCode(prefix, items = []) {
+  const re = new RegExp(`${prefix}-([A-Z])(\\d+)`, 'i');
   let maxNum = 0;
   let activeLetter = 'A';
 
-  clients.forEach(c => {
-    const codeStr = c.code || '';
-    const match = codeStr.match(/CLI-([A-Z])(\d+)/i);
+  (items || []).forEach(item => {
+    const match = (item && item.code ? String(item.code) : '').match(re);
     if (match) {
-      const letter = match[1].toUpperCase();
       const num = parseInt(match[2], 10);
       if (num > maxNum) {
         maxNum = num;
-        activeLetter = letter;
+        activeLetter = match[1].toUpperCase();
       }
     }
   });
 
   let nextNum = maxNum + 1;
   let nextLetter = activeLetter;
-
   if (nextNum > 9999) {
     nextNum = 1;
     nextLetter = String.fromCharCode(activeLetter.charCodeAt(0) + 1);
   }
 
-  const paddedNum = String(nextNum).padStart(4, '0');
-  return `CLI-${nextLetter}${paddedNum}`;
+  return `${prefix}-${nextLetter}${String(nextNum).padStart(4, '0')}`;
 }
 
-/**
- * Generates next sequential supplier code in the format FOR-A0001, FOR-A0002, etc.
- */
-export function generateNextSupplierCode(suppliers = []) {
-  if (!suppliers || suppliers.length === 0) return 'FOR-A0001';
-
-  let maxNum = 0;
-  let activeLetter = 'A';
-
-  suppliers.forEach(s => {
-    const codeStr = s.code || '';
-    const match = codeStr.match(/FOR-([A-Z])(\d+)/i);
-    if (match) {
-      const letter = match[1].toUpperCase();
-      const num = parseInt(match[2], 10);
-      if (num > maxNum) {
-        maxNum = num;
-        activeLetter = letter;
-      }
-    }
-  });
-
-  let nextNum = maxNum + 1;
-  let nextLetter = activeLetter;
-
-  if (nextNum > 9999) {
-    nextNum = 1;
-    nextLetter = String.fromCharCode(activeLetter.charCodeAt(0) + 1);
-  }
-
-  const paddedNum = String(nextNum).padStart(4, '0');
-  return `FOR-${nextLetter}${paddedNum}`;
-}
-
-/**
- * Generates next sequential bidding code in the format LIC-A0001, LIC-A0002, etc.
- */
-export function generateNextBiddingCode(biddings = []) {
-  if (!biddings || biddings.length === 0) return 'LIC-A0001';
-
-  let maxNum = 0;
-  let activeLetter = 'A';
-
-  biddings.forEach(b => {
-    const codeStr = b.code || '';
-    const match = codeStr.match(/LIC-([A-Z])(\d+)/i);
-    if (match) {
-      const letter = match[1].toUpperCase();
-      const num = parseInt(match[2], 10);
-      if (num > maxNum) {
-        maxNum = num;
-        activeLetter = letter;
-      }
-    }
-  });
-
-  let nextNum = maxNum + 1;
-  let nextLetter = activeLetter;
-
-  if (nextNum > 9999) {
-    nextNum = 1;
-    nextLetter = String.fromCharCode(activeLetter.charCodeAt(0) + 1);
-  }
-
-  const paddedNum = String(nextNum).padStart(4, '0');
-  return `LIC-${nextLetter}${paddedNum}`;
-}
+export const generateNextClientCode = (clients = []) => generateSequentialCode('CLI', clients);
+export const generateNextSupplierCode = (suppliers = []) => generateSequentialCode('FOR', suppliers);
+export const generateNextBiddingCode = (biddings = []) => generateSequentialCode('LIC', biddings);
+export const generateNextQuoteCode = (quotes = []) => generateSequentialCode('ORC', quotes);
 
 
 
