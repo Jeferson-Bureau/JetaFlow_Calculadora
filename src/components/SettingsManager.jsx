@@ -100,7 +100,7 @@ export default function SettingsManager({
               borderRadius: '8px',
               border: 'none',
               background: 'linear-gradient(135deg, var(--success), #059669)',
-              color: '#ffffff',
+              color: 'var(--on-accent)',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
@@ -253,7 +253,7 @@ export default function SettingsManager({
                 borderRadius: '10px',
                 border: 'none',
                 background: 'linear-gradient(135deg, var(--success), #059669)',
-                color: '#ffffff',
+                color: 'var(--on-accent)',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
@@ -479,7 +479,7 @@ export default function SettingsManager({
                 </tr>
               </thead>
               <tbody>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <tr style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
                   <td style={{ padding: '6px', fontWeight: 600 }}>A4 Padronizado (210 x 297 mm)</td>
                   <td style={{ padding: '6px', color: 'var(--text-muted)' }}>1,0x</td>
                   <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoSimplex || 0.072).toFixed(3)}</td>
@@ -487,7 +487,7 @@ export default function SettingsManager({
                   <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorSimplex || 0.305).toFixed(3)}</td>
                   <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorDuplex || 0.610).toFixed(3)}</td>
                 </tr>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <tr style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
                   <td style={{ padding: '6px', fontWeight: 600 }}>A3 Padrão (297 x 420 mm)</td>
                   <td style={{ padding: '6px', color: 'var(--text-muted)' }}>2,0x</td>
                   <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.072) * 2).toFixed(3)}</td>

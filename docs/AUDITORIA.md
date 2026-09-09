@@ -58,7 +58,7 @@ em `src/data/productConfig.js` / `src/utils/pricing.js`.
 
 - **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI.
 - **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir.
-- **Estilos 100% inline, só tema escuro, `<label>` sem `htmlFor`.**
+- **Estilos majoritariamente inline e `<label>` sem `htmlFor`.** (Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`.)
 - **Dashboard é a aba inicial** e força o carregamento do `recharts` (~120 KB gzip) no primeiro acesso.
 
 ## Arquivos novos nesta rodada

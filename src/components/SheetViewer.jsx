@@ -167,7 +167,7 @@ export default function SheetViewer({ layout, sheetSize, productW, productH, ble
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#0a0f1d',
+        background: 'var(--bg-input)',
         borderRadius: '12px',
         border: '1px solid var(--border-color)',
         padding: '12px'

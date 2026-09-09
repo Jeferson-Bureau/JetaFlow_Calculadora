@@ -149,7 +149,7 @@ export default function ClientManager({
             <Users size={28} color="var(--brand-cyan)" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
               Gestão e Cadastro de Clientes (CRM)
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -168,7 +168,7 @@ export default function ClientManager({
               borderRadius: '10px',
               border: 'none',
               background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
-              color: '#ffffff',
+              color: 'var(--on-accent)',
               fontWeight: 700,
               fontSize: '0.95rem',
               cursor: 'pointer',
@@ -187,11 +187,11 @@ export default function ClientManager({
       {/* Metrics Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
         
-        <div style={{ background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px 16px' }}>
+        <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px 16px' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
             Total de Clientes
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', marginTop: '2px' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '2px' }}>
             {clients.length}
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function ClientManager({
       {filteredClients.length === 0 ? (
         <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
           <Users size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: '0 0 6px 0' }}>Nenhum cliente encontrado</h3>
+          <h3 style={{ fontSize: '1.1rem', color: 'var(--text-strong)', margin: '0 0 6px 0' }}>Nenhum cliente encontrado</h3>
           <p style={{ fontSize: '0.85rem', margin: '0 0 16px 0' }}>
             {searchTerm ? 'Tente buscar com outros termos ou limpe o campo de busca.' : 'A base de clientes está vazia ou aguardando sincronização.'}
           </p>
@@ -312,7 +312,7 @@ export default function ClientManager({
                   flexDirection: 'column',
                   justify: 'space-between',
                   border: isCnpj ? '1px solid rgba(0, 168, 232, 0.25)' : '1px solid rgba(230, 46, 107, 0.25)',
-                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(23, 53, 91, 0.3))'
+                  background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))'
                 }}
               >
                 <div>
@@ -401,7 +401,7 @@ export default function ClientManager({
                   </div>
 
                   {/* Client Trade Name, Razão Social & Document */}
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: '0 0 2px 0', lineHeight: '1.3' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 2px 0', lineHeight: '1.3' }}>
                     {client.tradeName || client.name}
                   </h3>
 
@@ -454,7 +454,7 @@ export default function ClientManager({
                   {/* Notes Badge */}
                   {client.notes && (
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
+                      background: 'var(--tint-hairline)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '8px',
                       padding: '8px 10px',
@@ -502,7 +502,7 @@ export default function ClientManager({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <UserPlus size={22} color="var(--brand-cyan)" />
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                   {editingClient ? 'Editar Cadastro de Cliente' : 'Novo Cadastro de Cliente'}
                 </h3>
               </div>
@@ -711,7 +711,7 @@ export default function ClientManager({
                     borderRadius: '8px',
                     border: 'none',
                     background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
-                    color: '#ffffff',
+                    color: 'var(--on-accent)',
                     fontWeight: 700,
                     cursor: 'pointer'
                   }}

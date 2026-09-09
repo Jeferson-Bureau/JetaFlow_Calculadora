@@ -164,7 +164,7 @@ export default function ProductConfigurator({
         {/* Dynamic Attribute Groups */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {productData.attribute_groups.map(group => (
-            <div key={group.id} className="form-group" style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div key={group.id} className="form-group" style={{ background: 'var(--tint-hairline)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
               <label className="form-label" style={{ color: 'var(--text-main)' }}>
                 {group.name}
               </label>
@@ -214,15 +214,15 @@ export default function ProductConfigurator({
 
       {/* Right Column: Summary & Price */}
       <div style={{ position: 'sticky', top: '24px' }}>
-        <div className="glass-card" style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(23, 53, 91, 0.4), rgba(13, 21, 37, 0.8))', border: '1px solid rgba(0, 168, 232, 0.3)' }}>
-          <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
+        <div className="glass-card" style={{ padding: '24px', background: 'linear-gradient(135deg, var(--panel-grad-2), var(--panel-grad-1))', border: '1px solid rgba(0, 168, 232, 0.3)' }}>
+          <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem', color: 'var(--text-strong)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
             <ShoppingCart size={20} color="var(--brand-cyan)" /> Preço Final
           </h3>
           
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
               <span>Preço Unitário:</span>
-              <strong style={{ color: '#ffffff' }}>{formatCurrency(priceResult.unitPrice)}</strong>
+              <strong style={{ color: 'var(--text-strong)' }}>{formatCurrency(priceResult.unitPrice)}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', borderTop: '1px dashed var(--border-color)', paddingTop: '16px' }}>
               <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)' }}>Custo Total:</span>

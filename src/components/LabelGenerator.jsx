@@ -265,7 +265,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
               <Tag size={24} color="var(--brand-magenta)" />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                 Emissão de Etiquetas de Expedição
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -279,7 +279,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
               onClick={handlePrint}
               style={{
                 background: 'linear-gradient(135deg, var(--brand-magenta), #b81b4f)',
-                color: '#ffffff',
+                color: 'var(--on-accent)',
                 border: 'none',
                 padding: '12px 24px',
                 borderRadius: '10px',
@@ -418,16 +418,16 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
         {computedQuote && (
           <div style={{
             marginTop: '20px',
-            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(23, 53, 91, 0.25))',
+            background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))',
             padding: '18px',
             borderRadius: '12px',
             border: matchedClient ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border-color)'
           }}>
             {/* Address Header & Origin Status */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid var(--tint-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <MapPin size={18} color="var(--brand-cyan)" />
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff' }}>
+                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-strong)' }}>
                   Endereço Completo de Entrega (Destinatário)
                 </span>
               </div>
@@ -567,7 +567,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             display: 'grid',
             gridTemplateColumns: '140px 180px 180px 1fr',
             gap: '14px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: 'var(--tint-hairline)',
             padding: '16px',
             borderRadius: '12px',
             border: '1px solid var(--border-color)',
@@ -663,7 +663,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   borderBottom: '2px solid #000',
                   padding: '7px 12px',
                   background: '#000',
-                  color: '#fff',
+                  color: 'var(--text-strong)',
                   flexShrink: 0
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

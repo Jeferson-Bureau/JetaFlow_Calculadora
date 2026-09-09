@@ -1,33 +1,161 @@
-:root {
-  --bg-main: #0a0f1d;
-  --bg-secondary: #111827;
-  --bg-card: #162032;
-  --bg-card-hover: #1e2c45;
-  --bg-input: #0d1525;
-  --border-color: rgba(255, 255, 255, 0.09);
-  --border-active: rgba(0, 168, 232, 0.5);
-  
-  /* JetaPrint Brand Palette */
-  --brand-navy: #17355B;
-  --brand-cyan: #00A8E8;
-  --brand-magenta: #E62E6B;
-  --brand-yellow: #F7B500;
-  
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-  --text-dark: #0F172A;
+/* ============================================================
+   JetaFlow — sistema de temas (claro / escuro) e base moderna
+   Tokens definidos primeiro no :root (tema claro completo),
+   depois sobrescritos para escuro via preferência do SO e via
+   [data-theme] (o botão de tema vence nas duas direções).
+   ============================================================ */
 
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+:root {
+  color-scheme: light;
+
+  /* superfícies */
+  --bg-main: #EDF1F6;
+  --bg-secondary: #F4F7FA;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --bg-input: #EEF2F7;
+  --surface-raised: #FFFFFF;
+
+  /* traços */
+  --border-color: #E1E7EF;
+  --border-strong: #CBD5E1;
+  --border-active: rgba(7, 135, 188, 0.55);
+
+  /* texto */
+  --text-strong: #0F172A;
+  --text-main: #1E293B;
+  --text-muted: #5B6B7F;
+  --text-faint: #94A3B8;
+
+  /* tints adaptativos (usados como fills sutis / separadores) */
+  --tint-hairline: rgba(15, 23, 42, 0.035);
+  --tint-subtle: rgba(15, 23, 42, 0.06);
+  --tint-strong: rgba(15, 23, 42, 0.11);
+
+  /* gradiente "spotlight" dos cards de destaque */
+  --panel-grad-1: rgba(7, 135, 188, 0.05);
+  --panel-grad-2: rgba(7, 135, 188, 0.11);
+
+  /* marca JetaPrint — afinada para servir como preenchimento E texto no tema claro */
+  --brand-navy: #17355B;
+  --brand-cyan: #0787BC;
+  --brand-magenta: #D61E5E;
+  --brand-yellow: #B0790C;
+
+  /* semânticas (contraste AA sobre superfícies claras) */
+  --success: #0A7D53;
+  --warning: #B45309;
+  --danger: #DC2626;
+
+  /* texto sobre preenchimento de marca saturado */
+  --on-accent: #FFFFFF;
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 22px;
 
-  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(0, 168, 232, 0.15);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.06), 0 12px 28px -18px rgba(15, 23, 42, 0.22);
+  --shadow-pop: 0 8px 24px -6px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 0 1px rgba(7, 135, 188, 0.14);
+
+  --ring: 0 0 0 3px rgba(7, 135, 188, 0.28);
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Escuro por preferência do sistema — só se o usuário não forçou claro */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg-main: #0B1017;
+    --bg-secondary: #10161F;
+    --bg-card: #161E29;
+    --bg-card-hover: #1D2735;
+    --bg-input: #0F1620;
+    --surface-raised: #1B2431;
+
+    --border-color: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --border-active: rgba(34, 181, 238, 0.55);
+
+    --text-strong: #FFFFFF;
+    --text-main: #E8EEF4;
+    --text-muted: #93A2B4;
+    --text-faint: #6B7A8D;
+
+    --tint-hairline: rgba(255, 255, 255, 0.035);
+    --tint-subtle: rgba(255, 255, 255, 0.07);
+    --tint-strong: rgba(255, 255, 255, 0.14);
+
+    --panel-grad-1: rgba(15, 23, 42, 0.85);
+    --panel-grad-2: rgba(23, 53, 91, 0.5);
+
+    --brand-navy: #3E77B8;
+    --brand-cyan: #22B5EE;
+    --brand-magenta: #F0407E;
+    --brand-yellow: #F7B500;
+
+    --success: #22C892;
+    --warning: #FBBF24;
+    --danger: #F87171;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+    --shadow-pop: 0 12px 34px -8px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 22px rgba(34, 181, 238, 0.14);
+
+    --ring: 0 0 0 3px rgba(34, 181, 238, 0.3);
+  }
+}
+
+/* Escuro forçado pelo botão de tema — vence o SO nas duas direções */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-main: #0B1017;
+  --bg-secondary: #10161F;
+  --bg-card: #161E29;
+  --bg-card-hover: #1D2735;
+  --bg-input: #0F1620;
+  --surface-raised: #1B2431;
+
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-active: rgba(34, 181, 238, 0.55);
+
+  --text-strong: #FFFFFF;
+  --text-main: #E8EEF4;
+  --text-muted: #93A2B4;
+  --text-faint: #6B7A8D;
+
+  --tint-hairline: rgba(255, 255, 255, 0.035);
+  --tint-subtle: rgba(255, 255, 255, 0.07);
+  --tint-strong: rgba(255, 255, 255, 0.14);
+
+  --panel-grad-1: rgba(15, 23, 42, 0.85);
+  --panel-grad-2: rgba(23, 53, 91, 0.5);
+
+  --brand-navy: #3E77B8;
+  --brand-cyan: #22B5EE;
+  --brand-magenta: #F0407E;
+  --brand-yellow: #F7B500;
+
+  --success: #22C892;
+  --warning: #FBBF24;
+  --danger: #F87171;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
+  --shadow-pop: 0 12px 34px -8px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 22px rgba(34, 181, 238, 0.14);
+
+  --ring: 0 0 0 3px rgba(34, 181, 238, 0.3);
+}
+
+/* ---------- reset / base ---------- */
 
 * {
   box-sizing: border-box;
@@ -35,67 +163,58 @@
   padding: 0;
 }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(0, 168, 232, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(230, 46, 107, 0.05) 0%, transparent 40%);
+  background-image:
+    radial-gradient(60rem 60rem at 12% -10%, var(--panel-grad-2) 0%, transparent 55%),
+    radial-gradient(50rem 50rem at 100% 0%, rgba(214, 30, 94, 0.05) 0%, transparent 45%);
   background-attachment: fixed;
+  transition: background-color 0.3s var(--ease), color 0.3s var(--ease);
 }
 
-button, input, select, textarea {
-  font-family: inherit;
-}
+h1, h2, h3, h4 { color: var(--text-strong); letter-spacing: -0.011em; }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-main);
-}
+button, input, select, textarea { font-family: inherit; }
+
+::selection { background: color-mix(in srgb, var(--brand-cyan) 28%, transparent); }
+
+/* ---------- scrollbar ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #2a3a57;
-  border-radius: 4px;
+  background: var(--tint-strong);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-cyan);
-}
+::-webkit-scrollbar-thumb:hover { background: var(--brand-cyan); background-clip: padding-box; }
 
-/* Card Utility */
+/* ---------- card ---------- */
 .glass-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
 }
+.glass-card:hover { border-color: var(--border-strong); }
 
-.glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Form Styling */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-}
+/* ---------- forms ---------- */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 
 .form-label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -103,68 +222,58 @@ button, input, select, textarea {
 
 .form-input, .form-select {
   width: 100%;
-  padding: 10px 14px;
+  padding: 10px 13px;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-size: 0.95rem;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), background-color 0.15s var(--ease);
 }
+.form-input::placeholder { color: var(--text-faint); }
 
 .form-select option {
-  background-color: #0f172a !important;
-  color: #ffffff !important;
-  padding: 8px;
+  background-color: var(--bg-card);
+  color: var(--text-main);
 }
 
 .form-input:focus, .form-select:focus {
-  border-color: var(--brand-cyan);
-  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.2);
+  border-color: var(--border-active);
+  box-shadow: var(--ring);
+  background: var(--bg-card);
 }
 
-/* Print Styles for Official PDF Quotes */
+:where(button, a, [tabindex], input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- print ---------- */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #1e293b !important;
-    font-size: 12pt;
-  }
-  .no-print {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-  .glass-card {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: none !important;
-    color: #0f172a !important;
-  }
+  body { background: #ffffff !important; color: #1e293b !important; font-size: 12pt; background-image: none !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .glass-card { background: #ffffff !important; border: 1px solid #e2e8f0 !important; box-shadow: none !important; color: #0f172a !important; }
 }
-.print-only {
-  display: none;
-}
+.print-only { display: none; }
 
-/* Animations & Premium Effects */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* ---------- motion ---------- */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeInUp 0.5s var(--ease) both; }
 
-.animate-fade-in {
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-}
-
-.hover-scale {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
+.hover-scale { transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), border-color 0.25s var(--ease); }
 .hover-scale:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 15px 35px -10px rgba(0, 168, 232, 0.3);
-  border-color: var(--brand-cyan);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-pop);
+  border-color: var(--border-active);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

@@ -169,7 +169,7 @@ export default function SupplierManager({
             <Truck size={28} color="var(--brand-yellow)" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
               Gestão e Cadastro de Fornecedores
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -203,11 +203,11 @@ export default function SupplierManager({
       {/* Metrics Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
         
-        <div style={{ background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px 16px' }}>
+        <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px 16px' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
             Total de Fornecedores
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', marginTop: '2px' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '2px' }}>
             {suppliers.length}
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function SupplierManager({
                   padding: '8px 12px',
                   borderRadius: '8px',
                   border: isSel ? `1px solid ${catObj.color}` : '1px solid var(--border-color)',
-                  background: isSel ? 'rgba(255,255,255,0.1)' : 'var(--bg-input)',
+                  background: isSel ? 'var(--tint-subtle)' : 'var(--bg-input)',
                   color: isSel ? '#ffffff' : 'var(--text-muted)',
                   fontWeight: 600,
                   fontSize: '0.8rem',
@@ -307,7 +307,7 @@ export default function SupplierManager({
       {filteredSuppliers.length === 0 ? (
         <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
           <Truck size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: '0 0 6px 0' }}>Nenhum fornecedor encontrado</h3>
+          <h3 style={{ fontSize: '1.1rem', color: 'var(--text-strong)', margin: '0 0 6px 0' }}>Nenhum fornecedor encontrado</h3>
           <p style={{ fontSize: '0.85rem', margin: 0 }}>
             {searchTerm ? 'Tente buscar por outros termos ou limpe o campo de busca.' : 'Cadastre seu primeiro fornecedor clicando em "+ Novo Fornecedor".'}
           </p>
@@ -328,7 +328,7 @@ export default function SupplierManager({
                   flexDirection: 'column',
                   justify: 'space-between',
                   border: '1px solid var(--border-color)',
-                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(23, 53, 91, 0.3))'
+                  background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))'
                 }}
               >
                 <div>
@@ -353,7 +353,7 @@ export default function SupplierManager({
                         borderRadius: '6px',
                         fontSize: '0.7rem',
                         fontWeight: 700,
-                        background: 'rgba(255, 255, 255, 0.08)',
+                        background: 'var(--tint-subtle)',
                         color: catObj.color,
                         border: `1px solid ${catObj.color}`,
                         display: 'flex',
@@ -414,7 +414,7 @@ export default function SupplierManager({
                   </div>
 
                   {/* Name & Trade Name */}
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: '0 0 2px 0', lineHeight: '1.3' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 2px 0', lineHeight: '1.3' }}>
                     {supplier.tradeName || supplier.name}
                   </h3>
                   
@@ -474,7 +474,7 @@ export default function SupplierManager({
                   {/* Notes */}
                   {supplier.notes && (
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
+                      background: 'var(--tint-hairline)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '8px',
                       padding: '8px 10px',
@@ -522,7 +522,7 @@ export default function SupplierManager({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Truck size={22} color="var(--brand-yellow)" />
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                   {editingSupplier ? `Editar Fornecedor (${editingSupplier.code})` : 'Novo Cadastro de Fornecedor'}
                 </h3>
               </div>

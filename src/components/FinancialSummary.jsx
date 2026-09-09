@@ -43,12 +43,12 @@ export default function FinancialSummary({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
       {/* Cards de Destaque Financeiro */}
-      <div className="glass-card" style={{ padding: '20px', border: '1px solid rgba(0, 168, 232, 0.3)', background: 'linear-gradient(135deg, rgba(23, 53, 91, 0.4), rgba(15, 23, 42, 0.8))' }}>
+      <div className="glass-card" style={{ padding: '20px', border: '1px solid rgba(0, 168, 232, 0.3)', background: 'linear-gradient(135deg, var(--panel-grad-2), var(--panel-grad-1))' }}>
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <DollarSign size={22} color="var(--brand-cyan)" />
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
               Formação do Preço de Venda
             </h3>
           </div>
@@ -67,7 +67,7 @@ export default function FinancialSummary({
                 borderRadius: '10px',
                 border: '1px solid rgba(139, 92, 246, 0.4)',
                 background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(109, 40, 217, 0.3))',
-                color: '#ffffff',
+                color: 'var(--text-strong)',
                 fontWeight: 700,
                 fontSize: '0.85rem',
                 cursor: 'pointer',
@@ -87,7 +87,7 @@ export default function FinancialSummary({
                 borderRadius: '10px',
                 border: 'none',
                 background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)',
-                color: '#ffffff',
+                color: 'var(--on-accent)',
                 fontWeight: 700,
                 fontSize: '0.9rem',
                 cursor: 'pointer',
@@ -112,7 +112,7 @@ export default function FinancialSummary({
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--brand-cyan)', textTransform: 'uppercase' }}>
               Preço Total de Venda
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '4px' }}>
               R$ {Number(costs.finalPrice || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -125,7 +125,7 @@ export default function FinancialSummary({
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--brand-magenta)', textTransform: 'uppercase' }}>
               Preço por Unidade
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '4px' }}>
               R$ {Number(costs.unitPrice || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -138,7 +138,7 @@ export default function FinancialSummary({
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--success)', textTransform: 'uppercase' }}>
               Lucro Líquido Previsto
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '4px' }}>
               R$ {Number(costs.profitVal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -147,7 +147,7 @@ export default function FinancialSummary({
           </div>
 
           {/* Custo Industrial Total */}
-          <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
+          <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Custo Industrial Total
             </div>
@@ -194,7 +194,7 @@ export default function FinancialSummary({
 
           {/* BOX DE ENGENHARIA DE QUANTIDADES & REFILE */}
           <div style={{
-            background: 'linear-gradient(135deg, rgba(23, 53, 91, 0.6), rgba(13, 21, 37, 0.9))',
+            background: 'linear-gradient(135deg, var(--panel-grad-2), var(--panel-grad-1))',
             border: '1px solid rgba(0, 168, 232, 0.3)',
             borderRadius: '10px',
             padding: '14px',
@@ -207,25 +207,25 @@ export default function FinancialSummary({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', fontSize: '0.8rem' }}>
               
               {/* Quantidade Solicitada */}
-              <div style={{ background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <div style={{ background: 'var(--tint-hairline)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Quantidade Desejada:</div>
-                <strong style={{ fontSize: '1rem', color: '#ffffff' }}>{qty.toLocaleString()} un</strong>
+                <strong style={{ fontSize: '1rem', color: 'var(--text-strong)' }}>{qty.toLocaleString()} un</strong>
               </div>
 
               {/* Folhas de Impressão (Entrada Máquina) */}
-              <div style={{ background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <div style={{ background: 'var(--tint-hairline)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Folhas de Impressão:</div>
                 <strong style={{ fontSize: '1rem', color: 'var(--brand-cyan)' }}>{budgetResult.grossSheets || 0} fls</strong>
               </div>
 
               {/* Folhas Inteiras de Compra (Resma Mãe) */}
-              <div style={{ background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <div style={{ background: 'var(--tint-hairline)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Folhas Resma (Mãe):</div>
                 <strong style={{ fontSize: '1rem', color: 'var(--brand-yellow)' }}>{budgetResult.remaFullSheets || 0} fls inteiras</strong>
               </div>
 
               {/* Quantidade de Peças Finais após Refile */}
-              <div style={{ background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+              <div style={{ background: 'var(--tint-hairline)', padding: '8px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Peças Cortadas (Refile):</div>
                 <strong style={{ fontSize: '1rem', color: 'var(--success)' }}>{budgetResult.totalRefiledPieces || qty} peças</strong>
               </div>
@@ -263,7 +263,7 @@ export default function FinancialSummary({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem' }}>
             
             {/* Custo de Substrato / Papel */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <div style={{ background: 'var(--tint-hairline)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Package size={14} color="var(--brand-yellow)" /> 1. Substrato / Papel
@@ -321,7 +321,7 @@ export default function FinancialSummary({
             </div>
 
             {/* Resumo Consolidado DRE */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', fontWeight: 700 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--tint-hairline)', borderRadius: '8px', fontWeight: 700 }}>
               <span>= Custo Direto de Produção:</span>
               <span style={{ color: 'var(--brand-cyan)' }}>R$ {Number(costs.directCost || 0).toFixed(2)}</span>
             </div>
@@ -337,7 +337,7 @@ export default function FinancialSummary({
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg-input)', borderRadius: '8px', fontSize: '0.95rem', fontWeight: 800, border: '1px solid var(--border-color)' }}>
-              <span style={{ color: '#ffffff' }}>= Custo Industrial Total:</span>
+              <span style={{ color: 'var(--text-strong)' }}>= Custo Industrial Total:</span>
               <span style={{ color: 'var(--brand-yellow)' }}>R$ {Number(costs.totalIndustrialCost || 0).toFixed(2)}</span>
             </div>
 
@@ -362,7 +362,7 @@ export default function FinancialSummary({
                 <span style={{ color: 'var(--success)' }}>R$ {Number(costs.profitVal || 0).toFixed(2)}</span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 800, color: '#ffffff', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 800, color: 'var(--text-strong)', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '6px' }}>
                 <span>= Preço de Venda Final:</span>
                 <span style={{ color: 'var(--brand-cyan)' }}>R$ {Number(costs.finalPrice || 0).toFixed(2)}</span>
               </div>
@@ -528,7 +528,7 @@ export default function FinancialSummary({
           {/* Resumo do Cálculo "Por Dentro" (Markup por Divisor) */}
           <div style={{
             marginTop: '14px',
-            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(23, 53, 91, 0.4))',
+            background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))',
             border: '1px solid rgba(0, 168, 232, 0.3)',
             borderRadius: '10px',
             padding: '12px',
@@ -539,7 +539,7 @@ export default function FinancialSummary({
             </div>
             <div style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>
               Fórmula: <code>Preço Final = Custo Industrial / Divisor Efetivo</code><br />
-              • Divisor Efetivo: <strong style={{ color: '#ffffff' }}>{costs.effectiveDivisor}</strong> <i>(100% - {costs.taxPct}% Imposto - {financialConfig.salesCommissionPercent}% Comis. - {financialConfig.desiredProfitPercent}% Lucro)</i><br />
+              • Divisor Efetivo: <strong style={{ color: 'var(--text-strong)' }}>{costs.effectiveDivisor}</strong> <i>(100% - {costs.taxPct}% Imposto - {financialConfig.salesCommissionPercent}% Comis. - {financialConfig.desiredProfitPercent}% Lucro)</i><br />
               • Multiplicador Equivalente: <strong style={{ color: 'var(--brand-yellow)' }}>{costs.markupMultiplier}x</strong> sobre Custo Industrial.
             </div>
           </div>

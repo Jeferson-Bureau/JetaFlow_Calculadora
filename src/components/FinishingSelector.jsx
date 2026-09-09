@@ -83,7 +83,7 @@ export default function FinishingSelector({
               borderRadius: '6px',
               border: 'none',
               background: filterCategory === 'positiva' ? 'linear-gradient(135deg, var(--brand-magenta), #b81b4f)' : 'var(--bg-input)',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: 'pointer',
@@ -114,7 +114,7 @@ export default function FinishingSelector({
       </div>
 
       {/* Preset de Acabamentos Rápidos com 1-Clique */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', background: 'var(--tint-hairline)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
         <span style={{ fontSize: '0.75rem', color: 'var(--brand-cyan)', fontWeight: 700 }}>✨ Combinações Rápidas de Acabamento:</span>
         
         <button
@@ -122,7 +122,7 @@ export default function FinishingSelector({
             const matches = availableFinishings.filter(f => f.name.includes('Laminação Fosca') || f.name.includes('Verniz Localizado'));
             setSelectedFinishings(matches);
           }}
-          style={{ padding: '4px 8px', background: 'rgba(0, 168, 232, 0.15)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}
+          style={{ padding: '4px 8px', background: 'rgba(0, 168, 232, 0.15)', border: '1px solid rgba(0, 168, 232, 0.3)', borderRadius: '6px', color: 'var(--text-strong)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}
         >
           Cartão Luxo (Laminação Fosca + Verniz Local)
         </button>
@@ -142,7 +142,7 @@ export default function FinishingSelector({
             const matches = availableFinishings.filter(f => f.name.includes('Dobra') || f.name.includes('Vincado'));
             setSelectedFinishings(matches);
           }}
-          style={{ padding: '4px 8px', background: 'rgba(230, 46, 107, 0.15)', border: '1px solid rgba(230, 46, 107, 0.3)', borderRadius: '6px', color: '#ffffff', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}
+          style={{ padding: '4px 8px', background: 'rgba(230, 46, 107, 0.15)', border: '1px solid rgba(230, 46, 107, 0.3)', borderRadius: '6px', color: 'var(--text-strong)', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}
         >
           Folder / Encarte (Dobra ou Vinco)
         </button>

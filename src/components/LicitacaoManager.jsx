@@ -406,7 +406,7 @@ export function getSessionBadge(sessionDateStr) {
     return { label: `📅 EM ${diffDays} DIAS`, color: 'var(--brand-cyan)', bg: 'rgba(0, 168, 232, 0.15)', border: 'rgba(0, 168, 232, 0.4)' };
   }
 
-  return { label: '⌛ SESSÃO ENCERRADA', color: 'var(--text-muted)', bg: 'rgba(255, 255, 255, 0.08)', border: 'var(--border-color)' };
+  return { label: '⌛ SESSÃO ENCERRADA', color: 'var(--text-muted)', bg: 'var(--tint-subtle)', border: 'var(--border-color)' };
 }
 
 export default function LicitacaoManager({
@@ -507,7 +507,7 @@ export default function LicitacaoManager({
     proposta_enviada: { label: 'Proposta Enviada', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)', border: 'rgba(139, 92, 246, 0.4)' },
     vencedora: { label: 'Arrematada / Vencedora', color: 'var(--success)', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.4)' },
     homologada: { label: 'Homologada', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.15)', border: 'rgba(6, 182, 212, 0.4)' },
-    fracassada: { label: 'Deserta / Fracassada', color: 'var(--text-muted)', bg: 'rgba(255, 255, 255, 0.08)', border: 'var(--border-color)' },
+    fracassada: { label: 'Deserta / Fracassada', color: 'var(--text-muted)', bg: 'var(--tint-subtle)', border: 'var(--border-color)' },
     cancelada: { label: 'Cancelada / Revogada', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.4)' }
   };
 
@@ -761,7 +761,7 @@ export default function LicitacaoManager({
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                 Gestão de Licitações & Pregões Públicos
               </h2>
               <span style={{
@@ -837,7 +837,7 @@ export default function LicitacaoManager({
               borderRadius: '10px',
               border: 'none',
               background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-              color: '#ffffff',
+              color: 'var(--on-accent)',
               fontWeight: 800,
               fontSize: '0.95rem',
               cursor: 'pointer',
@@ -856,11 +856,11 @@ export default function LicitacaoManager({
       {/* Metrics Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
         
-        <div style={{ background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px 16px' }}>
+        <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px 16px' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
             Total de Licitações
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', marginTop: '2px' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '2px' }}>
             {biddings.length}
           </div>
         </div>
@@ -960,7 +960,7 @@ export default function LicitacaoManager({
       {filteredBiddings.length === 0 ? (
         <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
           <FileText size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.1rem', color: '#ffffff', margin: '0 0 6px 0' }}>Nenhuma licitação encontrada</h3>
+          <h3 style={{ fontSize: '1.1rem', color: 'var(--text-strong)', margin: '0 0 6px 0' }}>Nenhuma licitação encontrada</h3>
           <p style={{ fontSize: '0.85rem', margin: '0 0 16px 0' }}>
             {searchTerm ? 'Tente buscar com outros termos ou limpe o campo de busca.' : 'Cadastre sua primeira licitação ou busque oportunidades ao vivo na base do governo:'}
           </p>
@@ -1022,7 +1022,7 @@ export default function LicitacaoManager({
                   flexDirection: 'column',
                   justify: 'space-between',
                   border: `1px solid ${stObj.border}`,
-                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(23, 53, 91, 0.3))'
+                  background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))'
                 }}
               >
                 <div>
@@ -1104,7 +1104,7 @@ export default function LicitacaoManager({
                   </div>
 
                   {/* Bidding Number & Modality */}
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', margin: '0 0 2px 0', lineHeight: '1.3' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-strong)', margin: '0 0 2px 0', lineHeight: '1.3' }}>
                     {bidding.biddingNumber}
                   </h3>
 
@@ -1114,8 +1114,8 @@ export default function LicitacaoManager({
                   </div>
 
                   {/* Agency & CNPJ */}
-                  <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', marginBottom: '2px' }}>
+                  <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-strong)', marginBottom: '2px' }}>
                       <Building size={14} color="var(--brand-cyan)" />
                       <span>{bidding.agency}</span>
                     </div>
@@ -1128,7 +1128,7 @@ export default function LicitacaoManager({
 
                   {/* Object Description */}
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: '1.4', marginBottom: '10px' }}>
-                    <strong style={{ color: '#ffffff' }}>Do Objeto:</strong> {bidding.objectDescription}
+                    <strong style={{ color: 'var(--text-strong)' }}>Do Objeto:</strong> {bidding.objectDescription}
                   </div>
 
                   {/* Date & Time Session Highlight Box */}
@@ -1251,7 +1251,7 @@ export default function LicitacaoManager({
                   {/* Notes */}
                   {bidding.notes && (
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
+                      background: 'var(--tint-hairline)',
                       border: '1px solid var(--border-color)',
                       borderRadius: '8px',
                       padding: '8px 10px',
@@ -1299,7 +1299,7 @@ export default function LicitacaoManager({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Award size={22} color="#8b5cf6" />
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                   {editingBidding ? `Editar Licitação (${editingBidding.code})` : 'Novo Cadastro de Licitação'}
                 </h3>
               </div>
@@ -1357,7 +1357,7 @@ export default function LicitacaoManager({
 
               {/* CRM Agency Selector */}
               {clients.length > 0 && (
-                <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                <div style={{ background: 'var(--tint-hairline)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--brand-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Building size={14} /> Selecionar Órgão da Base de Clientes (CRM):
                   </span>
@@ -1564,7 +1564,7 @@ export default function LicitacaoManager({
                     borderRadius: '8px',
                     border: 'none',
                     background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                    color: '#ffffff',
+                    color: 'var(--on-accent)',
                     fontWeight: 800,
                     cursor: 'pointer'
                   }}
@@ -1605,7 +1605,7 @@ export default function LicitacaoManager({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Zap size={22} color="var(--brand-yellow)" />
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                   Importar Licitação do Governo (PNCP / Compras.gov)
                 </h3>
               </div>
@@ -1618,7 +1618,7 @@ export default function LicitacaoManager({
             </div>
 
             {/* Mode Selector Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'rgba(255,255,255,0.04)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'var(--tint-hairline)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
               <button
                 type="button"
                 onClick={() => setImportMode('edital_uasg')}
@@ -1728,7 +1728,7 @@ export default function LicitacaoManager({
                 {/* Live Parsing Preview */}
                 {parsedPreview && (
                   <div style={{
-                    background: 'rgba(15, 23, 42, 0.75)',
+                    background: 'var(--panel-grad-1)',
                     border: '1px solid rgba(247, 181, 0, 0.35)',
                     borderRadius: '10px',
                     padding: '12px 14px',
@@ -1738,7 +1738,7 @@ export default function LicitacaoManager({
                     flexDirection: 'column',
                     gap: '8px'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--tint-subtle)', paddingBottom: '6px' }}>
                       <span style={{ fontWeight: 800, color: 'var(--brand-yellow)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Eye size={14} /> Prévia da Leitura Automática:
                       </span>
@@ -1753,13 +1753,13 @@ export default function LicitacaoManager({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {parsedPreview.biddingNumber ? <CheckCircle size={14} color="var(--success)" /> : <AlertCircle size={14} color="var(--text-muted)" />}
                         <span style={{ color: 'var(--text-muted)' }}>Licitação:</span>
-                        <strong style={{ color: '#fff' }}>{parsedPreview.biddingNumber || 'Não detectado'}</strong>
+                        <strong style={{ color: 'var(--text-strong)' }}>{parsedPreview.biddingNumber || 'Não detectado'}</strong>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {parsedPreview.agency || parsedPreview.agencyCnpj ? <CheckCircle size={14} color="var(--success)" /> : <AlertCircle size={14} color="var(--text-muted)" />}
                         <span style={{ color: 'var(--text-muted)' }}>Órgão:</span>
-                        <strong style={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>
+                        <strong style={{ color: 'var(--text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>
                           {parsedPreview.agency || (parsedPreview.agencyCnpj ? `CNPJ ${parsedPreview.agencyCnpj}` : 'Não detectado')}
                         </strong>
                       </div>
@@ -1784,7 +1784,7 @@ export default function LicitacaoManager({
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <CheckCircle size={14} color="var(--success)" />
                           <span style={{ color: 'var(--text-muted)' }}>UASG:</span>
-                          <strong style={{ color: '#fff' }}>{parsedPreview.uasg}</strong>
+                          <strong style={{ color: 'var(--text-strong)' }}>{parsedPreview.uasg}</strong>
                         </div>
                       )}
 
@@ -1792,13 +1792,13 @@ export default function LicitacaoManager({
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <CheckCircle size={14} color="var(--success)" />
                           <span style={{ color: 'var(--text-muted)' }}>CATSER:</span>
-                          <strong style={{ color: '#fff' }}>{parsedPreview.catser}</strong>
+                          <strong style={{ color: 'var(--text-strong)' }}>{parsedPreview.catser}</strong>
                         </div>
                       )}
                     </div>
 
                     {parsedPreview.items && parsedPreview.items.length > 0 && (
-                      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: '6px', marginTop: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ background: 'var(--tint-hairline)', padding: '6px 10px', borderRadius: '6px', marginTop: '4px', border: '1px solid var(--tint-hairline)' }}>
                         <span style={{ fontWeight: 700, color: 'var(--brand-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <Package size={13} /> {parsedPreview.items.length} item(ns) / lote(s) detectado(s):
                         </span>
@@ -1903,7 +1903,7 @@ export default function LicitacaoManager({
           bottom: '24px',
           right: '24px',
           background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-          color: '#ffffff',
+          color: 'var(--on-accent)',
           padding: '14px 22px',
           borderRadius: '12px',
           boxShadow: '0 8px 30px rgba(6, 182, 212, 0.45)',
@@ -1913,7 +1913,7 @@ export default function LicitacaoManager({
           zIndex: 100000,
           fontWeight: 700,
           fontSize: '0.9rem',
-          border: '1px solid rgba(255, 255, 255, 0.25)'
+          border: '1px solid var(--tint-strong)'
         }}>
           <CheckCircle size={20} />
           <span>{toastMessage}</span>

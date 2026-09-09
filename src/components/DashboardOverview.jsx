@@ -164,7 +164,7 @@ export default function DashboardOverview({
       {/* Banner de Boas-Vindas / Hero do Dashboard */}
       <div className="glass-card animate-fade-in" style={{
         padding: '24px',
-        background: 'linear-gradient(135deg, rgba(23, 53, 91, 0.85) 0%, rgba(13, 21, 37, 0.95) 100%)',
+        background: 'linear-gradient(135deg, var(--panel-grad-2) 0%, var(--panel-grad-1) 100%)',
         border: '1px solid rgba(0, 168, 232, 0.3)',
         borderRadius: '16px',
         display: 'flex',
@@ -178,7 +178,7 @@ export default function DashboardOverview({
             <div style={{ background: 'rgba(0, 168, 232, 0.2)', padding: '6px', borderRadius: '8px' }}>
               <LayoutDashboard size={22} color="var(--brand-cyan)" />
             </div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-strong)', margin: 0 }}>
               Painel de Controle Geral — JetaFlow
             </h2>
           </div>
@@ -201,7 +201,7 @@ export default function DashboardOverview({
             <span style={{ width: '8px', height: '8px', background: 'var(--success)', borderRadius: '50%', boxShadow: '0 0 8px var(--success)' }} />
             <div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Custo Xerox C8035</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff' }}>R$ {xeroxEquip?.clickColor?.toFixed(3) || '0.305'} / A4</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-strong)' }}>R$ {xeroxEquip?.clickColor?.toFixed(3) || '0.305'} / A4</div>
             </div>
           </div>
 
@@ -233,7 +233,7 @@ export default function DashboardOverview({
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase' }}>
                 Licitações Agendadas
               </span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '6px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '6px' }}>
                 {biddingStats.agendadasCount}
               </div>
             </div>
@@ -254,7 +254,7 @@ export default function DashboardOverview({
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-cyan)', textTransform: 'uppercase' }}>
                 Pipeline Total Licitações
               </span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '6px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '6px' }}>
                 {formatCurrency(biddingStats.totalValueAll)}
               </div>
             </div>
@@ -275,7 +275,7 @@ export default function DashboardOverview({
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--success)', textTransform: 'uppercase' }}>
                 Clientes Ativos (CRM)
               </span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '6px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '6px' }}>
                 {clientStats.total}
               </div>
             </div>
@@ -296,7 +296,7 @@ export default function DashboardOverview({
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-yellow)', textTransform: 'uppercase' }}>
                 Rede de Fornecedores
               </span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff', marginTop: '6px' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '6px' }}>
                 {supplierStats.total}
               </div>
             </div>
@@ -341,7 +341,7 @@ export default function DashboardOverview({
                 </Pie>
                 <Tooltip
                   formatter={(value) => [formatCurrency(value), 'Valor Total']}
-                  contentStyle={{ background: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '0.8rem' }}
+                  contentStyle={{ background: 'var(--bg-input)', borderColor: '#334155', borderRadius: '8px', color: 'var(--text-strong)', fontSize: '0.8rem' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -352,7 +352,7 @@ export default function DashboardOverview({
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: item.color }} />
                 <span style={{ color: 'var(--text-muted)' }}>{item.name}:</span>
-                <strong style={{ color: '#fff' }}>{formatCurrency(item.value)} ({item.count})</strong>
+                <strong style={{ color: 'var(--text-strong)' }}>{formatCurrency(item.value)} ({item.count})</strong>
               </div>
             ))}
           </div>
@@ -369,12 +369,12 @@ export default function DashboardOverview({
           <div style={{ height: '230px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={equipmentComparisonData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--tint-hairline)" />
                 <XAxis dataKey="nome" stroke="#94a3b8" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickFormatter={(val) => `R$ ${val}`} />
                 <Tooltip
                   formatter={(val) => [`R$ ${Number(val).toFixed(3)}`, 'Custo por Folha']}
-                  contentStyle={{ background: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '0.8rem' }}
+                  contentStyle={{ background: 'var(--bg-input)', borderColor: '#334155', borderRadius: '8px', color: 'var(--text-strong)', fontSize: '0.8rem' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '0.75rem', paddingTop: '8px' }} />
                 <Bar dataKey="ColorA4" name="Color (R$/A4)" fill="#00a8e8" radius={[4, 4, 0, 0]} />
@@ -440,7 +440,7 @@ export default function DashboardOverview({
                   <div
                     key={lic.id}
                     style={{
-                      background: isUrgent ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                      background: isUrgent ? 'rgba(239, 68, 68, 0.1)' : 'var(--tint-hairline)',
                       border: isUrgent ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
                       borderRadius: '10px',
                       padding: '12px 14px',
@@ -514,7 +514,7 @@ export default function DashboardOverview({
             {/* Equipamento 1: Xerox AltaLink C8035 */}
             <div style={{ background: 'rgba(0, 168, 232, 0.05)', border: '1px solid rgba(0, 168, 232, 0.25)', borderRadius: '10px', padding: '12px 14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <strong style={{ fontSize: '0.9rem', color: '#ffffff' }}>Xerox AltaLink C8035</strong>
+                <strong style={{ fontSize: '0.9rem', color: 'var(--text-strong)' }}>Xerox AltaLink C8035</strong>
                 <span style={{ fontSize: '0.7rem', background: 'rgba(0, 168, 232, 0.2)', color: 'var(--brand-cyan)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
                   Laser Digital A3 / SRA3
                 </span>
@@ -526,7 +526,7 @@ export default function DashboardOverview({
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)' }}>PB A4:</span><br />
-                  <strong style={{ color: '#ffffff' }}>R$ {xeroxEquip?.clickMono?.toFixed(3) || '0.072'}</strong>
+                  <strong style={{ color: 'var(--text-strong)' }}>R$ {xeroxEquip?.clickMono?.toFixed(3) || '0.072'}</strong>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)' }}>SRA3 (2,3x):</span><br />
@@ -539,10 +539,10 @@ export default function DashboardOverview({
             </div>
 
             {/* Equipamento 2: Canon MAXIFY GX7010 */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 14px' }}>
+            <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <strong style={{ fontSize: '0.9rem', color: '#ffffff' }}>Canon MAXIFY GX7010</strong>
-                <span style={{ fontSize: '0.7rem', background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                <strong style={{ fontSize: '0.9rem', color: 'var(--text-strong)' }}>Canon MAXIFY GX7010</strong>
+                <span style={{ fontSize: '0.7rem', background: 'var(--tint-subtle)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
                   MegaTank Jato de Tinta
                 </span>
               </div>
@@ -553,7 +553,7 @@ export default function DashboardOverview({
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)' }}>PB A4:</span><br />
-                  <strong style={{ color: '#ffffff' }}>R$ 0,020</strong>
+                  <strong style={{ color: 'var(--text-strong)' }}>R$ 0,020</strong>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)' }}>Formato:</span><br />
@@ -566,9 +566,9 @@ export default function DashboardOverview({
             </div>
 
             {/* Equipamento 3: BannerCut Pro 60cm */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 14px' }}>
+            <div style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <strong style={{ fontSize: '0.9rem', color: '#ffffff' }}>BannerCut Pro 60cm</strong>
+                <strong style={{ fontSize: '0.9rem', color: 'var(--text-strong)' }}>BannerCut Pro 60cm</strong>
                 <span style={{ fontSize: '0.7rem', background: 'rgba(230, 46, 107, 0.15)', color: 'var(--brand-magenta)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
                   Plotter Recorte Digital
                 </span>
@@ -597,7 +597,7 @@ export default function DashboardOverview({
               borderRadius: '10px',
               border: '1px solid rgba(0, 168, 232, 0.3)',
               background: 'linear-gradient(135deg, rgba(0, 168, 232, 0.1), rgba(0, 119, 182, 0.1))',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               textAlign: 'left',
               cursor: 'pointer',
               display: 'flex',
@@ -624,7 +624,7 @@ export default function DashboardOverview({
               borderRadius: '10px',
               border: '1px solid rgba(139, 92, 246, 0.3)',
               background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(109, 40, 217, 0.1))',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               textAlign: 'left',
               cursor: 'pointer',
               display: 'flex',
@@ -647,7 +647,7 @@ export default function DashboardOverview({
               borderRadius: '10px',
               border: '1px solid rgba(230, 46, 107, 0.3)',
               background: 'linear-gradient(135deg, rgba(230, 46, 107, 0.1), rgba(184, 27, 79, 0.1))',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               textAlign: 'left',
               cursor: 'pointer',
               display: 'flex',
@@ -670,7 +670,7 @@ export default function DashboardOverview({
               borderRadius: '10px',
               border: '1px solid rgba(16, 185, 129, 0.3)',
               background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1))',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               textAlign: 'left',
               cursor: 'pointer',
               display: 'flex',

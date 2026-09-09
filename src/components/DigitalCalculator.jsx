@@ -53,83 +53,38 @@ export default function DigitalCalculator({
           </h2>
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-input)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-          <button
-            type="button"
-            onClick={() => setProductCategory('flat')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: productCategory === 'flat' ? 'var(--brand-cyan)' : 'transparent',
-              color: productCategory === 'flat' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            Comercial / Avulso
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setProductCategory('editorial')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: productCategory === 'editorial' ? 'linear-gradient(135deg, var(--brand-magenta), #b81b4f)' : 'transparent',
-              color: '#ffffff',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <BookOpen size={14} /> Editorial (Livros/Catálogos)
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setProductCategory('quotes_history')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: productCategory === 'quotes_history' ? 'linear-gradient(135deg, #8b5cf6, #6d28d9)' : 'transparent',
-              color: '#ffffff',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <FileText size={14} /> Orçamentos Salvos
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setProductCategory('configurable')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: productCategory === 'configurable' ? 'linear-gradient(135deg, #ec4899, #be185d)' : 'transparent',
-              color: productCategory === 'configurable' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <PackageSearch size={14} /> Produtos Personalizados
-          </button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', background: 'var(--bg-input)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+          {[
+            { id: 'flat', label: 'Comercial / Avulso', Icon: FileText },
+            { id: 'editorial', label: 'Editorial', Icon: BookOpen },
+            { id: 'quotes_history', label: 'Orçamentos Salvos', Icon: Bookmark },
+            { id: 'configurable', label: 'Produtos Personalizados', Icon: PackageSearch }
+          ].map(({ id, label, Icon }) => {
+            const active = productCategory === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setProductCategory(id)}
+                style={{
+                  padding: '7px 13px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: active ? 'var(--brand-cyan)' : 'transparent',
+                  color: active ? 'var(--on-accent)' : 'var(--text-muted)',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'background 0.15s var(--ease), color 0.15s var(--ease)'
+                }}
+              >
+                <Icon size={14} /> {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -156,7 +111,7 @@ export default function DigitalCalculator({
                   </button>
                 </div>
               ) : (
-                <span style={{ fontSize: '0.75rem', background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-muted)', padding: '3px 10px', borderRadius: '6px' }}>
+                <span style={{ fontSize: '0.75rem', background: 'var(--tint-subtle)', color: 'var(--text-muted)', padding: '3px 10px', borderRadius: '6px' }}>
                   Atendimento Balcão / Avulso
                 </span>
               )}
@@ -174,7 +129,7 @@ export default function DigitalCalculator({
                   type="text"
                   className="form-input"
                   placeholder="Digite o código (ex: CLI-A0001)..."
-                  style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--brand-cyan)', background: '#0f172a', border: '1px solid rgba(0, 168, 232, 0.4)' }}
+                  style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--brand-cyan)', background: 'var(--bg-input)', border: '1px solid rgba(0, 168, 232, 0.4)' }}
                   value={
                     clients.find(c => c.id === selectedClientId)?.code || ''
                   }
@@ -197,7 +152,7 @@ export default function DigitalCalculator({
                 </label>
                 <select
                   className="form-select"
-                  style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff', background: '#0f172a', border: '1px solid rgba(16, 185, 129, 0.4)' }}
+                  style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-strong)', background: 'var(--bg-input)', border: '1px solid rgba(16, 185, 129, 0.4)' }}
                   value={selectedClientId || ''}
                   onChange={(e) => setSelectedClientId && setSelectedClientId(e.target.value)}
                 >
@@ -523,7 +478,7 @@ export default function DigitalCalculator({
 
           {/* Badge de Lombada Quadrada com Fórmula Passo a Passo */}
           <div style={{
-            background: 'linear-gradient(135deg, rgba(247, 181, 0, 0.15), rgba(15, 23, 42, 0.7))',
+            background: 'linear-gradient(135deg, rgba(247, 181, 0, 0.15), var(--panel-grad-1))',
             border: '1px solid var(--brand-yellow)',
             padding: '14px 18px',
             borderRadius: '10px',
@@ -533,7 +488,7 @@ export default function DigitalCalculator({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Bookmark size={20} color="var(--brand-yellow)" />
                 <div>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ffffff' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-strong)' }}>
                     Cálculo de Lombada Quadrada:
                   </span>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -562,7 +517,7 @@ export default function DigitalCalculator({
                 • Formato Capa Aberta (Arte Final): <strong style={{ color: 'var(--brand-cyan)' }}>{((2 * productW) + spineMm + (2 * editorial.flapW)).toFixed(1)} x {productH} mm</strong>
               </span>
               <span>
-                • Cola: <strong style={{ color: '#ffffff' }}>{editorial.glueType === 'pur' ? 'PUR (+0.4mm)' : 'Hot-Melt (+0.8mm)'}</strong>
+                • Cola: <strong style={{ color: 'var(--text-strong)' }}>{editorial.glueType === 'pur' ? 'PUR (+0.4mm)' : 'Hot-Melt (+0.8mm)'}</strong>
               </span>
             </div>
           </div>

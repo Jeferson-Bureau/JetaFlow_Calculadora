@@ -156,7 +156,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
     <div className="glass-card" style={{
       padding: '20px',
       border: '1px solid rgba(6, 182, 212, 0.4)',
-      background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.06), rgba(15, 23, 42, 0.9))'
+      background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.06), var(--panel-grad-1))'
     }}>
 
       {/* Header */}
@@ -166,7 +166,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
             <Landmark size={22} color="#06b6d4" />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               Buscar Licitações no PNCP
               <span style={{
                 padding: '2px 8px',
@@ -251,7 +251,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                     borderRadius: '4px',
                     fontSize: '0.68rem',
                     fontWeight: uf === u.sigla ? 800 : 500,
-                    border: uf === u.sigla ? '1px solid var(--brand-cyan)' : '1px solid rgba(255,255,255,0.08)',
+                    border: uf === u.sigla ? '1px solid var(--brand-cyan)' : '1px solid var(--tint-subtle)',
                     background: uf === u.sigla ? 'rgba(6, 182, 212, 0.2)' : 'transparent',
                     color: uf === u.sigla ? 'var(--brand-cyan)' : 'var(--text-muted)',
                     cursor: 'pointer'
@@ -343,7 +343,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
               background: isLoading
                 ? 'rgba(6, 182, 212, 0.3)'
                 : 'linear-gradient(135deg, #06b6d4, #0891b2)',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               fontWeight: 800,
               fontSize: '0.9rem',
               cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -364,7 +364,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
         </div>
 
         {/* Row 3: Quick Graphic Keyword Chips & Quick Period */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'var(--tint-hairline)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--tint-hairline)' }}>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--brand-yellow)', fontWeight: 700 }}>Atalhos Gráfica:</span>
             {[
@@ -487,13 +487,13 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           alignItems: 'center',
           padding: '8px 14px',
           borderRadius: '8px',
-          background: 'rgba(255, 255, 255, 0.03)',
+          background: 'var(--tint-hairline)',
           border: '1px solid var(--border-color)',
           marginBottom: '14px'
         }}>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             {filteredResults.length === results.length ? (
-              <span>Encontradas <strong style={{ color: '#06b6d4' }}>{totalRegistros.toLocaleString('pt-BR')}</strong> contratações — Exibindo página <strong style={{ color: '#ffffff' }}>{currentPage}</strong> de {totalPaginas.toLocaleString('pt-BR')}</span>
+              <span>Encontradas <strong style={{ color: '#06b6d4' }}>{totalRegistros.toLocaleString('pt-BR')}</strong> contratações — Exibindo página <strong style={{ color: 'var(--text-strong)' }}>{currentPage}</strong> de {totalPaginas.toLocaleString('pt-BR')}</span>
             ) : (
               <span><strong style={{ color: '#06b6d4' }}>{filteredResults.length}</strong> resultados filtrados de {results.length} nesta página (total: {totalRegistros.toLocaleString('pt-BR')})</span>
             )}
@@ -567,7 +567,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           color: 'var(--text-muted)'
         }}>
           <Search size={40} style={{ opacity: 0.3, marginBottom: '10px' }} />
-          <h4 style={{ fontSize: '1rem', color: '#ffffff', margin: '0 0 6px 0' }}>
+          <h4 style={{ fontSize: '1rem', color: 'var(--text-strong)', margin: '0 0 6px 0' }}>
             Nenhuma contratação encontrada
           </h4>
           <p style={{ fontSize: '0.82rem', margin: 0 }}>
@@ -599,7 +599,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                   border: isImported ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-color)',
                   background: isImported
                     ? 'rgba(16, 185, 129, 0.06)'
-                    : 'rgba(255, 255, 255, 0.02)',
+                    : 'var(--tint-hairline)',
                   transition: 'all 0.2s ease'
                 }}
               >
@@ -667,7 +667,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                     {/* Agency Name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                       <Building size={14} color="var(--brand-cyan)" style={{ flexShrink: 0 }} />
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-strong)' }}>
                         {item.orgaoEntidade?.razaoSocial || 'Órgão não identificado'}
                       </span>
                     </div>
@@ -722,7 +722,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}>
-                  <strong style={{ color: '#ffffff' }}>Objeto:</strong> {item.objetoCompra || 'Sem descrição'}
+                  <strong style={{ color: 'var(--text-strong)' }}>Objeto:</strong> {item.objetoCompra || 'Sem descrição'}
                 </div>
 
                 {/* Bottom Row: Value, Dates, Link */}
@@ -827,7 +827,7 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
             <ChevronLeft size={16} /> Anterior
           </button>
 
-          <span style={{ fontSize: '0.82rem', color: '#ffffff', fontWeight: 700, padding: '0 10px' }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-strong)', fontWeight: 700, padding: '0 10px' }}>
             Página {currentPage} de {totalPaginas.toLocaleString('pt-BR')}
           </span>
 

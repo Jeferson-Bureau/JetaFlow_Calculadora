@@ -4,7 +4,17 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpg" href="/JETAPRINT_LOGO_01_2026-01.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>JetaFlow Calculadora | JETAPRINT Gráfica Multimídia</title>
+    <script>
+      // Aplica o tema salvo antes do primeiro paint (evita flash).
+      (function () {
+        try {
+          var t = localStorage.getItem('jetaflow_theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
     <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

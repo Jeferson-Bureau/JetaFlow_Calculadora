@@ -55,7 +55,7 @@ export default function QuoteHistoryManager({
       {/* Header do Módulo */}
       <div className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <FileText color="var(--brand-cyan)" size={24} /> Histórico & Gestão de Orçamentos
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -78,7 +78,7 @@ export default function QuoteHistoryManager({
                 background: 'var(--bg-input)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '8px',
-                color: '#ffffff',
+                color: 'var(--text-strong)',
                 fontSize: '0.85rem'
               }}
             />
@@ -92,7 +92,7 @@ export default function QuoteHistoryManager({
               background: 'var(--bg-input)',
               border: '1px solid var(--border-color)',
               borderRadius: '8px',
-              color: '#ffffff',
+              color: 'var(--text-strong)',
               fontSize: '0.85rem',
               fontWeight: 600
             }}
@@ -116,7 +116,7 @@ export default function QuoteHistoryManager({
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+              <tr style={{ background: 'var(--panel-grad-1)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
                 <th style={{ padding: '14px 16px' }}>Código & Data</th>
                 <th style={{ padding: '14px 16px' }}>Cliente / Documento</th>
                 <th style={{ padding: '14px 16px' }}>Descrição do Material</th>
@@ -137,18 +137,18 @@ export default function QuoteHistoryManager({
                   </td>
 
                   <td style={{ padding: '14px 16px' }}>
-                    <strong style={{ color: '#ffffff' }}>{q.clientName || 'Cliente Balcão'}</strong>
+                    <strong style={{ color: 'var(--text-strong)' }}>{q.clientName || 'Cliente Balcão'}</strong>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{q.clientDoc || 'Sem Doc'}</div>
                   </td>
 
                   <td style={{ padding: '14px 16px' }}>
-                    <div style={{ color: '#ffffff', fontWeight: 600 }}>{q.description || 'Produção Gráfica'}</div>
+                    <div style={{ color: 'var(--text-strong)', fontWeight: 600 }}>{q.description || 'Produção Gráfica'}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       Papel: {q.paperName || 'Couché'} | {q.dimensions || 'A4'}
                     </div>
                   </td>
 
-                  <td style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 700, color: '#ffffff' }}>
+                  <td style={{ padding: '14px 16px', textAlign: 'center', fontWeight: 700, color: 'var(--text-strong)' }}>
                     {q.quantity ? q.quantity.toLocaleString() : 1} un
                   </td>
 
@@ -223,11 +223,11 @@ export default function QuoteHistoryManager({
           <div className="glass-card" style={{
             width: '100%',
             maxWidth: '650px',
-            background: '#0f172a',
+            background: 'var(--bg-input)',
             border: '1px solid var(--border-color)',
             borderRadius: '16px',
             padding: '24px',
-            color: '#ffffff'
+            color: 'var(--text-strong)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--brand-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -332,13 +332,13 @@ export default function QuoteHistoryManager({
                 <button
                   type="button"
                   onClick={() => setEditingQuote(null)}
-                  style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: '#ffffff', cursor: 'pointer' }}
+                  style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-strong)', cursor: 'pointer' }}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '8px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)', border: 'none', color: '#ffffff', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ padding: '8px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--brand-cyan), #0077b6)', border: 'none', color: 'var(--on-accent)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Save size={16} /> Salvar Alterações
                 </button>

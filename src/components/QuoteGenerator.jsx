@@ -208,7 +208,7 @@ export default function QuoteGenerator({
               style={{
                 padding: '10px 18px',
                 background: 'linear-gradient(135deg, #00a8e8, #0077b6)',
-                color: '#ffffff',
+                color: 'var(--on-accent)',
                 border: 'none',
                 borderRadius: '8px',
                 fontWeight: 700,
@@ -226,7 +226,7 @@ export default function QuoteGenerator({
               style={{
                 padding: '10px 18px',
                 background: 'linear-gradient(135deg, #17355B, #0d213a)',
-                color: '#ffffff',
+                color: 'var(--on-accent)',
                 border: 'none',
                 borderRadius: '8px',
                 fontWeight: 700,
@@ -370,7 +370,7 @@ export default function QuoteGenerator({
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 background: '#10b981',
-                color: '#ffffff',
+                color: 'var(--text-strong)',
                 border: 'none',
                 borderRadius: '6px',
                 cursor: 'pointer',
@@ -474,7 +474,7 @@ export default function QuoteGenerator({
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', marginBottom: '18px' }}>
             <thead>
-              <tr style={{ background: '#17355B', color: '#ffffff', textAlign: 'left' }}>
+              <tr style={{ background: '#17355B', color: 'var(--text-strong)', textAlign: 'left' }}>
                 <th style={{ padding: '8px 10px', width: '40%' }}>Descrição do Material & Papel</th>
                 <th style={{ padding: '8px 10px' }}>Dimensões / Acabamento</th>
                 <th style={{ padding: '8px 10px', textAlign: 'center' }}>Qtd</th>
