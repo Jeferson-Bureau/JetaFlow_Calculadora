@@ -1,8 +1,9 @@
 /* ============================================================
    JetaFlow — sistema de temas (claro / escuro) e base moderna
-   Tokens definidos primeiro no :root (tema claro completo),
-   depois sobrescritos para escuro via preferência do SO e via
-   [data-theme] (o botão de tema vence nas duas direções).
+   :root traz o tema claro completo. O JS (useTheme / bootstrap
+   no index.html) resolve "sistema" para um data-theme sempre
+   explícito, então o escuro mora num único bloco
+   :root[data-theme="dark"] — sem @media duplicado.
    ============================================================ */
 
 :root {
@@ -65,53 +66,8 @@
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Escuro por preferência do sistema — só se o usuário não forçou claro */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --bg-main: #0B1017;
-    --bg-secondary: #10161F;
-    --bg-card: #161E29;
-    --bg-card-hover: #1D2735;
-    --bg-input: #0F1620;
-    --surface-raised: #1B2431;
-
-    --border-color: rgba(255, 255, 255, 0.09);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --border-active: rgba(34, 181, 238, 0.55);
-
-    --text-strong: #FFFFFF;
-    --text-main: #E8EEF4;
-    --text-muted: #93A2B4;
-    --text-faint: #6B7A8D;
-
-    --tint-hairline: rgba(255, 255, 255, 0.035);
-    --tint-subtle: rgba(255, 255, 255, 0.07);
-    --tint-strong: rgba(255, 255, 255, 0.14);
-
-    --panel-grad-1: rgba(15, 23, 42, 0.85);
-    --panel-grad-2: rgba(23, 53, 91, 0.5);
-
-    --brand-navy: #3E77B8;
-    --brand-cyan: #22B5EE;
-    --brand-magenta: #F0407E;
-    --brand-yellow: #F7B500;
-
-    --success: #22C892;
-    --warning: #FBBF24;
-    --danger: #F87171;
-
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 18px 40px -24px rgba(0, 0, 0, 0.8);
-    --shadow-pop: 0 12px 34px -8px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 22px rgba(34, 181, 238, 0.14);
-
-    --ring: 0 0 0 3px rgba(34, 181, 238, 0.3);
-  }
-}
-
-/* Escuro forçado pelo botão de tema — vence o SO nas duas direções */
+/* Tema escuro — aplicado sempre que o JS resolve data-theme="dark"
+   (escolha explícita do usuário OU "sistema" sob SO escuro) */
 :root[data-theme="dark"] {
   color-scheme: dark;
 

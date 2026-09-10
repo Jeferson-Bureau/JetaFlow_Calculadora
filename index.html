@@ -7,12 +7,16 @@
     <meta name="color-scheme" content="light dark" />
     <title>JetaFlow Calculadora | JETAPRINT Gráfica Multimídia</title>
     <script>
-      // Aplica o tema salvo antes do primeiro paint (evita flash).
+      // Resolve o tema (salvo ou preferência do SO) para um data-theme
+      // explícito antes do primeiro paint — evita flash e dispensa o
+      // bloco @media de tema escuro no CSS.
       (function () {
-        try {
-          var t = localStorage.getItem('jetaflow_theme');
-          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
-        } catch (e) {}
+        var t;
+        try { t = localStorage.getItem('jetaflow_theme'); } catch (e) {}
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
       })();
     </script>
     <!-- Google Fonts: Outfit & Plus Jakarta Sans -->

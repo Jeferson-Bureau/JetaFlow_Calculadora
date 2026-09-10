@@ -3,11 +3,19 @@ import { useCallback, useEffect, useState } from 'react';
 const KEY = 'jetaflow_theme';
 export const THEME_OPTIONS = ['light', 'dark', 'system'];
 
-/** Aplica o tema ao <html>: 'light'/'dark' fixam data-theme, 'system' remove. */
+/**
+ * Resolve o tema para um data-theme SEMPRE explícito ('light' | 'dark') no
+ * <html>. Em 'system', lê a preferência do SO. Assim o CSS só precisa de
+ * :root (claro) + :root[data-theme="dark"], sem bloco @media duplicado.
+ */
 export function applyTheme(theme) {
-  const root = document.documentElement;
-  if (theme === 'light' || theme === 'dark') root.setAttribute('data-theme', theme);
-  else root.removeAttribute('data-theme');
+  const resolved =
+    theme === 'light' || theme === 'dark'
+      ? theme
+      : window.matchMedia?.('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+  document.documentElement.setAttribute('data-theme', resolved);
 }
 
 export function getStoredTheme() {
