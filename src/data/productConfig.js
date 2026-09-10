@@ -5,6 +5,24 @@ export const CALENDAR_CONFIG = {
   max_order_qty: 3500,
   custom_qty_allowed: true,
   interpolate_between_tiers: false,
+  // Consumo de papel por unidade e regra de precificação dos upgrades de papel.
+  // O preço de tabela (base_price_table) já embute o papel de referência: trocar
+  // de papel soma/desconta a diferença REAL de custo (R$/folha SRA3) × folhas por
+  // unidade, com markup só na direção de upgrade.
+  paper_pricing: {
+    base: {
+      reference_paper_id: "paper-11", // Triplex C2S 300g (66x96 - Ningbo Star)
+      sheets_per_unit: 0.5,
+      upgrade_markup: 2,
+      downgrade_markup: 1
+    },
+    miolo: {
+      reference_paper_id: "paper-9", // Couché Brilho 150g (66x96 - Designe)
+      sheets_per_unit: 3.5,
+      upgrade_markup: 2,
+      downgrade_markup: 1
+    }
+  },
   base_price_table: [
     { min_qty: 10, unit_price: 16.84 },
     { min_qty: 50, unit_price: 12.10 },

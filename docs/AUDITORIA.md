@@ -44,21 +44,25 @@ Análise técnica da calculadora e desfecho das 8 recomendações priorizadas.
 | 12 | `vite.config.js.timestamp-*.mjs` versionado | Resolvido |
 | 13 | Sem README | Resolvido |
 
-## Ressalva: preços do produto configurável
+## Ressalva: preços do produto configurável — resolvida
 
 O fluxo do calendário de mesa funciona ponta a ponta (recálculo ao trocar atributo — +15%
 de "Personalização Total" bate a matemática —, gravação com código `ORC` sequencial, proposta
 com o resumo da configuração).
 
-**Mas** os modificadores de preço de papel base/miolo continuam sendo *"arbitrary markup for
-mockup"* (`pricePerSheetSra3 × 1.5` / `× 3`). A tabela real desse produto precisa ser definida
-em `src/data/productConfig.js` / `src/utils/pricing.js`.
+Os modificadores de preço de papel base/miolo deixaram de ser *"arbitrary markup for mockup"*.
+Agora `CALENDAR_CONFIG.paper_pricing` (em `src/data/productConfig.js`) define, por grupo, o
+papel de **referência** (custo zero, já embutido na `base_price_table`), as **folhas SRA3 por
+unidade** e o **markup**. O modificador de cada papel é `(preço/folha − referência) × folhas ×
+markup`, com margem só no upgrade e repasse de custo puro no downgrade. Calibragem atual:
+base = Triplex C2S 300g, 0,5 fl/un; miolo = Couché 150g, 3,5 fl/un; markup ×2. Se o papel de
+referência for excluído, o cálculo cai para o mais barato do grupo. → `ProductConfigurator.jsx`
 
 ## Pendências fora das 8 prioridades
 
 - **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI.
 - **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir.
-- **Estilos majoritariamente inline e `<label>` sem `htmlFor`.** (Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`.)
+- **Estilos majoritariamente inline e `<label>` sem `htmlFor`.** (Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado.)
 - **Dashboard é a aba inicial** e força o carregamento do `recharts` (~120 KB gzip) no primeiro acesso.
 
 ## Arquivos novos nesta rodada

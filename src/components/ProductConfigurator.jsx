@@ -13,34 +13,52 @@ export default function ProductConfigurator({
   const productData = useMemo(() => {
     // Clone original config to avoid mutating
     const config = JSON.parse(JSON.stringify(CALENDAR_CONFIG));
-    
+
     // Find base_paper and miolo_paper and replace their options with real papers
     const basePaperGroup = config.attribute_groups.find(g => g.id === 'base_paper');
     const mioloPaperGroup = config.attribute_groups.find(g => g.id === 'miolo_paper');
-    
+
     // Filter heavy papers for base (>= 250g) and lighter for miolo (< 250g)
     const basePapers = papers.filter(p => p.weightGsm >= 250);
     const mioloPapers = papers.filter(p => p.weightGsm > 0 && p.weightGsm < 250);
 
-    if (basePaperGroup && basePapers.length > 0) {
-      basePaperGroup.options = basePapers.map(p => ({
-        id: p.id,
-        name: p.name,
-        modifier_fixed: (p.pricePerSheetSra3 || 0) * 1.5, // Arbitrary markup for mockup
-        modifier_pct: 0
-      }));
-      basePaperGroup.defaultOption = basePapers[0].id;
-    }
+    const rules = config.paper_pricing || {};
 
-    if (mioloPaperGroup && mioloPapers.length > 0) {
-      mioloPaperGroup.options = mioloPapers.map(p => ({
+    // Preço da folha SRA3 do papel de referência do grupo (custo já embutido na
+    // tabela). Se o papel configurado não existir mais, cai para o mais barato.
+    const referenceSheetPrice = (rule, pool) => {
+      const ref = rule && pool.find(p => p.id === rule.reference_paper_id);
+      if (ref) return Number(ref.pricePerSheetSra3) || 0;
+      return pool.reduce(
+        (min, p) => Math.min(min, Number(p.pricePerSheetSra3) || Infinity),
+        Infinity
+      ) || 0;
+    };
+
+    // Modificador = (papel escolhido − referência) × folhas/un × markup.
+    // Downgrade (papel mais barato) repassa só o custo; upgrade leva margem.
+    const paperModifier = (paper, rule, refPrice) => {
+      if (!rule) return 0;
+      const diff = (Number(paper.pricePerSheetSra3) || 0) - refPrice;
+      const markup = diff >= 0 ? rule.upgrade_markup : rule.downgrade_markup;
+      return Math.round(diff * rule.sheets_per_unit * markup * 100) / 100;
+    };
+
+    const applyGroup = (group, pool, rule) => {
+      if (!group || pool.length === 0) return;
+      const refPrice = referenceSheetPrice(rule, pool);
+      group.options = pool.map(p => ({
         id: p.id,
         name: p.name,
-        modifier_fixed: (p.pricePerSheetSra3 || 0) * 3, // Arbitrary markup for mockup (e.g. 3 sheets)
+        modifier_fixed: paperModifier(p, rule, refPrice),
         modifier_pct: 0
       }));
-      mioloPaperGroup.defaultOption = mioloPapers[0].id;
-    }
+      const refInPool = rule && pool.some(p => p.id === rule.reference_paper_id);
+      group.defaultOption = refInPool ? rule.reference_paper_id : pool[0].id;
+    };
+
+    applyGroup(basePaperGroup, basePapers, rules.base);
+    applyGroup(mioloPaperGroup, mioloPapers, rules.miolo);
 
     return config;
   }, [papers]);
