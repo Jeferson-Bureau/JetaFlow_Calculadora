@@ -64,12 +64,19 @@ export const DEFAULT_EQUIPMENTS = [
     id: 'roland-202-tob',
     name: 'Roland 202 TOB - Ano 1993 (Bicolor)',
     type: 'offset',
-    maxW: 520,
+    maxW: 520,          // Formato máx de folha 520 x 740 mm
     maxH: 740,
+    minW: 210,          // Formato mín de folha 210 x 280 mm
+    minH: 280,
+    maxPrintW: 510,     // Área máx de impressão 510 x 735 mm
+    maxPrintH: 735,
     maxGsm: 450,
     minGsm: 40,
+    plateW: 550,        // Chapa 550 x 650 mm
+    plateH: 650,
+    gripperMm: 10,      // Margem de pinça
     speedPpm: 200, // 12000 fl/h / 60 = 200 folhas por minuto
-    notes: 'Bicolor (2/0). Molha Alcolor. Formato máx de impressão 510x735mm.'
+    notes: 'Bicolor (2/0). Molha Alcolor. Folha: 210x280 a 520x740mm | Impressão máx 510x735mm | Chapa 550x650mm | 40–450g/m².'
   }
 ];
 
@@ -91,23 +98,75 @@ export const DEFAULT_PAPERS = [
   { id: 'lona-440g-m2', name: 'Lona Frontlight 440g (m² Grande Formato)', weightGsm: 0, pricePerKg: 0, pricePerM2: 25.00 }
 ];
 
+// Dimensões (mm) das folhas de COMPRA por formato de papel. O off-set deriva a folha
+// inteira daqui (a partir de `paper.format`), não de um seletor separado.
+export const PAPER_FORMAT_DIMENSIONS = {
+  '66x96':  { widthMm: 660, heightMm: 960 },
+  '64x88':  { widthMm: 640, heightMm: 880 },
+  '76x112': { widthMm: 760, heightMm: 1120 },
+  '87x114': { widthMm: 870, heightMm: 1140 },
+  'A4':     { widthMm: 210, heightMm: 297 }
+};
+
 export const DEFAULT_SHEET_SIZES = [
+  // ── Formatos digitais (folha já no tamanho de impressão) ──
   { id: 'sra3', name: 'SRA3 (320 x 450 mm)', widthMm: 320, heightMm: 450, printableW: 310, printableH: 440, baseFormat: '66x96', formatRatio: 4 },
   { id: 'maxi-digital', name: 'Super A3 Extra (330 x 480 mm)', widthMm: 330, heightMm: 480, printableW: 320, printableH: 470, baseFormat: '66x96', formatRatio: 4 },
   { id: 'a3', name: 'A3 Padrão (297 x 420 mm)', widthMm: 297, heightMm: 420, printableW: 287, printableH: 410, baseFormat: '66x96', formatRatio: 4 },
   { id: 'banner-digital', name: 'Banner Digital (330 x 660 mm)', widthMm: 330, heightMm: 660, printableW: 320, printableH: 650, baseFormat: '66x96', formatRatio: 3 },
   { id: 'a4', name: 'A4 Padronizado (210 x 297 mm)', widthMm: 210, heightMm: 297, printableW: 200, printableH: 287, baseFormat: '66x96', formatRatio: 8 },
-  { id: 'full-66x96', name: 'Folha Inteira Offset (660 x 960 mm)', widthMm: 660, heightMm: 960, printableW: 640, printableH: 940, baseFormat: '66x96', formatRatio: 1 },
-  { id: 'full-64x88', name: 'Folha Inteira Offset (640 x 880 mm)', widthMm: 640, heightMm: 880, printableW: 620, printableH: 860, baseFormat: '64x88', formatRatio: 1 },
-  { id: 'full-76x112', name: 'Folha Inteira Offset (760 x 1120 mm)', widthMm: 760, heightMm: 1120, printableW: 740, printableH: 1100, baseFormat: '77x113', formatRatio: 1 }
+
+  // ── Formatos de MÁQUINA off-set (folha já cortada que entra na impressora) ──
+  // Filtrados por compatibilidade com a prensa selecionada no OffsetCalculator.
+  { id: 'm-76x112', name: 'Folha máquina 76 × 112 cm', widthMm: 760, heightMm: 1120, printableW: 740, printableH: 1100, machineFormat: true },
+  { id: 'm-66x96',  name: 'Folha máquina 66 × 96 cm (inteira)', widthMm: 660, heightMm: 960, printableW: 640, printableH: 940, machineFormat: true },
+  { id: 'm-64x88',  name: 'Folha máquina 64 × 88 cm (inteira)', widthMm: 640, heightMm: 880, printableW: 620, printableH: 860, machineFormat: true },
+  { id: 'm-52x74',  name: 'Folha máquina 52 × 74 cm', widthMm: 520, heightMm: 740, printableW: 500, printableH: 715, machineFormat: true },
+  { id: 'm-50x70',  name: 'Folha máquina 50 × 70 cm', widthMm: 500, heightMm: 700, printableW: 480, printableH: 680, machineFormat: true },
+  { id: 'm-48x66',  name: 'Folha máquina 48 × 66 cm (½ de 66 × 96)', widthMm: 480, heightMm: 660, printableW: 460, printableH: 640, machineFormat: true },
+  { id: 'm-44x64',  name: 'Folha máquina 44 × 64 cm (½ de 64 × 88)', widthMm: 440, heightMm: 640, printableW: 420, printableH: 620, machineFormat: true },
+  { id: 'm-33x48',  name: 'Folha máquina 33 × 48 cm (¼ de 66 × 96)', widthMm: 330, heightMm: 480, printableW: 315, printableH: 465, machineFormat: true },
+  { id: 'm-32x44',  name: 'Folha máquina 32 × 44 cm (¼ de 64 × 88)', widthMm: 320, heightMm: 440, printableW: 305, printableH: 425, machineFormat: true },
+  { id: 'm-24x33',  name: 'Folha máquina 24 × 33 cm (⅛ de 66 × 96)', widthMm: 240, heightMm: 330, printableW: 228, printableH: 315, machineFormat: true }
 ];
+
+// Multiplicador de custo de clique por formato de folha (base A4 = 1,0).
+// Fonte única — antes estava duplicado no App.jsx (3x) e no calculatorEngine.js (4x).
+export const DEFAULT_FORMAT_MULTIPLIERS = {
+  a4: 1.0,
+  a3: 2.0,
+  sra3: 2.3,
+  'maxi-digital': 2.3,
+  'banner-digital': 3.5
+};
+
+// Encadernação editorial (miolo + capa): setup fixo (R$) + preço por exemplar (R$).
+// Antes: números soltos dentro do calculatorEngine.js (30 / 20 / 25 e 0,50 / 0,25 / 2,50).
+export const DEFAULT_EDITORIAL_BINDING = {
+  lombada_quadrada: { setup: 30.0, unit: 0.50, label: 'Lombada Quadrada' },
+  grampo_canoa:     { setup: 20.0, unit: 0.25, label: 'Grampo Canoa' },
+  wire_o:           { setup: 25.0, unit: 2.50, label: 'Wire-O Metálico' }
+};
+
+// Bulk (cm³/g) por família de papel — usado no cálculo de espessura de lombada.
+// Antes: cadeia de if/includes hardcoded em calculateSpineThickness().
+export const DEFAULT_PAPER_BULK = [
+  { match: ['polen bold'], bulk: 1.8 },
+  { match: ['polen soft', 'polen'], bulk: 1.5 },
+  { match: ['offset', 'sulfite', 'chambril'], bulk: 1.2 },
+  { match: ['couche', 'couché'], bulk: 0.95 },
+  { match: ['triplex', 'duplex'], bulk: 1.3 }
+];
+export const DEFAULT_PAPER_BULK_FALLBACK = 1.1;
 
 export const DEFAULT_DIGITAL_CLICKS = {
   clickColorSimplex: 0.305,  // 4/0 Base A4 (-5%)
   clickColorDuplex: 0.610,   // 4/4 Base A4 (2x) (-5%)
   clickMonoSimplex: 0.072,   // 1/0 Base A4 (-5%)
   clickMonoDuplex: 0.144,    // 1/1 Base A4 (2x) (-5%)
-  largeFormatM2Tinta: 12.00  // Impressão m² Comunicação Visual
+  largeFormatM2Tinta: 12.00, // Impressão m² Comunicação Visual
+  formatMultipliers: { ...DEFAULT_FORMAT_MULTIPLIERS },
+  bindingRates: { ...DEFAULT_EDITORIAL_BINDING }
 };
 
 export const DEFAULT_OFFSET_SETTINGS = {

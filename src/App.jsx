@@ -6,6 +6,7 @@ import {
   DEFAULT_PAPERS,
   DEFAULT_SHEET_SIZES,
   DEFAULT_DIGITAL_CLICKS,
+  DEFAULT_FORMAT_MULTIPLIERS,
   DEFAULT_OFFSET_SETTINGS,
   DEFAULT_FINISHINGS,
   DEFAULT_FINANCIAL_CONFIG,
@@ -355,30 +356,33 @@ export default function App() {
 
   // Adjust Click Rates dynamically based on active Equipment if selected
   const activeDigitalClickRates = useMemo(() => {
-    if (selectedEquipment.id === 'canon-gx7010') {
+    // Ficha técnica do equipamento tem prioridade; senão, tabela das configurações; senão, default.
+    const formatMultipliers = selectedEquipment.formatMultipliers
+      || digitalClickRates.formatMultipliers
+      || DEFAULT_FORMAT_MULTIPLIERS;
+
+    const base = { ...digitalClickRates, formatMultipliers };
+
+    if (selectedEquipment.id === 'canon-gx7010' || selectedEquipment.id === 'xerox-c8035') {
       return {
-        ...digitalClickRates,
+        ...base,
         clickColorSimplex: selectedEquipment.clickColor,
         clickColorDuplex: selectedEquipment.clickColorDuplex,
         clickMonoSimplex: selectedEquipment.clickMono,
-        clickMonoDuplex: selectedEquipment.clickMonoDuplex,
-        formatMultipliers: selectedEquipment.formatMultipliers || { a4: 1.0, a3: 2.0, sra3: 2.3, 'maxi-digital': 2.3 }
-      };
-    } else if (selectedEquipment.id === 'xerox-c8035') {
-      return {
-        ...digitalClickRates,
-        clickColorSimplex: selectedEquipment.clickColor,
-        clickColorDuplex: selectedEquipment.clickColorDuplex,
-        clickMonoSimplex: selectedEquipment.clickMono,
-        clickMonoDuplex: selectedEquipment.clickMonoDuplex,
-        formatMultipliers: selectedEquipment.formatMultipliers || { a4: 1.0, a3: 2.0, sra3: 2.3, 'maxi-digital': 2.3, 'banner-digital': 3.5 }
+        clickMonoDuplex: selectedEquipment.clickMonoDuplex
       };
     }
-    return {
-      ...digitalClickRates,
-      formatMultipliers: { a4: 1.0, a3: 2.0, sra3: 2.3, 'maxi-digital': 2.3, 'banner-digital': 3.5 }
-    };
+    return base;
   }, [selectedEquipment, digitalClickRates]);
+
+  // No off-set o equipamento tem de ser uma prensa off-set — se a seleção herdada
+  // for uma digital (Xerox/Canon), cai para a primeira prensa off-set.
+  const budgetEquipment = useMemo(() => {
+    if (activeTab === 'offset' && selectedEquipment.type !== 'offset') {
+      return equipments.find(e => e.type === 'offset') || selectedEquipment;
+    }
+    return selectedEquipment;
+  }, [activeTab, selectedEquipment, equipments]);
 
   // Current Budget Calculation
   const budgetConfig = useMemo(() => ({
@@ -396,12 +400,12 @@ export default function App() {
     finishings: selectedFinishings,
     financialConfig,
     largeFormat,
-    equipment: selectedEquipment,
+    equipment: budgetEquipment,
     editorial
   }), [
     activeTab, productCategory, quantity, selectedPaper, selectedSheet, productW, productH,
     bleed, colors, activeDigitalClickRates, offsetSettings, selectedFinishings,
-    financialConfig, largeFormat, selectedEquipment, editorial
+    financialConfig, largeFormat, budgetEquipment, editorial
   ]);
 
   const budgetResult = useMemo(() => {

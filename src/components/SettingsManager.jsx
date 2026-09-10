@@ -1,6 +1,16 @@
 import React, { useRef, useState } from 'react';
 import { Sliders, Save, RotateCcw, Plus, Trash2, Layers, Cpu, Scissors, Download, Upload, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { downloadBackup, restoreBackup } from '../utils/storage';
+import { DEFAULT_FORMAT_MULTIPLIERS, DEFAULT_EDITORIAL_BINDING } from '../data/initialData';
+
+// Rótulos legíveis para os formatos de folha editáveis (keys iguais às de DEFAULT_SHEET_SIZES)
+const FORMAT_MULTIPLIER_ROWS = [
+  { key: 'a4', label: 'A4 Padronizado (210 × 297 mm)' },
+  { key: 'a3', label: 'A3 Padrão (297 × 420 mm)' },
+  { key: 'sra3', label: 'SRA3 (320 × 450 mm)' },
+  { key: 'maxi-digital', label: 'Super A3 Extra (330 × 480 mm)' },
+  { key: 'banner-digital', label: 'Banner Digital (330 × 660 mm)' }
+];
 
 export default function SettingsManager({
   papers,
@@ -462,47 +472,121 @@ export default function SettingsManager({
 
           </div>
 
-          {/* Tabela de Conversão Dinâmica por Formato */}
-          <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-light)' }}>
-              📊 Tabela de Custo Efetivo por Formato de Folha (Multiplicador Automático)
+          {/* Multiplicador de custo de clique por formato de folha (editável) */}
+          <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)', marginBottom: '16px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px', color: 'var(--text-light)' }}>
+              📊 Multiplicador de Clique por Formato de Folha (base A4 = 1,0)
             </div>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 10px' }}>
+              O custo efetivo de cada formato é o clique-base A4 × este fator. A ficha técnica do
+              equipamento (quando definida) tem prioridade sobre estes valores.
+            </p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textAlign: 'left' }}>
                   <th style={{ padding: '6px' }}>Formato da Folha</th>
-                  <th style={{ padding: '6px' }}>Fator</th>
-                  <th style={{ padding: '6px' }}>Preto 1/0</th>
-                  <th style={{ padding: '6px' }}>Preto 1/1 (Duplex)</th>
-                  <th style={{ padding: '6px' }}>Colorido 4/0</th>
-                  <th style={{ padding: '6px' }}>Colorido 4/4 (Duplex)</th>
+                  <th style={{ padding: '6px', width: '110px' }}>Fator</th>
+                  <th style={{ padding: '6px' }}>Colorido 4/0 (R$)</th>
+                  <th style={{ padding: '6px' }}>Colorido 4/4 (R$)</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
-                  <td style={{ padding: '6px', fontWeight: 600 }}>A4 Padronizado (210 x 297 mm)</td>
-                  <td style={{ padding: '6px', color: 'var(--text-muted)' }}>1,0x</td>
-                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoSimplex || 0.072).toFixed(3)}</td>
-                  <td style={{ padding: '6px' }}>R$ {(digitalClickRates.clickMonoDuplex || 0.144).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorSimplex || 0.305).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {(digitalClickRates.clickColorDuplex || 0.610).toFixed(3)}</td>
+                {FORMAT_MULTIPLIER_ROWS.map(({ key, label }) => {
+                  const factor = Number(
+                    (digitalClickRates.formatMultipliers || {})[key] ?? DEFAULT_FORMAT_MULTIPLIERS[key] ?? 1
+                  );
+                  return (
+                    <tr key={key} style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
+                      <td style={{ padding: '6px', fontWeight: 600 }}>{label}</td>
+                      <td style={{ padding: '6px' }}>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          className="form-input"
+                          style={{ width: '90px' }}
+                          value={factor}
+                          onChange={(e) => setDigitalClickRates({
+                            ...digitalClickRates,
+                            formatMultipliers: {
+                              ...DEFAULT_FORMAT_MULTIPLIERS,
+                              ...(digitalClickRates.formatMultipliers || {}),
+                              [key]: parseFloat(e.target.value) || 0
+                            }
+                          })}
+                        />
+                      </td>
+                      <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>
+                        R$ {((digitalClickRates.clickColorSimplex || 0.305) * factor).toFixed(3)}
+                      </td>
+                      <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>
+                        R$ {((digitalClickRates.clickColorDuplex || 0.610) * factor).toFixed(3)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tarifas de encadernação editorial (livros / catálogos / revistas) */}
+          <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px', color: 'var(--text-light)' }}>
+              📚 Encadernação Editorial — Setup + Preço por Exemplar
+            </div>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 10px' }}>
+              Usado no cálculo de livros/catálogos (aba Digital → categoria Editorial).
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                  <th style={{ padding: '6px' }}>Método</th>
+                  <th style={{ padding: '6px', width: '140px' }}>Setup (R$)</th>
+                  <th style={{ padding: '6px', width: '140px' }}>Por Exemplar (R$)</th>
                 </tr>
-                <tr style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
-                  <td style={{ padding: '6px', fontWeight: 600 }}>A3 Padrão (297 x 420 mm)</td>
-                  <td style={{ padding: '6px', color: 'var(--text-muted)' }}>2,0x</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.072) * 2).toFixed(3)}</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.144) * 2).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorSimplex || 0.305) * 2).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)' }}>R$ {((digitalClickRates.clickColorDuplex || 0.610) * 2).toFixed(3)}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '6px', fontWeight: 700, color: 'var(--brand-yellow)' }}>SRA3 / Super A3 (Gráfica Rápida)</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-yellow)', fontWeight: 700 }}>2,3x</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoSimplex || 0.072) * 2.3).toFixed(3)}</td>
-                  <td style={{ padding: '6px' }}>R$ {((digitalClickRates.clickMonoDuplex || 0.144) * 2.3).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorSimplex || 0.305) * 2.3).toFixed(3)}</td>
-                  <td style={{ padding: '6px', color: 'var(--brand-cyan)', fontWeight: 700 }}>R$ {((digitalClickRates.clickColorDuplex || 0.610) * 2.3).toFixed(3)}</td>
-                </tr>
+              </thead>
+              <tbody>
+                {Object.entries({ ...DEFAULT_EDITORIAL_BINDING, ...(digitalClickRates.bindingRates || {}) }).map(([key, rate]) => (
+                  <tr key={key} style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
+                    <td style={{ padding: '6px', fontWeight: 600 }}>{rate.label || DEFAULT_EDITORIAL_BINDING[key]?.label || key}</td>
+                    <td style={{ padding: '6px' }}>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="form-input"
+                        style={{ width: '110px' }}
+                        value={Number(rate.setup ?? 0)}
+                        onChange={(e) => setDigitalClickRates({
+                          ...digitalClickRates,
+                          bindingRates: {
+                            ...DEFAULT_EDITORIAL_BINDING,
+                            ...(digitalClickRates.bindingRates || {}),
+                            [key]: { ...DEFAULT_EDITORIAL_BINDING[key], ...rate, setup: parseFloat(e.target.value) || 0 }
+                          }
+                        })}
+                      />
+                    </td>
+                    <td style={{ padding: '6px' }}>
+                      <input
+                        type="number"
+                        step="0.05"
+                        min="0"
+                        className="form-input"
+                        style={{ width: '110px' }}
+                        value={Number(rate.unit ?? 0)}
+                        onChange={(e) => setDigitalClickRates({
+                          ...digitalClickRates,
+                          bindingRates: {
+                            ...DEFAULT_EDITORIAL_BINDING,
+                            ...(digitalClickRates.bindingRates || {}),
+                            [key]: { ...DEFAULT_EDITORIAL_BINDING[key], ...rate, unit: parseFloat(e.target.value) || 0 }
+                          }
+                        })}
+                      />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

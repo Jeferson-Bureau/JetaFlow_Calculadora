@@ -155,7 +155,8 @@ export default function SheetViewer({ layout, sheetSize, productW, productH, ble
         Simulação visual de montagem para o formato <strong>{productW}x{productH} mm</strong> na folha de entrada <strong>{(layout && layout.machineFormat) || sheetSize.name || 'SRA3'}</strong>.
         {layout && layout.cutName && (
           <span style={{ display: 'block', color: 'var(--brand-magenta)', marginTop: '4px' }}>
-            <strong>Corte Inteligente (Off-set):</strong> A folha de compra inteira ({sheetSize.name}) será dividida em <strong>{layout.cutsPerFullSheet} pedaço(s)</strong> ({layout.cutName}) para rodar na máquina. O desenho acima exibe 1 pedaço de máquina.
+            <strong>Off-set:</strong> Folha de compra {layout.purchaseFormat ? <>({layout.purchaseFormat}) </> : ''}
+            → <strong>{layout.cutsPerFullSheet}</strong> folha(s) de máquina de {layout.machineFormat}. O desenho acima exibe 1 folha de máquina.
           </span>
         )}
       </p>

@@ -3,6 +3,8 @@
   "rewrites": [
     { "source": "/api/pncp/:path*", "destination": "https://pncp.gov.br/api/consulta/:path*" },
     { "source": "/api/compras/:path*", "destination": "https://dadosabertos.compras.gov.br/:path*" },
+    { "source": "/api/cnpjws/:path*", "destination": "https://publica.cnpj.ws/:path*" },
+    { "source": "/api/brasilapi/:path*", "destination": "https://brasilapi.com.br/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

@@ -261,7 +261,7 @@ export default function DigitalCalculator({
               value={selectedSheetId}
               onChange={(e) => setSelectedSheetId(e.target.value)}
             >
-              {sheetSizes.filter(s => !s.id.startsWith('full-')).map((s) => (
+              {sheetSizes.filter(s => !s.id.startsWith('full-') && !s.machineFormat).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>

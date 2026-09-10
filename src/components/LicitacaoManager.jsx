@@ -59,30 +59,52 @@ export function parseBrlCurrencyToFloat(str) {
   return isNaN(num) ? 0 : num;
 }
 
+// Consulta a rota de proxy própria (evita CORS no build estático) e, se ela
+// não existir no host, cai para a URL pública direta — mesmo padrão do pncpService.
+async function fetchViaProxyOrDirect(proxyUrl, directUrl) {
+  const isBrowser = typeof window !== 'undefined';
+  const urls = isBrowser ? [proxyUrl, directUrl] : [directUrl];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return res;
+    } catch {
+      /* tenta a próxima URL */
+    }
+  }
+  return null;
+}
+
 export async function fetchRazaoSocialByCnpj(cnpjStr = '') {
   const cleanCnpj = cnpjStr.replace(/[^0-9]/g, '');
   if (cleanCnpj.length !== 14) return null;
-  
+
   try {
-    const res = await fetch(`https://publica.cnpj.ws/cnpj/${cleanCnpj}`);
-    if (res.ok) {
+    const res = await fetchViaProxyOrDirect(
+      `/api/cnpjws/cnpj/${cleanCnpj}`,
+      `https://publica.cnpj.ws/cnpj/${cleanCnpj}`
+    );
+    if (res) {
       const data = await res.json();
       const name = data.razao_social || data.estabelecimento?.nome_fantasia;
       if (name) return name.toUpperCase();
     }
   } catch (e) {
-    console.warn('publica.cnpj.ws fallback:', e);
+    console.warn('publica.cnpj.ws indisponível:', e);
   }
 
   try {
-    const res2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`)}`);
-    if (res2.ok) {
+    const res2 = await fetchViaProxyOrDirect(
+      `/api/brasilapi/api/cnpj/v1/${cleanCnpj}`,
+      `https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`
+    );
+    if (res2) {
       const data2 = await res2.json();
       const name2 = data2.razao_social || data2.nome_fantasia;
       if (name2) return name2.toUpperCase();
     }
   } catch (e2) {
-    console.warn('BrasilAPI fallback:', e2);
+    console.warn('BrasilAPI indisponível:', e2);
   }
 
   return null;

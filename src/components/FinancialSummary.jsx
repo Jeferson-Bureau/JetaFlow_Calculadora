@@ -274,7 +274,7 @@ export default function FinancialSummary({
               {showDetailedBreakdown && (
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', paddingLeft: '20px' }}>
                   • {budgetResult.grossSheets || 0} folhas de impressão ({budgetResult.remaFullSheets || 0} folhas inteiras de compra).<br />
-                  • Custo por folha: R$ {((costs.paperCost || 0) / Math.max(1, budgetResult.grossSheets || 1)).toFixed(4)}/fl.
+                  • Custo por folha inteira: R$ {((costs.paperCost || 0) / Math.max(1, budgetResult.remaFullSheets || 1)).toFixed(4)}/fl.
                 </div>
               )}
             </div>

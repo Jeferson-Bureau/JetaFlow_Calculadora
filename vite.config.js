@@ -24,6 +24,18 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/compras/, ''),
         secure: true
+      },
+      '/api/cnpjws': {
+        target: 'https://publica.cnpj.ws',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/cnpjws/, ''),
+        secure: true
+      },
+      '/api/brasilapi': {
+        target: 'https://brasilapi.com.br',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/brasilapi/, ''),
+        secure: true
       }
     }
   }

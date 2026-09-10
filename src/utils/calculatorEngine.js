@@ -1,5 +1,23 @@
 // Calculator Engine for JetaFlow Calculadora
 
+import {
+  DEFAULT_FORMAT_MULTIPLIERS,
+  DEFAULT_EDITORIAL_BINDING,
+  DEFAULT_PAPER_BULK,
+  DEFAULT_PAPER_BULK_FALLBACK,
+  PAPER_FORMAT_DIMENSIONS
+} from '../data/initialData';
+
+/**
+ * Multiplicador de custo de clique conforme o formato da folha impressa.
+ * Usa a tabela vinda das configurações (digitalClickRates.formatMultipliers) e,
+ * na ausência dela, os defaults de `initialData`.
+ */
+function resolveFormatFactor(digitalClickRates = {}, sheetSize = {}) {
+  const map = digitalClickRates.formatMultipliers || DEFAULT_FORMAT_MULTIPLIERS;
+  return Number(map[sheetSize.id] ?? DEFAULT_FORMAT_MULTIPLIERS[sheetSize.id] ?? 1.0) || 1.0;
+}
+
 /**
  * Calculates book spine thickness based on page count, paper GSM, paper bulk (cm³/g), and glue technical compensation.
  * Formula: Lombada = (Páginas / 2 * EspessuraFolha) + CompensaçãoTécnica
@@ -10,16 +28,12 @@ export function calculateSpineThickness(pageCount, gsm, paperType = 'couche', cu
   const g = Number(gsm || 90);
   const sheets = pages / 2;
 
-  // Determine bulk in cm³/g if not directly provided
+  // Determine bulk in cm³/g if not directly provided (tabela em initialData.js)
   let bulk = Number(customBulk);
   if (!bulk || isNaN(bulk) || bulk <= 0) {
     const pType = String(paperType).toLowerCase();
-    if (pType.includes('polen bold')) bulk = 1.8;
-    else if (pType.includes('polen soft') || pType.includes('polen')) bulk = 1.5;
-    else if (pType.includes('offset') || pType.includes('sulfite') || pType.includes('chambril')) bulk = 1.2;
-    else if (pType.includes('couche') || pType.includes('couché')) bulk = 0.95;
-    else if (pType.includes('triplex') || pType.includes('duplex')) bulk = 1.3;
-    else bulk = 1.1;
+    const hit = DEFAULT_PAPER_BULK.find(entry => entry.match.some(term => pType.includes(term)));
+    bulk = hit ? hit.bulk : DEFAULT_PAPER_BULK_FALLBACK;
   }
 
   // Calculate sheet thickness in mm
@@ -229,14 +243,7 @@ export function calculateBudget(config) {
       const compPaperPrice = Number(compPaper.pricePerSheetSra3 || 0.50);
       const compPartPaperCost = compGrossSheets * compPaperPrice;
 
-      let compFormatFactor = 1.0;
-      if (digitalClickRates.formatMultipliers) {
-        compFormatFactor = digitalClickRates.formatMultipliers[compSheetSize.id] || 1.0;
-      } else {
-        if (compSheetSize.id === 'sra3' || compSheetSize.id === 'maxi-digital') compFormatFactor = 2.3;
-        else if (compSheetSize.id === 'a3') compFormatFactor = 2.0;
-        else if (compSheetSize.id === 'banner-digital') compFormatFactor = 3.5;
-      }
+      const compFormatFactor = resolveFormatFactor(digitalClickRates, compSheetSize);
 
       let compBaseClick = digitalClickRates.clickColorSimplex || 0.305;
       if (compColors === '4/4') compBaseClick = digitalClickRates.clickColorDuplex || 0.610;
@@ -298,14 +305,7 @@ export function calculateBudget(config) {
     const coverPaperCost = grossCoverSheets * coverPaperPrice;
 
     // Determinar multiplicador de formato de folha para editorial
-    let editorialFormatFactor = 1.0;
-    if (digitalClickRates.formatMultipliers) {
-      editorialFormatFactor = digitalClickRates.formatMultipliers[sheetSize.id] || 1.0;
-    } else {
-      if (sheetSize.id === 'sra3' || sheetSize.id === 'maxi-digital') editorialFormatFactor = 2.3;
-      else if (sheetSize.id === 'a3') editorialFormatFactor = 2.0;
-      else if (sheetSize.id === 'banner-digital') editorialFormatFactor = 3.5;
-    }
+    const editorialFormatFactor = resolveFormatFactor(digitalClickRates, sheetSize);
 
     let baseCoverClick = digitalClickRates.clickColorSimplex || 0.305;
     if (editorial.coverColors === '4/4') baseCoverClick = digitalClickRates.clickColorDuplex || 0.610;
@@ -334,15 +334,14 @@ export function calculateBudget(config) {
     const mioloClickRate = baseMioloClick * editorialFormatFactor;
     const mioloPrintCost = grossMioloSheets * mioloClickRate;
 
-    let bindingSetup = 30.00;
-    let bindingUnitPrice = 0.50;
-    if (editorial.bindingMethod === 'grampo_canoa') {
-      bindingSetup = 20.00;
-      bindingUnitPrice = 0.25;
-    } else if (editorial.bindingMethod === 'wire_o') {
-      bindingSetup = 25.00;
-      bindingUnitPrice = 2.50;
-    }
+    // Tarifas de encadernação vindas das configurações (digitalClickRates.bindingRates),
+    // com fallback para os defaults de initialData.js.
+    const bindingRates = digitalClickRates.bindingRates || DEFAULT_EDITORIAL_BINDING;
+    const binding = bindingRates[editorial.bindingMethod]
+      || DEFAULT_EDITORIAL_BINDING[editorial.bindingMethod]
+      || DEFAULT_EDITORIAL_BINDING.lombada_quadrada;
+    const bindingSetup = Number(binding.setup) || 0;
+    const bindingUnitPrice = Number(binding.unit) || 0;
     const bindingTotalCost = bindingSetup + (qty * bindingUnitPrice);
 
     paperCost = coverPaperCost + mioloPaperCost;
@@ -366,17 +365,8 @@ export function calculateBudget(config) {
     const sheetPaperPrice = Number(paper.pricePerSheetSra3 || 0.50);
     paperCost = grossSheets * sheetPaperPrice;
 
-    // Determinar multiplicador de formato de folha (ex: A4 = 1.0, A3 = 2.0, SRA3 = 2.3)
-    formatFactor = 1.0;
-    if (digitalClickRates.formatMultipliers) {
-      formatFactor = digitalClickRates.formatMultipliers[sheetSize.id] || 1.0;
-    } else {
-      // Fallback baseado no identificador do formato
-      if (sheetSize.id === 'sra3' || sheetSize.id === 'maxi-digital') formatFactor = 2.3;
-      else if (sheetSize.id === 'a3') formatFactor = 2.0;
-      else if (sheetSize.id === 'banner-digital') formatFactor = 3.5;
-      else if (sheetSize.id === 'a4') formatFactor = 1.0;
-    }
+    // Multiplicador de custo de clique conforme o formato da folha (A4 = 1,0).
+    formatFactor = resolveFormatFactor(digitalClickRates, sheetSize);
 
     let baseClick = digitalClickRates.clickColorSimplex || 0.305;
     if (colors === '4/4') baseClick = digitalClickRates.clickColorDuplex || 0.610;
@@ -387,95 +377,65 @@ export function calculateBudget(config) {
 
     printCost = grossSheets * clickRate;
   } else if (mode === 'offset') {
-    // AUTOMATIC SHEET CUTTING LOGIC FOR OFFSET PRINTERS
-    // We calculate how many machine-sheets we can get from the purchased full sheet
-    // that fit into the selected offset equipment, maximizing the product yield.
-    
-    let cutW = sheetSize.widthMm || 660;
-    let cutH = sheetSize.heightMm || 960;
-    let printW = sheetSize.printableW || 640;
-    let printH = sheetSize.printableH || 940;
-    
-    const maxEqW = equipment.maxW || 9999;
-    const maxEqH = equipment.maxH || 9999;
+    // MODELO OFF-SET: a folha INTEIRA (compra) vem do formato do papel selecionado
+    // (66x96, 64x88, …). O seletor de "formato" agora é a folha de MÁQUINA já cortada
+    // (sheetSize). Calculamos quantas folhas-máquina saem de cada folha de compra.
 
-    // Classic graphic industry cuts: 1 (full), 2 (half), 3 (third), 4 (quarter), 8 (eighth)
-    const cutOptions = [
-      { cuts: 1, w: cutW, h: cutH, pw: printW, ph: printH, name: 'Inteira' },
-      { cuts: 2, w: cutH/2, h: cutW, pw: printH/2, ph: printW, name: 'Meia Folha' },
-      { cuts: 3, w: cutW/3, h: cutH, pw: printW/3, ph: printH, name: 'Um Terço' },
-      { cuts: 3, w: cutH/3, h: cutW, pw: printH/3, ph: printW, name: 'Um Terço (Invertido)' },
-      { cuts: 4, w: cutW/2, h: cutH/2, pw: printW/2, ph: printH/2, name: 'Um Quarto' },
-      { cuts: 8, w: cutW/4, h: cutH/2, pw: printW/4, ph: printH/2, name: 'Um Oitavo' },
-      { cuts: 9, w: cutW/3, h: cutH/3, pw: printW/3, ph: printH/3, name: 'Um Nono' }
-    ];
+    const paperDims = PAPER_FORMAT_DIMENSIONS[paper.format];
+    const purchaseW = Number(paperDims?.widthMm || paper.purchaseW || 660);
+    const purchaseH = Number(paperDims?.heightMm || paper.purchaseH || 960);
 
-    let bestCut = null;
-    let maxTotalProducts = -1;
-    let bestMachineLayout = null;
+    // Folha de máquina (já cortada) — respeita a área máx de impressão do equipamento.
+    const machineW = Number(sheetSize.widthMm || 520);
+    const machineH = Number(sheetSize.heightMm || 740);
+    const gripper = Number(equipment.gripperMm || 10);
+    const maxPrintW = Number(equipment.maxPrintW || equipment.maxW || 9999);
+    const maxPrintH = Number(equipment.maxPrintH || equipment.maxH || 9999);
+    const printW = Math.min(Number(sheetSize.printableW || (machineW - 2 * gripper)), maxPrintW);
+    const printH = Math.min(Number(sheetSize.printableH || (machineH - 2 * gripper)), maxPrintH);
 
-    for (let option of cutOptions) {
-      // Check physical fit in the machine
-      const fitsNormal = option.w <= maxEqW && option.h <= maxEqH;
-      const fitsRotated = option.h <= maxEqW && option.w <= maxEqH;
+    // Folhas de máquina por folha de compra (melhor das 2 orientações do corte)
+    const fitStraight = Math.floor(purchaseW / machineW) * Math.floor(purchaseH / machineH);
+    const fitRotated = Math.floor(purchaseW / machineH) * Math.floor(purchaseH / machineW);
+    const sheetsPerPurchase = Math.max(1, fitStraight, fitRotated);
 
-      if (fitsNormal || fitsRotated) {
-        // Equipment printable margins (approx 10mm width, 5mm height for grippers)
-        const effPrintW = Math.min(option.pw, maxEqW - 10);
-        const effPrintH = Math.min(option.ph, maxEqH - 5);
-        
-        const subLayout = calculateSheetLayout(effPrintW, effPrintH, productW, productH, bleed);
-        const productsInCut = Math.max(0, subLayout.nUp);
-        const totalProducts = productsInCut * option.cuts;
+    const machineLayout = calculateSheetLayout(printW, printH, productW, productH, bleed);
+    const nUp = Math.max(1, machineLayout.nUp);
 
-        if (totalProducts > maxTotalProducts) {
-          maxTotalProducts = totalProducts;
-          bestCut = option;
-          bestMachineLayout = subLayout;
-        } else if (totalProducts === maxTotalProducts && maxTotalProducts > 0) {
-           // Tiebreaker: fewer cuts means less machine runs (less turns = cheaper print cost)
-           if (bestCut && option.cuts < bestCut.cuts) {
-             bestCut = option;
-             bestMachineLayout = subLayout;
-           }
-        }
-      }
-    }
-
-    // Fallback if no cut fits or no products fit
-    if (!bestCut) {
-      bestCut = cutOptions[0];
-      bestMachineLayout = calculateSheetLayout(Math.min(bestCut.pw, maxEqW), Math.min(bestCut.ph, maxEqH), productW, productH, bleed);
-    }
+    let cutName;
+    if (machineW >= purchaseW && machineH >= purchaseH) cutName = 'Folha inteira (sem corte)';
+    else if (sheetsPerPurchase === 1) cutName = `1 folha de ${machineW}×${machineH} por folha de compra`;
+    else cutName = `${sheetsPerPurchase} folhas de ${machineW}×${machineH} por folha de compra`;
 
     layout = {
-      ...bestMachineLayout,
-      cutName: bestCut.name,
-      cutsPerFullSheet: bestCut.cuts,
-      machineFormat: `${Math.round(bestCut.w)}x${Math.round(bestCut.h)} mm`,
-      machineW: bestCut.w,
-      machineH: bestCut.h
+      ...machineLayout,
+      cutName,
+      cutsPerFullSheet: sheetsPerPurchase,
+      machineFormat: `${machineW}x${machineH} mm`,
+      machineW,
+      machineH,
+      purchaseFormat: `${Math.round(purchaseW / 10)}×${Math.round(purchaseH / 10)} cm`
     };
 
-    const machineSheetsNeeded = Math.ceil(qty / Math.max(1, bestMachineLayout.nUp));
-    requiredSheets = Math.ceil(machineSheetsNeeded / bestCut.cuts); // convert machine sheets back to FULL purchased sheets
-
-    // Make ready sheets are added to the MACHINE sheets, then we convert back to full sheets to buy
+    const machineSheetsNeeded = Math.ceil(qty / nUp);
     const makeReadyMachineSheets = Number(offsetSettings.makeReadySheets || 200);
     const totalMachineSheets = machineSheetsNeeded + makeReadyMachineSheets;
-    
-    grossSheets = Math.ceil(totalMachineSheets / bestCut.cuts); // Full sheets to buy
-    remaFullSheets = Math.ceil(grossSheets / formatRatio);
-    totalRefiledPieces = totalMachineSheets * bestMachineLayout.nUp;
 
-    const sheetW_m = (sheetSize.widthMm || 660) / 1000;
-    const sheetH_m = (sheetSize.heightMm || 960) / 1000;
+    // grossSheets = passadas de máquina (folhas de impressão);
+    // remaFullSheets = folhas inteiras de compra (resma mãe).
+    grossSheets = totalMachineSheets;
+    requiredSheets = machineSheetsNeeded;
+    remaFullSheets = Math.ceil(totalMachineSheets / sheetsPerPurchase);
+    totalRefiledPieces = totalMachineSheets * nUp;
+
+    // Custo do papel: por folha inteira de compra (usa preço da resma se houver).
     const gsm = Number(paper.weightGsm || 150);
-    const weightPerSheetKg = sheetW_m * sheetH_m * (gsm / 1000);
-    const totalWeightKg = grossSheets * weightPerSheetKg;
+    const purchaseSheetKg = (purchaseW / 1000) * (purchaseH / 1000) * (gsm / 1000);
     const pricePerKg = Number(paper.pricePerKg || 15.00);
-
-    paperCost = totalWeightKg * pricePerKg;
+    const purchaseSheetPrice = Number(paper.pricePerFullSheet) > 0
+      ? Number(paper.pricePerFullSheet)
+      : purchaseSheetKg * pricePerKg;
+    paperCost = remaFullSheets * purchaseSheetPrice;
 
     let numPlates = 4;
     if (colors === '4/4') numPlates = 8;
@@ -495,10 +455,13 @@ export function calculateBudget(config) {
   }
 
   // --- 2. FINISHINGS COST ---
+  // `grossSheets` já é a contagem de folhas-máquina impressas em todos os modos
+  // (digital, grande formato e off-set), então o acabamento "por folha" incide direto
+  // sobre ele. A tabela Positiva usa a mesma base (folhas impressas × área da folha).
   let finishingsCost = 0;
   const finishingsDetail = finishings.map(f => {
     let itemCost = 0;
-    
+
     if (f.category === 'positiva') {
       itemCost = calculatePositivaFinishing(f, grossSheets, sheetSize, qty);
     } else {

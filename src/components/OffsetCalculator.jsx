@@ -1,5 +1,23 @@
-import React from 'react';
-import { Cpu, Layers, Palette, Hash, Box, AlertTriangle } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Cpu, Layers, Palette, Hash, Box, AlertTriangle, Scissors } from 'lucide-react';
+import { PAPER_FORMAT_DIMENSIONS } from '../data/initialData';
+
+// Uma folha de máquina "cabe" na prensa se entrar em qualquer orientação, dentro do
+// formato máximo e acima do mínimo alimentável.
+function fitsPress(sheet, eq) {
+  const maxW = eq.maxW || 9999;
+  const maxH = eq.maxH || 9999;
+  const straight = sheet.widthMm <= maxW && sheet.heightMm <= maxH;
+  const rotated = sheet.heightMm <= maxW && sheet.widthMm <= maxH;
+  if (!straight && !rotated) return false;
+  if (eq.minW && eq.minH) {
+    const okMin =
+      (sheet.widthMm >= eq.minW && sheet.heightMm >= eq.minH) ||
+      (sheet.heightMm >= eq.minW && sheet.widthMm >= eq.minH);
+    if (!okMin) return false;
+  }
+  return true;
+}
 
 export default function OffsetCalculator({
   papers,
@@ -24,13 +42,80 @@ export default function OffsetCalculator({
   selectedEquipmentId,
   setSelectedEquipmentId
 }) {
-  const selectedEquipment = equipments?.find(e => e.id === selectedEquipmentId) || equipments?.find(e => e.type === 'offset') || {};
+  const offsetPresses = equipments?.filter(e => e.type === 'offset') || [];
+  const isOffsetSelected = offsetPresses.some(e => e.id === selectedEquipmentId);
+  const foundEquipment = equipments?.find(e => e.id === selectedEquipmentId);
+  // Enquanto a seleção herdada for uma impressora digital, usa a 1ª prensa off-set.
+  const selectedEquipment = (foundEquipment && foundEquipment.type === 'offset')
+    ? foundEquipment
+    : (offsetPresses[0] || foundEquipment || {});
   const selectedPaper = papers.find(p => p.id === selectedPaperId) || papers[0];
-  const selectedSheet = sheetSizes.find(s => s.id === selectedSheetId) || sheetSizes[0];
 
-  // Technical Compatibility Checks
+  // Ao abrir a aba com uma impressora digital herdada, seleciona a 1ª prensa off-set.
+  const firstOffsetId = offsetPresses[0]?.id;
+  useEffect(() => {
+    if (!isOffsetSelected && firstOffsetId) setSelectedEquipmentId(firstOffsetId);
+  }, [isOffsetSelected, firstOffsetId, setSelectedEquipmentId]);
+
+  // Folha INTEIRA de compra: derivada do formato do papel selecionado.
+  const purchaseDims = PAPER_FORMAT_DIMENSIONS[selectedPaper?.format];
+  const purchaseW = purchaseDims?.widthMm || 660;
+  const purchaseH = purchaseDims?.heightMm || 960;
+  const purchaseUnknown = !purchaseDims;
+
+  // Quantas folhas de máquina de um formato saem de 1 folha de compra.
+  const sheetsPerPurchaseOf = (s) => Math.max(
+    1,
+    Math.floor(purchaseW / s.widthMm) * Math.floor(purchaseH / s.heightMm),
+    Math.floor(purchaseW / s.heightMm) * Math.floor(purchaseH / s.widthMm)
+  );
+  const fitsInsidePurchase = (s) =>
+    (s.widthMm <= purchaseW && s.heightMm <= purchaseH) ||
+    (s.heightMm <= purchaseW && s.widthMm <= purchaseH);
+
+  // Formatos de MÁQUINA (folha já cortada) compatíveis com a prensa selecionada,
+  // do maior para o menor.
+  const machineSheets = sheetSizes
+    .filter(s => s.machineFormat && fitsPress(s, selectedEquipment))
+    .sort((a, b) => (b.widthMm * b.heightMm) - (a.widthMm * a.heightMm));
+
+  const selectedSheet =
+    machineSheets.find(s => s.id === selectedSheetId) ||
+    sheetSizes.find(s => s.id === selectedSheetId) ||
+    machineSheets[0] ||
+    sheetSizes[0];
+
+  // Se a seleção atual não é um formato de máquina válido para esta prensa
+  // (troca de equipamento, estado herdado da aba Digital…), escolhe um default
+  // sensato: maior formato que caiba na folha de compra e a divida em ≥2 (ou, na
+  // falta, o maior que caiba; ou o maior de todos).
+  const validSheetIds = machineSheets.map(s => s.id).join(',');
+  useEffect(() => {
+    if (!isOffsetSelected) return; // espera o equipamento normalizar primeiro
+    if (!machineSheets.length || machineSheets.some(s => s.id === selectedSheetId)) return;
+    const insidePurchase = machineSheets.filter(fitsInsidePurchase);
+    // Se a prensa roda a folha de compra inteira, esse é o default; senão, o maior
+    // formato que caiba na folha de compra e a divida em ≥2 pedaços.
+    const pressRunsFullSheet = fitsPress({ widthMm: purchaseW, heightMm: purchaseH }, selectedEquipment);
+    const pick = pressRunsFullSheet
+      ? (insidePurchase[0] || machineSheets[0])
+      : (insidePurchase.find(s => sheetsPerPurchaseOf(s) >= 2) || insidePurchase[0] || machineSheets[0]);
+    if (pick) setSelectedSheetId(pick.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOffsetSelected, validSheetIds, selectedSheetId, purchaseW, purchaseH, setSelectedSheetId]);
+
+  const mW = selectedSheet?.widthMm || 520;
+  const mH = selectedSheet?.heightMm || 740;
+  const sheetsPerPurchase = sheetsPerPurchaseOf(selectedSheet || { widthMm: mW, heightMm: mH });
+  const machineBiggerThanPurchase = mW > purchaseW || mH > purchaseH;
+
+  // Compatibility checks
   const gsmExceeded = selectedPaper.weightGsm > (selectedEquipment.maxGsm || 450);
-  const sizeExceeded = (selectedSheet.widthMm > selectedEquipment.maxW || selectedSheet.heightMm > selectedEquipment.maxH);
+  const sizeExceeded = (mW > (selectedEquipment.maxW || 9999) || mH > (selectedEquipment.maxH || 9999));
+  const sizeUndersized = (
+    (selectedEquipment.minW && mW < selectedEquipment.minW) ||
+    (selectedEquipment.minH && mH < selectedEquipment.minH)
+  );
 
   return (
     <div className="glass-card" style={{ padding: '20px' }}>
@@ -48,10 +133,11 @@ export default function OffsetCalculator({
 
       {/* SELEÇÃO DO EQUIPAMENTO DE IMPRESSÃO */}
       <div className="form-group" style={{ background: 'rgba(230, 46, 107, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(230, 46, 107, 0.2)', marginBottom: '16px' }}>
-        <label className="form-label" style={{ color: 'var(--brand-magenta)' }}>
+        <label className="form-label" htmlFor="offset-equip" style={{ color: 'var(--brand-magenta)' }}>
           Impressora Off-set Selecionada
         </label>
         <select
+          id="offset-equip"
           className="form-select"
           style={{ fontWeight: 700, fontSize: '0.95rem' }}
           value={selectedEquipmentId}
@@ -79,18 +165,40 @@ export default function OffsetCalculator({
       {sizeExceeded && (
         <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid var(--warning)', borderRadius: '8px', color: '#fcd34d', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <AlertTriangle size={16} color="var(--warning)" />
-          Atenção: O formato da folha ({selectedSheet.widthMm}x{selectedSheet.heightMm}mm) excede o tamanho máximo de cilindro da {selectedEquipment.name} ({selectedEquipment.maxW}x{selectedEquipment.maxH}mm).
+          A folha de máquina ({mW}x{mH}mm) é maior que o formato máximo da {selectedEquipment.name} ({selectedEquipment.maxW}x{selectedEquipment.maxH}mm).
+        </div>
+      )}
+
+      {sizeUndersized && (
+        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} color="var(--danger)" />
+          Atenção: A folha de máquina ({mW}x{mH}mm) é menor que o formato mínimo alimentável da {selectedEquipment.name} ({selectedEquipment.minW}x{selectedEquipment.minH}mm).
+        </div>
+      )}
+
+      {purchaseUnknown && (
+        <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid var(--warning)', borderRadius: '8px', color: '#fcd34d', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} color="var(--warning)" />
+          O papel "{selectedPaper?.name}" não tem formato de folha inteira definido — assumindo 66 × 96 cm no cálculo.
+        </div>
+      )}
+
+      {machineBiggerThanPurchase && (
+        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} color="var(--danger)" />
+          A folha de máquina ({mW}x{mH}mm) é maior que a folha de compra do papel ({purchaseW}x{purchaseH}mm). Escolha um formato de máquina menor ou um papel maior.
         </div>
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-        
-        {/* Substrato / Papel de Compra */}
+
+        {/* Substrato / Papel de Compra — define a folha inteira */}
         <div className="form-group">
-          <label className="form-label">
-            <Layers size={14} /> Papel (Custo por Kg / Rema)
+          <label className="form-label" htmlFor="offset-paper">
+            <Layers size={14} /> Papel &amp; Folha Inteira (Compra)
           </label>
           <select
+            id="offset-paper"
             className="form-select"
             value={selectedPaperId}
             onChange={(e) => setSelectedPaperId(e.target.value)}
@@ -101,32 +209,42 @@ export default function OffsetCalculator({
               </option>
             ))}
           </select>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            Folha inteira: {purchaseW} × {purchaseH} mm{selectedPaper?.format ? ` (${selectedPaper.format})` : ''}
+          </span>
         </div>
 
-        {/* Formato de Máquina Offset */}
+        {/* Formato de Máquina Offset (folha já cortada) */}
         <div className="form-group">
-          <label className="form-label">
-            <Box size={14} /> Formato de Folha Inteira (Compra)
+          <label className="form-label" htmlFor="offset-sheet">
+            <Scissors size={14} /> Formato na Máquina (folha cortada)
           </label>
           <select
+            id="offset-sheet"
             className="form-select"
-            value={selectedSheetId}
+            value={selectedSheet?.id || ''}
             onChange={(e) => setSelectedSheetId(e.target.value)}
           >
-            {sheetSizes.filter(s => s.id.startsWith('full-') || s.id === 'sra3').map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
+            {machineSheets.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            {mW >= purchaseW && mH >= purchaseH
+              ? 'Roda a folha de compra inteira (sem sub-corte)'
+              : sheetsPerPurchase > 1
+                ? `${sheetsPerPurchase} folhas de máquina por folha de compra`
+                : '1 folha de máquina por folha de compra (sobra refilada)'}
+          </span>
         </div>
 
         {/* Cores / Chapas CTP */}
         <div className="form-group">
-          <label className="form-label">
+          <label className="form-label" htmlFor="offset-colors">
             <Palette size={14} /> Cores (Chapagem CTP)
           </label>
           <select
+            id="offset-colors"
             className="form-select"
             value={colors}
             onChange={(e) => setColors(e.target.value)}
@@ -140,10 +258,11 @@ export default function OffsetCalculator({
 
         {/* Tiragem */}
         <div className="form-group">
-          <label className="form-label">
+          <label className="form-label" htmlFor="offset-qty">
             <Hash size={14} /> Tiragem / Quantidade
           </label>
           <input
+            id="offset-qty"
             type="number"
             min="100"
             className="form-input"
@@ -161,10 +280,11 @@ export default function OffsetCalculator({
         </h4>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-          
+
           <div className="form-group">
-            <label className="form-label">Largura (mm)</label>
+            <label className="form-label" htmlFor="offset-prod-w">Largura (mm)</label>
             <input
+              id="offset-prod-w"
               type="number"
               className="form-input"
               value={productW}
@@ -173,8 +293,9 @@ export default function OffsetCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Altura (mm)</label>
+            <label className="form-label" htmlFor="offset-prod-h">Altura (mm)</label>
             <input
+              id="offset-prod-h"
               type="number"
               className="form-input"
               value={productH}
@@ -183,8 +304,9 @@ export default function OffsetCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Sangria (mm)</label>
+            <label className="form-label" htmlFor="offset-bleed">Sangria (mm)</label>
             <input
+              id="offset-bleed"
               type="number"
               className="form-input"
               value={bleed}
@@ -194,10 +316,11 @@ export default function OffsetCalculator({
 
           {/* Acerto de Máquina / Make-Ready */}
           <div className="form-group">
-            <label className="form-label" style={{ color: 'var(--brand-yellow)' }}>
+            <label className="form-label" htmlFor="offset-makeready" style={{ color: 'var(--brand-yellow)' }}>
               <AlertTriangle size={14} /> Folhas de Acerto
             </label>
             <input
+              id="offset-makeready"
               type="number"
               className="form-input"
               value={offsetSettings.makeReadySheets || 200}

@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import { Tag, Printer, Package, Search, MapPin, Phone, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 const EMPTY_ADDRESS = {
@@ -17,11 +16,26 @@ const addressFromClient = (c) => ({
   contact: c.contactPerson || ''
 });
 
-// Layouts de impressão: grid real na folha A4 (retrato, margem @page de 6mm).
+// Layouts de impressão: folha A4 em RETRATO, etiquetas na largura total da folha
+// (~198 mm), empilhadas na vertical. Altura útil ≈ 285 mm (margem @page 6 mm).
 const LAYOUTS = {
-  1: { label: '1 por folha (A4 inteiro)', cols: '1fr', cardMm: 283, qrPx: 96 },
-  2: { label: '2 por folha (A5 landscape)', cols: '1fr', cardMm: 140, qrPx: 88 },
-  4: { label: '4 por folha (A6)', cols: '1fr 1fr', cardMm: 140, qrPx: 58 }
+  1: { label: '1 por folha (A4 inteiro)', cardMm: 281, compact: false },
+  2: { label: '2 por folha (meia folha)', cardMm: 134, compact: false },
+  3: { label: '3 por folha (terço)', cardMm: 87, compact: true },
+  4: { label: '4 por folha (quarto)', cardMm: 64, compact: true }
+};
+
+// Traço horizontal padrão que divide os campos internos da etiqueta (50% de preto).
+const FIELD_RULE = '1px solid rgba(0, 0, 0, 0.5)';
+
+// Rótulo de seção (DESTINATÁRIO, ENDEREÇO, CONTEÚDO…).
+const SEC_LABEL_STYLE = {
+  fontSize: '0.56rem',
+  textTransform: 'uppercase',
+  fontWeight: 800,
+  color: '#475569',
+  letterSpacing: '0.9px',
+  marginBottom: '2px'
 };
 
 export default function LabelGenerator({ quotes = [], clients = [] }) {
@@ -219,26 +233,36 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
 
   const layout = LAYOUTS[labelsPerSheet] || LAYOUTS[4];
 
-  // Payload do QR — compacto para escanear mesmo na etiqueta A6.
-  const qrValue = (volIndex) => {
-    if (!computedQuote) return '';
-    const parts = [
-      `PEDIDO ${computedQuote.code}`,
-      `VOL ${volIndex + 1}/${volumes}`,
-      computedQuote.clientName
-    ];
-    if (computedQuote.clientDoc) parts.push(`DOC ${computedQuote.clientDoc}`);
-    return parts.join(' | ');
-  };
 
   return (
     <div className="label-generator-container">
       <style>{`
-        .print-only-logo { display: none; }
+        /* Prévia espelha a impressão: sem quadros de contorno; linha de corte pontilhada
+           a 30% de preto; campos internos separados por linhas horizontais. */
+        .print-area .label-card {
+          border: none !important;
+          border-bottom: 2px dotted rgba(0, 0, 0, 0.3) !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          padding-bottom: ${layout.compact ? '4mm' : '6mm'} !important;
+        }
+        .print-area .label-header { border-bottom: 1px solid rgba(0,0,0,0.5) !important; }
+        .print-area .label-addr,
+        .print-area .label-content { border: none !important; background: transparent !important; }
+        .print-area .label-dest > div { border-bottom: none !important; }
+        .print-area .label-dest { border-bottom: 1px solid rgba(0,0,0,0.5) !important; padding-bottom: 4px !important; }
+        .print-area .label-addr { border-bottom: 1px solid rgba(0,0,0,0.5) !important; }
+        .print-area .label-footer { border-top: 1px solid rgba(0,0,0,0.5) !important; }
 
         @media print {
           body * { visibility: hidden; }
           .print-area, .print-area * { visibility: visible; }
+
+          /* Garante que logo, fundos cinza e bordas saiam na impressão. */
+          .print-area, .print-area * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
 
           .print-area {
             position: absolute;
@@ -247,23 +271,34 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             margin: 0 !important;
             padding: 0 !important;
             display: grid !important;
-            grid-template-columns: ${layout.cols} !important;
+            grid-template-columns: 1fr !important;
+            justify-items: center !important;
             gap: 0 !important;
             background: #fff !important;
             box-sizing: border-box !important;
           }
 
           .no-print { display: none !important; }
-          .print-only-logo { display: inline !important; color: #fff !important; }
           .print-obs { color: #000 !important; }
+
+          /* Logo +20% na impressão. */
+          .label-header img {
+            display: block !important;
+            filter: none !important;
+            height: ${layout.compact ? '26px' : '36px'} !important;
+          }
 
           .label-card {
             display: flex !important;
             flex-direction: column !important;
-            width: 100% !important;
+            width: 90% !important;
+            margin: 0 auto !important;
             height: ${layout.cardMm}mm !important;
             box-sizing: border-box !important;
-            border: 1.5px solid #000 !important;
+            border: none !important;
+            border-bottom: 2px dotted rgba(0, 0, 0, 0.3) !important;
+            /* Respiro entre o conteúdo e a linha de corte de baixo. */
+            padding-bottom: ${layout.compact ? '4mm' : '6mm'} !important;
             background: #fff !important;
             color: #000 !important;
             border-radius: 0 !important;
@@ -273,57 +308,59 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             box-shadow: none !important;
           }
 
-          .label-card .label-header { flex-shrink: 0 !important; }
+          /* Respiro entre a linha de corte e o logo da etiqueta seguinte. */
+          .label-card + .label-card { margin-top: ${layout.compact ? '4mm' : '6mm'} !important; }
+
+          /* Sem quadros de contorno; campos internos divididos por traços a 50% de preto. */
+          .label-card .label-header {
+            flex-shrink: 0 !important;
+            border: none !important;
+            border-bottom: 1px solid rgba(0,0,0,0.5) !important;
+          }
+          .label-card .label-addr,
+          .label-card .label-content { border: none !important; background: #fff !important; }
+          .label-card .label-dest > div { border: none !important; }
+          .label-card .label-dest {
+            border-bottom: 1px solid rgba(0,0,0,0.5) !important;
+            padding-bottom: 4px !important;
+          }
+          .label-card .label-addr { border-bottom: 1px solid rgba(0,0,0,0.5) !important; }
 
           .label-card .label-body {
             flex: 1 !important;
             display: flex !important;
-            overflow: hidden !important;
-            min-height: 0 !important;
-          }
-
-          .label-card .label-col-main {
-            flex: 1 !important;
-            display: flex !important;
             flex-direction: column !important;
-            padding: ${labelsPerSheet === 4 ? '4px 8px' : '8px 10px'} !important;
-            gap: ${labelsPerSheet === 4 ? '4px' : '6px'} !important;
+            padding: ${layout.compact ? '4px 10px' : '8px 14px'} !important;
+            gap: ${layout.compact ? '3px' : '5px'} !important;
             overflow: hidden !important;
             min-height: 0 !important;
           }
 
-          .label-card .label-col-vol {
-            width: ${labelsPerSheet === 4 ? '86px' : '108px'} !important;
+          .label-card .label-footer {
             flex-shrink: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            padding: ${labelsPerSheet === 4 ? '4px 4px' : '8px 6px'} !important;
-            border-left: 2px dashed #000 !important;
-            box-sizing: border-box !important;
+            border-top: 1px solid rgba(0,0,0,0.5) !important;
+            padding: ${layout.compact ? '3px 10px' : '5px 14px'} !important;
           }
 
           .label-dest { flex-shrink: 0 !important; }
 
           .label-addr {
             flex-shrink: 0 !important;
-            ${labelsPerSheet === 4 ? 'padding: 3px 6px !important; font-size: 0.72rem !important;' : ''}
+            ${layout.compact ? 'font-size: 0.72rem !important;' : ''}
           }
 
           .label-content {
             flex: 1 !important;
             min-height: 0 !important;
             overflow: hidden !important;
-            ${labelsPerSheet === 4 ? 'padding: 3px 6px !important;' : ''}
           }
 
           .label-dest-name {
-            ${labelsPerSheet === 4 ? 'font-size: 0.88rem !important;' : ''}
+            ${layout.compact ? 'font-size: 0.9rem !important;' : ''}
           }
 
           .vol-number {
-            ${labelsPerSheet === 4 ? 'font-size: 1.5rem !important;' : ''}
+            ${layout.compact ? 'font-size: 1.9rem !important;' : ''}
           }
 
           body { background: #fff !important; }
@@ -798,7 +835,8 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
       {computedQuote && (
         <div className="print-area" style={{
           display: 'grid',
-          gridTemplateColumns: layout.cols,
+          gridTemplateColumns: '1fr',
+          justifyItems: 'center',
           gap: '16px'
         }}>
           {Array.from({ length: volumes }).map((_, i) => {
@@ -816,8 +854,11 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   color: '#000000',
                   borderRadius: '8px',
                   fontFamily: 'Arial, Helvetica, sans-serif',
-                  minHeight: labelsPerSheet === 1 ? '420px'
-                    : labelsPerSheet === 2 ? '240px'
+                  width: '90%',
+                  aspectRatio: '178 / ' + layout.cardMm,
+                  minHeight: labelsPerSheet === 1 ? '460px'
+                    : labelsPerSheet === 2 ? '260px'
+                    : labelsPerSheet === 3 ? '180px'
                     : '150px'
                 }}
               >
@@ -826,209 +867,129 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  borderBottom: '2px solid #000',
-                  padding: '7px 12px',
-                  background: '#000',
-                  color: '#ffffff',
+                  borderBottom: FIELD_RULE,
+                  padding: '5px 12px',
+                  background: '#ffffff',
+                  color: '#0f172a',
                   flexShrink: 0
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <img
-                      src="/JETAPRINT_LOGO_01_2026-01.jpg"
-                      alt="JETAPRINT"
-                      style={{ height: '24px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-                      className="no-print"
-                    />
-                    <span style={{ fontSize: '1.05rem', fontWeight: 900, letterSpacing: '1px' }} className="print-only-logo">JETAPRINT</span>
-                    <span style={{ fontSize: '0.68rem', color: '#aaa', letterSpacing: '0.3px' }} className="no-print">Gráfica Multimídia</span>
-                  </div>
+                  <img
+                    src="/JETAPRINT_LOGO_01_2026-01.jpg"
+                    alt="JETAPRINT — Gráfica Multimídia"
+                    style={{
+                      height: layout.compact ? '22px' : '30px',
+                      width: 'auto',
+                      objectFit: 'contain'
+                    }}
+                  />
 
-                  <div style={{ textAlign: 'right', lineHeight: 1.25 }}>
+                  <div style={{ textAlign: 'right', lineHeight: 1.2 }}>
                     {notaFiscal && (
-                      <div style={{ fontSize: '0.65rem', color: '#bbb' }}>NF: {notaFiscal}</div>
+                      <div style={{ fontSize: '0.62rem', color: '#475569' }}>NF: {notaFiscal}</div>
                     )}
-                    <div style={{ fontWeight: 900, fontSize: '0.9rem', letterSpacing: '0.5px' }}>
+                    <div style={{ fontWeight: 900, fontSize: '0.9rem', letterSpacing: '0.5px', color: '#000' }}>
                       PEDIDO: {computedQuote.code}
                     </div>
-                    <div style={{ fontSize: '0.65rem', color: '#bbb' }}>{computedQuote.date}</div>
+                    <div style={{ fontSize: '0.62rem', color: '#475569' }}>{computedQuote.date}</div>
                   </div>
                 </div>
 
-                {/* ── CORPO PRINCIPAL ── */}
-                <div className="label-body" style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+                {/* ── CORPO ── */}
+                <div className="label-body" style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '5px',
+                  minHeight: 0,
+                  overflow: 'hidden'
+                }}>
 
-                  {/* Coluna Principal */}
-                  <div className="label-col-main" style={{
-                    flex: 1,
-                    padding: '8px 10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                    minHeight: 0,
-                    overflow: 'hidden'
-                  }}>
-
-                    {/* Destinatário */}
-                    <div className="label-dest" style={{ flexShrink: 0 }}>
-                      <div style={{
-                        fontSize: '0.58rem',
-                        textTransform: 'uppercase',
-                        fontWeight: 800,
-                        color: '#475569',
-                        letterSpacing: '0.8px',
-                        marginBottom: '2px',
-                        borderBottom: '1px solid #e2e8f0',
-                        paddingBottom: '1px'
-                      }}>
-                        Destinatário / Entrega
-                      </div>
-
-                      <div className="label-dest-name" style={{ fontSize: '0.96rem', fontWeight: 900, lineHeight: 1.15, color: '#000' }}>
-                        {computedQuote.clientName}
-                      </div>
-
-                      {address.contact && (
-                        <div style={{ fontSize: '0.72rem', color: '#334155', marginTop: '1px' }}>
-                          A/C: <strong>{address.contact}</strong>
-                        </div>
-                      )}
-
-                      {computedQuote.clientDoc && (
-                        <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: '1px' }}>
-                          CNPJ/CPF: <strong>{computedQuote.clientDoc}</strong>
-                        </div>
-                      )}
+                  {/* Destinatário */}
+                  <div className="label-dest" style={{ flexShrink: 0, paddingBottom: '4px', borderBottom: FIELD_RULE }}>
+                    <div style={SEC_LABEL_STYLE}>Destinatário</div>
+                    <div className="label-dest-name" style={{ fontSize: '1rem', fontWeight: 900, lineHeight: 1.15, color: '#000' }}>
+                      {computedQuote.clientName}
                     </div>
-
-                    {/* Endereço */}
-                    <div className="label-addr" style={{
-                      padding: '5px 7px',
-                      background: '#f1f5f9',
-                      borderRadius: '4px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.76rem',
-                      lineHeight: 1.45,
-                      color: '#0f172a',
-                      flexShrink: 0
-                    }}>
-                      {address.street ? (
-                        <div style={{ fontWeight: 700 }}>
-                          {address.street}
-                          {address.neighborhood ? ` — ${address.neighborhood}` : ''}
-                        </div>
-                      ) : null}
-
-                      {(address.city || address.state || address.zip) && (
-                        <div>
-                          {address.city && <span>{address.city}</span>}
-                          {address.state && <span style={{ fontWeight: 700 }}> — {address.state}</span>}
-                          {address.zip && <span style={{ marginLeft: '6px' }}>CEP: <strong>{address.zip}</strong></span>}
-                        </div>
-                      )}
-
-                      {address.phone && (
-                        <div style={{ color: '#334155' }}>
-                          Tel: <strong>{address.phone}</strong>
-                        </div>
-                      )}
-
-                      {!address.street && !address.city && !address.zip && !address.phone && (
-                        <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Endereço de entrega não informado</span>
-                      )}
-                    </div>
-
-                    {/* Conteúdo / Material */}
-                    <div className="label-content" style={{
-                      padding: '5px 7px',
-                      background: '#fff',
-                      borderRadius: '4px',
-                      border: '1px solid #94a3b8',
-                      flex: 1,
-                      minHeight: 0,
-                      overflow: 'hidden'
-                    }}>
-                      <div style={{
-                        fontSize: '0.58rem',
-                        textTransform: 'uppercase',
-                        fontWeight: 800,
-                        color: '#64748b',
-                        letterSpacing: '0.8px',
-                        marginBottom: '2px'
-                      }}>
-                        Conteúdo / Especificações
+                    {(computedQuote.clientDoc || address.contact) && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px', fontSize: '0.68rem', color: '#334155', marginTop: '2px' }}>
+                        {computedQuote.clientDoc && <span>CNPJ/CPF: <strong>{computedQuote.clientDoc}</strong></span>}
+                        {address.contact && <span>A/C: <strong>{address.contact}</strong></span>}
                       </div>
-                      <div style={{ fontWeight: 700, fontSize: '0.8rem', lineHeight: 1.3, color: '#0f172a' }}>
-                        {computedQuote.description}
-                      </div>
-                      {observacoes && (
-                        <div style={{ marginTop: '3px', fontSize: '0.72rem', fontWeight: 800, color: '#b91c1c' }}>
-                          <span className="print-obs">⚠ {observacoes}</span>
-                        </div>
-                      )}
-                    </div>
-
+                    )}
                   </div>
 
-                  {/* ── COLUNA DIREITA: Volume + QR ── */}
-                  <div className="label-col-vol" style={{
-                    width: '108px',
-                    borderLeft: '2px dashed #000',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 6px',
-                    color: '#000',
-                    textAlign: 'center',
-                    flexShrink: 0
+                  {/* Endereço */}
+                  <div className="label-addr" style={{
+                    flexShrink: 0,
+                    paddingBottom: '4px',
+                    borderBottom: FIELD_RULE,
+                    fontSize: '0.82rem',
+                    lineHeight: 1.4,
+                    color: '#0f172a'
                   }}>
-                    <div style={{
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      borderBottom: '1px solid #000',
-                      paddingBottom: '4px',
-                      width: '100%',
-                      lineHeight: 1.4
-                    }}>
-                      Lote Total<br />
-                      <span style={{ fontSize: '0.82rem', fontWeight: 900 }}>
-                        {volSum} un.
-                      </span>
-                    </div>
-
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
-                      <div style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>Volume</div>
-                      <div className="vol-number" style={{ fontSize: '2rem', fontWeight: 400, lineHeight: 1 }}>
-                        <span style={{ fontWeight: 800 }}>{i + 1}</span>/{volumes}
-                      </div>
-                    </div>
-
-                    <div style={{
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      borderTop: '1px solid #000',
-                      paddingTop: '4px',
-                      width: '100%',
-                      lineHeight: 1.4
-                    }}>
-                      Neste vol.<br />
-                      <span style={{ fontSize: '0.82rem', fontWeight: 900 }}>
-                        {volQty} un.
-                      </span>
-                    </div>
-
-                    <div style={{ marginTop: '4px', background: '#fff', padding: '2px', borderRadius: '2px', lineHeight: 0 }}>
-                      <QRCodeSVG
-                        value={qrValue(i)}
-                        size={layout.qrPx}
-                        level="M"
-                        marginSize={0}
-                        bgColor="#ffffff"
-                        fgColor="#000000"
-                      />
-                    </div>
+                    <div style={SEC_LABEL_STYLE}>Endereço de Entrega</div>
+                    {(address.street || address.city || address.zip || address.phone) ? (
+                      <>
+                        {address.street && (
+                          <div style={{ fontWeight: 700 }}>
+                            {address.street}{address.neighborhood ? ` — ${address.neighborhood}` : ''}
+                          </div>
+                        )}
+                        {(address.city || address.state || address.zip) && (
+                          <div>
+                            {address.city}
+                            {address.state && <strong> — {address.state}</strong>}
+                            {address.zip && <span style={{ marginLeft: '8px' }}>CEP <strong>{address.zip}</strong></span>}
+                          </div>
+                        )}
+                        {address.phone && <div>Tel: <strong>{address.phone}</strong></div>}
+                      </>
+                    ) : (
+                      <div style={{ color: '#64748b', fontStyle: 'italic' }}>Endereço de entrega não informado</div>
+                    )}
                   </div>
 
+                  {/* Conteúdo */}
+                  <div className="label-content" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                    <div style={SEC_LABEL_STYLE}>Conteúdo / Especificações</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.3, color: '#0f172a' }}>
+                      {computedQuote.description}
+                    </div>
+                    {observacoes && (
+                      <div style={{ marginTop: '4px', fontSize: '0.74rem', fontWeight: 800, color: '#b91c1c' }}>
+                        <span className="print-obs">⚠ {observacoes}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── RODAPÉ: Volume e Quantidades ── */}
+                <div className="label-footer" style={{
+                  flexShrink: 0,
+                  borderTop: FIELD_RULE,
+                  padding: '5px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
+                    <span style={{ ...SEC_LABEL_STYLE, marginBottom: 0 }}>Volume</span>
+                    <span className="vol-number" style={{ fontSize: layout.compact ? '1.9rem' : '2.5rem', fontWeight: 400, lineHeight: 1, color: '#000' }}>
+                      <strong style={{ fontWeight: 900 }}>{i + 1}</strong>/{volumes}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '18px', textAlign: 'right' }}>
+                    <div>
+                      <div style={{ ...SEC_LABEL_STYLE, marginBottom: '1px', letterSpacing: '0.5px' }}>Qtd. neste volume</div>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#000' }}>{volQty} un.</div>
+                    </div>
+                    <div>
+                      <div style={{ ...SEC_LABEL_STYLE, marginBottom: '1px', letterSpacing: '0.5px' }}>Lote total</div>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#000' }}>{volSum} un.</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
