@@ -1,9 +1,35 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Tag, Printer, Package, Search, MapPin, Phone, User, Building, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Tag, Printer, Package, Search, MapPin, Phone, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+
+const EMPTY_ADDRESS = {
+  street: '', neighborhood: '', city: '', state: '', zip: '', phone: '', contact: ''
+};
+
+// Extrai os campos de endereço de um cliente do CRM.
+const addressFromClient = (c) => ({
+  street: c.street || '',
+  neighborhood: c.neighborhood || '',
+  city: c.city || '',
+  state: c.state || '',
+  zip: c.zipCode || '',
+  phone: c.phone || '',
+  contact: c.contactPerson || ''
+});
+
+// Layouts de impressão: grid real na folha A4 (retrato, margem @page de 6mm).
+const LAYOUTS = {
+  1: { label: '1 por folha (A4 inteiro)', cols: '1fr', cardMm: 283, qrPx: 96 },
+  2: { label: '2 por folha (A5 landscape)', cols: '1fr', cardMm: 140, qrPx: 88 },
+  4: { label: '4 por folha (A6)', cols: '1fr 1fr', cardMm: 140, qrPx: 58 }
+};
 
 export default function LabelGenerator({ quotes = [], clients = [] }) {
   const [selectedQuoteId, setSelectedQuoteId] = useState('');
   const [volumes, setVolumes] = useState(1);
+  // Quantidade por volume: só guarda os que o operador editou à mão;
+  // os demais seguem a divisão automática do lote.
+  const [volOverrides, setVolOverrides] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [labelsPerSheet, setLabelsPerSheet] = useState(4);
   const [notaFiscal, setNotaFiscal] = useState('');
@@ -16,17 +42,61 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
   const [manualQty, setManualQty] = useState(1);
   const [manualCode, setManualCode] = useState('');
 
-  // Campos de Endereço de Entrega Completo
-  const [addressStreet, setAddressStreet] = useState('');
-  const [addressNeighborhood, setAddressNeighborhood] = useState('');
-  const [addressCity, setAddressCity] = useState('');
-  const [addressState, setAddressState] = useState('');
-  const [addressZip, setAddressZip] = useState('');
-  const [addressPhone, setAddressPhone] = useState('');
-  const [addressContact, setAddressContact] = useState('');
+  // Endereço de entrega — um único objeto no lugar de 7 useState.
+  const [address, setAddress] = useState(EMPTY_ADDRESS);
+  const setField = (key) => (e) => {
+    const value = key === 'state' ? e.target.value.toUpperCase() : e.target.value;
+    setAddress((a) => ({ ...a, [key]: value }));
+  };
+
+  // Busca de CEP (ViaCEP — responde com CORS liberado, não precisa de proxy).
+  const [cepStatus, setCepStatus] = useState({ loading: false, error: '' });
+  const streetRef = useRef(null);
+  const lastCepRef = useRef('');
+
+  const lookupCep = useCallback(async (rawZip) => {
+    const digits = (rawZip || '').replace(/\D/g, '');
+    if (digits.length !== 8 || digits === lastCepRef.current) return;
+    lastCepRef.current = digits;
+    setCepStatus({ loading: true, error: '' });
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        setCepStatus({ loading: false, error: 'CEP não encontrado.' });
+        return;
+      }
+      setAddress((a) => ({
+        ...a,
+        street: data.logradouro ? `${data.logradouro}, ` : a.street,
+        neighborhood: data.bairro || a.neighborhood,
+        city: data.localidade || a.city,
+        state: (data.uf || a.state).toUpperCase()
+      }));
+      setCepStatus({ loading: false, error: '' });
+      // Foca o logradouro para o usuário completar o número.
+      requestAnimationFrame(() => {
+        const el = streetRef.current;
+        if (el) {
+          el.focus();
+          const end = el.value.length;
+          el.setSelectionRange(end, end);
+        }
+      });
+    } catch {
+      setCepStatus({ loading: false, error: 'Falha ao consultar o CEP.' });
+    }
+  }, []);
+
+  // Dispara a busca quando o CEP chega a 8 dígitos.
+  useEffect(() => {
+    const digits = (address.zip || '').replace(/\D/g, '');
+    if (digits.length === 8) lookupCep(digits);
+    else lastCepRef.current = '';
+  }, [address.zip, lookupCep]);
 
   const filteredQuotes = useMemo(() => {
-    return quotes.filter(q => 
+    return quotes.filter(q =>
       (q.code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (q.clientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (q.description || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -43,6 +113,28 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
     quantity: manualQty || 1,
     date: new Date().toLocaleDateString('pt-BR')
   } : selectedQuote;
+
+  const totalQty = computedQuote?.quantity || 0;
+
+  // Divisão automática do lote entre os volumes (resto vai para os primeiros).
+  const autoVolQty = useCallback((i) => {
+    const base = Math.floor(totalQty / volumes);
+    return base + (i < totalQty % volumes ? 1 : 0);
+  }, [totalQty, volumes]);
+
+  const volQtyOf = (i) => (
+    Object.prototype.hasOwnProperty.call(volOverrides, i) ? volOverrides[i] : autoVolQty(i)
+  );
+
+  const setVolQty = (i, raw) => {
+    const n = Math.max(0, parseInt(raw, 10) || 0);
+    setVolOverrides((o) => ({ ...o, [i]: n }));
+  };
+
+  const volSum = Array.from({ length: volumes }).reduce((s, _, i) => s + volQtyOf(i), 0);
+
+  // Trocar de pedido ou mudar o nº de volumes volta tudo para a divisão automática.
+  useEffect(() => { setVolOverrides({}); }, [selectedQuoteId, volumes]);
 
   // Localizar cliente vinculado no cadastro (CRM)
   const matchedClient = useMemo(() => {
@@ -78,8 +170,8 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
       // 3. Pelo Nome / Razão Social ou Nome Fantasia
       const qName = (selectedQuote.clientName || '').trim().toLowerCase();
       if (qName) {
-        const byName = clients.find(c => 
-          (c.name || '').toLowerCase() === qName || 
+        const byName = clients.find(c =>
+          (c.name || '').toLowerCase() === qName ||
           (c.tradeName || '').toLowerCase() === qName
         );
         if (byName) return byName;
@@ -90,7 +182,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
   }, [selectedQuoteId, selectedQuote, manualDoc, manualClient, clients]);
 
   // Rastreia o último orçamento para detectar troca de seleção
-  const prevQuoteIdRef = React.useRef(selectedQuoteId);
+  const prevQuoteIdRef = useRef(selectedQuoteId);
 
   // Atualiza os campos de endereço automaticamente ao selecionar o pedido ou cliente
   useEffect(() => {
@@ -99,38 +191,25 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
 
     if (matchedClient) {
       // Cliente encontrado no CRM: preenche tudo
-      setAddressStreet(matchedClient.street || '');
-      setAddressNeighborhood(matchedClient.neighborhood || '');
-      setAddressCity(matchedClient.city || '');
-      setAddressState(matchedClient.state || '');
-      setAddressZip(matchedClient.zipCode || '');
-      setAddressPhone(matchedClient.phone || '');
-      setAddressContact(matchedClient.contactPerson || '');
+      setAddress(addressFromClient(matchedClient));
+      lastCepRef.current = (matchedClient.zipCode || '').replace(/\D/g, '');
     } else if (quoteChanged) {
       // Trocou de orçamento e cliente não está no CRM: limpa para nova entrada manual
-      setAddressStreet('');
-      setAddressNeighborhood('');
-      setAddressCity('');
-      setAddressState('');
-      setAddressZip('');
-      setAddressPhone('');
-      setAddressContact('');
+      setAddress(EMPTY_ADDRESS);
+      lastCepRef.current = '';
     }
     // Se não trocou de orçamento e não há match, mantém o que o usuário digitou
   }, [matchedClient, selectedQuoteId]);
 
   const handleManualClientChange = (val) => {
     setManualClient(val);
-    const found = clients.find(c => c.name === val || c.tradeName === val || c.name?.toLowerCase() === val.toLowerCase());
+    const found = clients.find(c =>
+      c.name === val || c.tradeName === val || c.name?.toLowerCase() === val.toLowerCase()
+    );
     if (found) {
       setManualDoc(found.doc || '');
-      setAddressStreet(found.street || '');
-      setAddressNeighborhood(found.neighborhood || '');
-      setAddressCity(found.city || '');
-      setAddressState(found.state || '');
-      setAddressZip(found.zipCode || '');
-      setAddressPhone(found.phone || '');
-      setAddressContact(found.contactPerson || '');
+      setAddress(addressFromClient(found));
+      lastCepRef.current = (found.zipCode || '').replace(/\D/g, '');
     }
   };
 
@@ -138,60 +217,63 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
     window.print();
   };
 
+  const layout = LAYOUTS[labelsPerSheet] || LAYOUTS[4];
+
+  // Payload do QR — compacto para escanear mesmo na etiqueta A6.
+  const qrValue = (volIndex) => {
+    if (!computedQuote) return '';
+    const parts = [
+      `PEDIDO ${computedQuote.code}`,
+      `VOL ${volIndex + 1}/${volumes}`,
+      computedQuote.clientName
+    ];
+    if (computedQuote.clientDoc) parts.push(`DOC ${computedQuote.clientDoc}`);
+    return parts.join(' | ');
+  };
+
   return (
     <div className="label-generator-container">
       <style>{`
+        .print-only-logo { display: none; }
+
         @media print {
           body * { visibility: hidden; }
-
           .print-area, .print-area * { visibility: visible; }
 
           .print-area {
             position: absolute;
             left: 0; top: 0;
             width: 100%;
-            margin: 0; padding: 0;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 4mm !important;
-            padding: 8mm 10mm !important;
-            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: grid !important;
+            grid-template-columns: ${layout.cols} !important;
+            gap: 0 !important;
+            background: #fff !important;
             box-sizing: border-box !important;
           }
 
           .no-print { display: none !important; }
+          .print-only-logo { display: inline !important; color: #fff !important; }
+          .print-obs { color: #000 !important; }
 
           .label-card {
             display: flex !important;
             flex-direction: column !important;
-            width: 190mm !important;
+            width: 100% !important;
+            height: ${layout.cardMm}mm !important;
             box-sizing: border-box !important;
-            border: 2px solid #000 !important;
+            border: 1.5px solid #000 !important;
             background: #fff !important;
             color: #000 !important;
-            border-radius: 5px !important;
+            border-radius: 0 !important;
             overflow: hidden !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             box-shadow: none !important;
-            ${labelsPerSheet === 1 ? `
-              height: 270mm !important;
-              min-height: 270mm !important;
-            ` : labelsPerSheet === 2 ? `
-              height: 130mm !important;
-              min-height: 130mm !important;
-            ` : labelsPerSheet === 3 ? `
-              height: 84mm !important;
-              min-height: 84mm !important;
-            ` : `
-              height: 62mm !important;
-              min-height: 62mm !important;
-            `}
           }
 
-          .label-card .label-header {
-            flex-shrink: 0 !important;
-          }
+          .label-card .label-header { flex-shrink: 0 !important; }
 
           .label-card .label-body {
             flex: 1 !important;
@@ -204,20 +286,20 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             flex: 1 !important;
             display: flex !important;
             flex-direction: column !important;
-            padding: ${labelsPerSheet >= 3 ? '4px 8px' : '8px 10px'} !important;
-            gap: ${labelsPerSheet >= 4 ? '4px' : '6px'} !important;
+            padding: ${labelsPerSheet === 4 ? '4px 8px' : '8px 10px'} !important;
+            gap: ${labelsPerSheet === 4 ? '4px' : '6px'} !important;
             overflow: hidden !important;
             min-height: 0 !important;
           }
 
           .label-card .label-col-vol {
-            width: ${labelsPerSheet >= 4 ? '80px' : '100px'} !important;
+            width: ${labelsPerSheet === 4 ? '86px' : '108px'} !important;
             flex-shrink: 0 !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: space-between !important;
-            padding: ${labelsPerSheet >= 3 ? '4px 4px' : '8px 6px'} !important;
+            padding: ${labelsPerSheet === 4 ? '4px 4px' : '8px 6px'} !important;
             border-left: 2px dashed #000 !important;
             box-sizing: border-box !important;
           }
@@ -226,30 +308,28 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
 
           .label-addr {
             flex-shrink: 0 !important;
-            ${labelsPerSheet >= 4 ? 'padding: 3px 6px !important; font-size: 0.72rem !important;' : ''}
+            ${labelsPerSheet === 4 ? 'padding: 3px 6px !important; font-size: 0.72rem !important;' : ''}
           }
 
           .label-content {
             flex: 1 !important;
             min-height: 0 !important;
             overflow: hidden !important;
-            ${labelsPerSheet >= 4 ? 'padding: 3px 6px !important;' : ''}
+            ${labelsPerSheet === 4 ? 'padding: 3px 6px !important;' : ''}
           }
 
           .label-dest-name {
-            ${labelsPerSheet >= 4 ? 'font-size: 0.88rem !important;' :
-              labelsPerSheet === 3 ? 'font-size: 0.92rem !important;' : ''}
+            ${labelsPerSheet === 4 ? 'font-size: 0.88rem !important;' : ''}
           }
 
           .vol-number {
-            ${labelsPerSheet >= 4 ? 'font-size: 1.8rem !important;' :
-              labelsPerSheet === 3 ? 'font-size: 2rem !important;' : ''}
+            ${labelsPerSheet === 4 ? 'font-size: 1.5rem !important;' : ''}
           }
 
           body { background: #fff !important; }
 
           @page {
-            margin: 0;
+            margin: 6mm;
             size: A4 portrait;
           }
         }
@@ -257,7 +337,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
 
       {/* Control Panel (no-print) */}
       <div className="glass-card no-print" style={{ padding: '24px', marginBottom: '24px' }}>
-        
+
         {/* Header Title */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -269,13 +349,13 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                 Emissão de Etiquetas de Expedição
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-                Geração de etiquetas para caixas e volumes com endereço completo puxado do CRM de clientes.
+                Geração de etiquetas para caixas e volumes com endereço puxado do CRM, busca de CEP e QR Code do pedido.
               </p>
             </div>
           </div>
 
           {computedQuote && (
-            <button 
+            <button
               onClick={handlePrint}
               style={{
                 background: 'linear-gradient(135deg, var(--brand-magenta), #b81b4f)',
@@ -300,10 +380,11 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
         {/* Selection Row: Search & Dropdown */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '16px', alignItems: 'end' }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Buscar Pedido / Orçamento no Histórico</label>
+            <label className="form-label" htmlFor="label-search">Buscar Pedido / Orçamento no Histórico</label>
             <div style={{ position: 'relative' }}>
               <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
+                id="label-search"
                 type="text"
                 className="form-input"
                 style={{ paddingLeft: '36px' }}
@@ -315,8 +396,9 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Selecionar Pedido</label>
+            <label className="form-label" htmlFor="label-quote-select">Selecionar Pedido</label>
             <select
+              id="label-quote-select"
               className="form-select"
               value={selectedQuoteId}
               onChange={(e) => setSelectedQuoteId(e.target.value)}
@@ -347,16 +429,17 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             border: '1px solid rgba(0, 168, 232, 0.3)'
           }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ color: 'var(--brand-cyan)' }}>
+              <label className="form-label" htmlFor="label-manual-client" style={{ color: 'var(--brand-cyan)' }}>
                 Destinatário (CRM ou Avulso)
               </label>
-              <input 
-                type="text" 
-                className="form-input" 
+              <input
+                id="label-manual-client"
+                type="text"
+                className="form-input"
                 list="label-clients-list"
-                value={manualClient} 
-                onChange={(e) => handleManualClientChange(e.target.value)} 
-                placeholder="Digite ou escolha da lista..." 
+                value={manualClient}
+                onChange={(e) => handleManualClientChange(e.target.value)}
+                placeholder="Digite ou escolha da lista..."
                 autoFocus
               />
               <datalist id="label-clients-list">
@@ -369,46 +452,50 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">CNPJ / CPF</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                value={manualDoc} 
-                onChange={(e) => setManualDoc(e.target.value)} 
-                placeholder="Ex: 00.000.000/0001-00" 
+              <label className="form-label" htmlFor="label-manual-doc">CNPJ / CPF</label>
+              <input
+                id="label-manual-doc"
+                type="text"
+                className="form-input"
+                value={manualDoc}
+                onChange={(e) => setManualDoc(e.target.value)}
+                placeholder="Ex: 00.000.000/0001-00"
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Nº Pedido / Código</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                value={manualCode} 
-                onChange={(e) => setManualCode(e.target.value)} 
-                placeholder="Ex: PED-1025" 
+              <label className="form-label" htmlFor="label-manual-code">Nº Pedido / Código</label>
+              <input
+                id="label-manual-code"
+                type="text"
+                className="form-input"
+                value={manualCode}
+                onChange={(e) => setManualCode(e.target.value)}
+                placeholder="Ex: PED-1025"
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Qtd Total do Lote</label>
-              <input 
-                type="number" 
-                min="1" 
-                className="form-input" 
-                value={manualQty} 
-                onChange={(e) => setManualQty(Math.max(1, parseInt(e.target.value) || 1))} 
+              <label className="form-label" htmlFor="label-manual-qty">Qtd Total do Lote</label>
+              <input
+                id="label-manual-qty"
+                type="number"
+                min="1"
+                className="form-input"
+                value={manualQty}
+                onChange={(e) => setManualQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
-              <label className="form-label">Descrição do Material / Conteúdo</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                value={manualDesc} 
-                onChange={(e) => setManualDesc(e.target.value)} 
-                placeholder="Ex: 5.000 Folders 14x20cm Couché 150g 4x4 Cores Dobra ao Meio" 
+              <label className="form-label" htmlFor="label-manual-desc">Descrição do Material / Conteúdo</label>
+              <input
+                id="label-manual-desc"
+                type="text"
+                className="form-input"
+                value={manualDesc}
+                onChange={(e) => setManualDesc(e.target.value)}
+                placeholder="Ex: 5.000 Folders 14x20cm Couché 150g 4x4 Cores Dobra ao Meio"
               />
             </div>
           </div>
@@ -466,61 +553,78 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             </div>
 
             {/* Address Input Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.2fr 0.6fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.2fr 1fr 0.6fr', gap: '12px' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Logradouro & Número</label>
+                <label className="form-label" htmlFor="label-addr-zip" style={{ fontSize: '0.75rem' }}>CEP</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="label-addr-zip"
+                    type="text"
+                    className="form-input"
+                    placeholder="87000-000"
+                    inputMode="numeric"
+                    value={address.zip}
+                    onChange={setField('zip')}
+                    onBlur={() => lookupCep(address.zip)}
+                  />
+                  {cepStatus.loading && (
+                    <Loader2 size={14} className="cep-spin" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--brand-cyan)' }} />
+                  )}
+                </div>
+                {cepStatus.error && (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--danger)', marginTop: '3px' }}>{cepStatus.error}</span>
+                )}
+                <style>{`@keyframes cep-spin { to { transform: translateY(-50%) rotate(360deg); } } .cep-spin { animation: cep-spin 0.8s linear infinite; }`}</style>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" htmlFor="label-addr-street" style={{ fontSize: '0.75rem' }}>Logradouro & Número</label>
                 <input
+                  id="label-addr-street"
+                  ref={streetRef}
                   type="text"
                   className="form-input"
                   placeholder="Ex: Av. Brasil, 1200 ou Rua A, nº 70"
-                  value={addressStreet}
-                  onChange={(e) => setAddressStreet(e.target.value)}
+                  value={address.street}
+                  onChange={setField('street')}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Bairro</label>
+                <label className="form-label" htmlFor="label-addr-neigh" style={{ fontSize: '0.75rem' }}>Bairro</label>
                 <input
+                  id="label-addr-neigh"
                   type="text"
                   className="form-input"
                   placeholder="Ex: Centro / Pq. Industrial"
-                  value={addressNeighborhood}
-                  onChange={(e) => setAddressNeighborhood(e.target.value)}
+                  value={address.neighborhood}
+                  onChange={setField('neighborhood')}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Cidade</label>
+                <label className="form-label" htmlFor="label-addr-city" style={{ fontSize: '0.75rem' }}>Cidade</label>
                 <input
+                  id="label-addr-city"
                   type="text"
                   className="form-input"
                   placeholder="Ex: Maringá, Peabiru, Sarandi"
-                  value={addressCity}
-                  onChange={(e) => setAddressCity(e.target.value)}
+                  value={address.city}
+                  onChange={setField('city')}
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>UF</label>
+                <label className="form-label" htmlFor="label-addr-uf" style={{ fontSize: '0.75rem' }}>UF</label>
                 <input
+                  id="label-addr-uf"
                   type="text"
                   className="form-input"
                   placeholder="PR"
                   maxLength={2}
                   style={{ textTransform: 'uppercase' }}
-                  value={addressState}
-                  onChange={(e) => setAddressState(e.target.value.toUpperCase())}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>CEP</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="87000-000"
-                  value={addressZip}
-                  onChange={(e) => setAddressZip(e.target.value)}
+                  value={address.state}
+                  onChange={setField('state')}
                 />
               </div>
             </div>
@@ -528,31 +632,33 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             {/* Contact & Phone Row */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Telefone / WhatsApp de Contato</label>
+                <label className="form-label" htmlFor="label-addr-phone" style={{ fontSize: '0.75rem' }}>Telefone / WhatsApp de Contato</label>
                 <div style={{ position: 'relative' }}>
                   <Phone size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
+                    id="label-addr-phone"
                     type="text"
                     className="form-input"
                     style={{ paddingLeft: '32px' }}
                     placeholder="Ex: (44) 3032-6868 ou (44) 99851-1998"
-                    value={addressPhone}
-                    onChange={(e) => setAddressPhone(e.target.value)}
+                    value={address.phone}
+                    onChange={setField('phone')}
                   />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Pessoa de Contato / Aos Cuidados de (A/C)</label>
+                <label className="form-label" htmlFor="label-addr-contact" style={{ fontSize: '0.75rem' }}>Pessoa de Contato / Aos Cuidados de (A/C)</label>
                 <div style={{ position: 'relative' }}>
                   <User size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
+                    id="label-addr-contact"
                     type="text"
                     className="form-input"
                     style={{ paddingLeft: '32px' }}
                     placeholder="Ex: Almoxarifado / Responsável pelo Recebimento"
-                    value={addressContact}
-                    onChange={(e) => setAddressContact(e.target.value)}
+                    value={address.contact}
+                    onChange={setField('contact')}
                   />
                 </div>
               </div>
@@ -565,7 +671,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
           <div style={{
             marginTop: '20px',
             display: 'grid',
-            gridTemplateColumns: '140px 180px 180px 1fr',
+            gridTemplateColumns: '140px 200px 180px 1fr',
             gap: '14px',
             background: 'var(--tint-hairline)',
             padding: '16px',
@@ -574,35 +680,37 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             alignItems: 'end'
           }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <label className="form-label" htmlFor="label-volumes" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Package size={14} color="var(--brand-yellow)" /> Volumes
               </label>
               <input
+                id="label-volumes"
                 type="number"
                 className="form-input"
                 min="1"
                 value={volumes}
-                onChange={(e) => setVolumes(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => setVolumes(Math.max(1, parseInt(e.target.value, 10) || 1))}
               />
             </div>
-            
+
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Tamanho / Layout</label>
+              <label className="form-label" htmlFor="label-layout">Tamanho / Layout</label>
               <select
+                id="label-layout"
                 className="form-select"
                 value={labelsPerSheet}
                 onChange={(e) => setLabelsPerSheet(Number(e.target.value))}
               >
-                <option value={1}>1 por Folha (A4 Inteiro)</option>
-                <option value={2}>2 por Folha (138mm)</option>
-                <option value={3}>3 por Folha (90mm)</option>
-                <option value={4}>4 por Folha (67mm)</option>
+                {Object.entries(LAYOUTS).map(([n, cfg]) => (
+                  <option key={n} value={n}>{cfg.label}</option>
+                ))}
               </select>
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Nota Fiscal (Opcional)</label>
+              <label className="form-label" htmlFor="label-nf">Nota Fiscal (Opcional)</label>
               <input
+                id="label-nf"
                 type="text"
                 className="form-input"
                 placeholder="Ex: NF 1234"
@@ -612,8 +720,9 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Observações de Transporte / Caixa</label>
+              <label className="form-label" htmlFor="label-obs">Observações de Transporte / Caixa</label>
               <input
+                id="label-obs"
                 type="text"
                 className="form-input"
                 placeholder="Ex: Cuidado Frágil / Manter Seco"
@@ -623,25 +732,83 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             </div>
           </div>
         )}
+
+        {/* Quantidade por volume (editável — as caixas nem sempre levam a mesma qtd) */}
+        {computedQuote && volumes > 1 && (
+          <div style={{
+            marginTop: '16px',
+            background: 'var(--tint-hairline)',
+            padding: '16px',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
+                Quantidade em cada volume
+              </span>
+              <span style={{
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: volSum === totalQty ? 'var(--success)' : 'var(--brand-yellow)'
+              }}>
+                Lote total: {volSum} un.
+                {volSum !== totalQty && ` (orçamento: ${totalQty} un. · ${volSum > totalQty ? '+' : '−'}${Math.abs(volSum - totalQty)})`}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              {Array.from({ length: volumes }).map((_, i) => (
+                <div key={i} className="form-group" style={{ marginBottom: 0, width: '110px' }}>
+                  <label className="form-label" htmlFor={`label-volqty-${i}`} style={{ fontSize: '0.72rem' }}>
+                    Vol. {i + 1}/{volumes}
+                  </label>
+                  <input
+                    id={`label-volqty-${i}`}
+                    type="number"
+                    min="0"
+                    className="form-input"
+                    value={volQtyOf(i)}
+                    onChange={(e) => setVolQty(i, e.target.value)}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setVolOverrides({})}
+                style={{
+                  alignSelf: 'end',
+                  padding: '10px 14px',
+                  background: 'var(--bg-input)',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Dividir igual
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Printable Area */}
       {computedQuote && (
-        <div className="print-area" style={{ 
-          display: 'flex',
-          flexDirection: 'column',
+        <div className="print-area" style={{
+          display: 'grid',
+          gridTemplateColumns: layout.cols,
           gap: '16px'
         }}>
           {Array.from({ length: volumes }).map((_, i) => {
-            const baseQty = Math.floor((computedQuote.quantity || 0) / volumes);
-            const remainder = (computedQuote.quantity || 0) % volumes;
-            const volQty = baseQty + (i < remainder ? 1 : 0);
+            const volQty = volQtyOf(i);
 
             return (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="label-card"
-                style={{ 
+                style={{
                   display: 'flex',
                   flexDirection: 'column',
                   background: '#ffffff',
@@ -650,9 +817,8 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   borderRadius: '8px',
                   fontFamily: 'Arial, Helvetica, sans-serif',
                   minHeight: labelsPerSheet === 1 ? '420px'
-                    : labelsPerSheet === 2 ? '220px'
-                    : labelsPerSheet === 3 ? '160px'
-                    : '130px'
+                    : labelsPerSheet === 2 ? '240px'
+                    : '150px'
                 }}
               >
                 {/* ── CABEÇALHO ── */}
@@ -663,24 +829,17 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   borderBottom: '2px solid #000',
                   padding: '7px 12px',
                   background: '#000',
-                  color: 'var(--text-strong)',
+                  color: '#ffffff',
                   flexShrink: 0
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <img 
-                      src="/JETAPRINT_LOGO_01_2026-01.jpg" 
-                      alt="JETAPRINT" 
-                      style={{ height: '24px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
-                      className="no-print" 
+                    <img
+                      src="/JETAPRINT_LOGO_01_2026-01.jpg"
+                      alt="JETAPRINT"
+                      style={{ height: '24px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                      className="no-print"
                     />
                     <span style={{ fontSize: '1.05rem', fontWeight: 900, letterSpacing: '1px' }} className="print-only-logo">JETAPRINT</span>
-                    <style>{`
-                      .print-only-logo { display: none; }
-                      @media print {
-                        .print-only-logo { display: inline !important; color: #fff !important; }
-                        .no-print { display: none !important; }
-                      }
-                    `}</style>
                     <span style={{ fontSize: '0.68rem', color: '#aaa', letterSpacing: '0.3px' }} className="no-print">Gráfica Multimídia</span>
                   </div>
 
@@ -699,11 +858,11 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                 <div className="label-body" style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 
                   {/* Coluna Principal */}
-                  <div className="label-col-main" style={{ 
-                    flex: 1, 
-                    padding: '8px 10px', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
+                  <div className="label-col-main" style={{
+                    flex: 1,
+                    padding: '8px 10px',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: '6px',
                     minHeight: 0,
                     overflow: 'hidden'
@@ -728,9 +887,9 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                         {computedQuote.clientName}
                       </div>
 
-                      {addressContact && (
+                      {address.contact && (
                         <div style={{ fontSize: '0.72rem', color: '#334155', marginTop: '1px' }}>
-                          A/C: <strong>{addressContact}</strong>
+                          A/C: <strong>{address.contact}</strong>
                         </div>
                       )}
 
@@ -752,28 +911,28 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                       color: '#0f172a',
                       flexShrink: 0
                     }}>
-                      {addressStreet ? (
+                      {address.street ? (
                         <div style={{ fontWeight: 700 }}>
-                          {addressStreet}
-                          {addressNeighborhood ? ` — ${addressNeighborhood}` : ''}
+                          {address.street}
+                          {address.neighborhood ? ` — ${address.neighborhood}` : ''}
                         </div>
                       ) : null}
 
-                      {(addressCity || addressState || addressZip) && (
+                      {(address.city || address.state || address.zip) && (
                         <div>
-                          {addressCity && <span>{addressCity}</span>}
-                          {addressState && <span style={{ fontWeight: 700 }}> — {addressState}</span>}
-                          {addressZip && <span style={{ marginLeft: '6px' }}>CEP: <strong>{addressZip}</strong></span>}
+                          {address.city && <span>{address.city}</span>}
+                          {address.state && <span style={{ fontWeight: 700 }}> — {address.state}</span>}
+                          {address.zip && <span style={{ marginLeft: '6px' }}>CEP: <strong>{address.zip}</strong></span>}
                         </div>
                       )}
 
-                      {addressPhone && (
+                      {address.phone && (
                         <div style={{ color: '#334155' }}>
-                          Tel: <strong>{addressPhone}</strong>
+                          Tel: <strong>{address.phone}</strong>
                         </div>
                       )}
 
-                      {!addressStreet && !addressCity && !addressZip && !addressPhone && (
+                      {!address.street && !address.city && !address.zip && !address.phone && (
                         <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Endereço de entrega não informado</span>
                       )}
                     </div>
@@ -803,7 +962,6 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                       </div>
                       {observacoes && (
                         <div style={{ marginTop: '3px', fontSize: '0.72rem', fontWeight: 800, color: '#b91c1c' }}>
-                          <style>{`@media print { .print-obs { color: #000 !important; } }`}</style>
                           <span className="print-obs">⚠ {observacoes}</span>
                         </div>
                       )}
@@ -811,9 +969,9 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
 
                   </div>
 
-                  {/* ── COLUNA DIREITA: Volume ── */}
+                  {/* ── COLUNA DIREITA: Volume + QR ── */}
                   <div className="label-col-vol" style={{
-                    width: '96px',
+                    width: '108px',
                     borderLeft: '2px dashed #000',
                     display: 'flex',
                     flexDirection: 'column',
@@ -834,16 +992,15 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                     }}>
                       Lote Total<br />
                       <span style={{ fontSize: '0.82rem', fontWeight: 900 }}>
-                        {computedQuote.quantity} un.
+                        {volSum} un.
                       </span>
                     </div>
 
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
                       <div style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>Volume</div>
-                      <div className="vol-number" style={{ fontSize: '2.2rem', fontWeight: 900, lineHeight: 1 }}>
-                        {i + 1}
+                      <div className="vol-number" style={{ fontSize: '2rem', fontWeight: 400, lineHeight: 1 }}>
+                        <span style={{ fontWeight: 800 }}>{i + 1}</span>/{volumes}
                       </div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569' }}>de {volumes}</div>
                     </div>
 
                     <div style={{
@@ -858,6 +1015,17 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                       <span style={{ fontSize: '0.82rem', fontWeight: 900 }}>
                         {volQty} un.
                       </span>
+                    </div>
+
+                    <div style={{ marginTop: '4px', background: '#fff', padding: '2px', borderRadius: '2px', lineHeight: 0 }}>
+                      <QRCodeSVG
+                        value={qrValue(i)}
+                        size={layout.qrPx}
+                        level="M"
+                        marginSize={0}
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                      />
                     </div>
                   </div>
 

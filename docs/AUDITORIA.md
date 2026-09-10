@@ -65,6 +65,15 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
 - **Estilos majoritariamente inline e `<label>` sem `htmlFor`.** (Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado.)
 - **Dashboard é a aba inicial** e força o carregamento do `recharts` (~120 KB gzip) no primeiro acesso.
 
+## Refinamentos posteriores
+
+- **Módulo Etiquetas** (`LabelGenerator.jsx`) — busca de CEP via ViaCEP (preenche
+  logradouro/bairro/cidade/UF), QR Code do pedido (`qrcode.react`) em cada volume,
+  estado de endereço consolidado num único objeto + helper `addressFromClient`,
+  blocos `<style>` retirados do loop de render, e impressão em **grid A4 real**
+  (1 / 2 / 4 por folha) no lugar da pilha com altura fixa. `<label htmlFor>` em
+  todos os campos do painel.
+
 ## Arquivos novos nesta rodada
 
 `src/utils/storage.js` · `src/hooks/usePersistentState.js` · `src/components/ErrorBoundary.jsx` ·
