@@ -241,8 +241,13 @@ export default function QuoteGenerator({
 
             <button
               onClick={onClose}
+              aria-label="Fechar"
               style={{
-                padding: '10px',
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 background: '#f1f5f9',
                 border: '1px solid #cbd5e1',
                 borderRadius: '8px',

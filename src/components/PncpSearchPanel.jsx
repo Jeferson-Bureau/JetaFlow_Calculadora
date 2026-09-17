@@ -187,7 +187,8 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
         </div>
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
+          aria-label="Fechar"
+          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <X size={20} />
         </button>
@@ -200,8 +201,9 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '10px' }}>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '0.75rem' }}>Tipo de Busca</label>
+            <label className="form-label" htmlFor="pncp-search-type" style={{ fontSize: '0.75rem' }}>Tipo de Busca</label>
             <select
+              id="pncp-search-type"
               className="form-select"
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
@@ -212,8 +214,9 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '0.75rem' }}>Modalidade</label>
+            <label className="form-label" htmlFor="pncp-modalidade" style={{ fontSize: '0.75rem' }}>Modalidade</label>
             <select
+              id="pncp-modalidade"
               className="form-select"
               value={modalidade}
               onChange={(e) => setModalidade(Number(e.target.value))}
@@ -225,8 +228,9 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '0.75rem' }}>Estado (UF)</label>
+            <label className="form-label" htmlFor="pncp-uf" style={{ fontSize: '0.75rem' }}>Estado (UF)</label>
             <select
+              id="pncp-uf"
               className="form-select"
               value={uf}
               onChange={(e) => setUf(e.target.value)}
@@ -270,8 +274,9 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           {searchType === 'publicacao' ? (
             <>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Data Inicial</label>
+                <label className="form-label" htmlFor="pncp-date-start" style={{ fontSize: '0.75rem' }}>Data Inicial</label>
                 <input
+                  id="pncp-date-start"
                   type="date"
                   className="form-input"
                   value={dataInicial}
@@ -279,8 +284,9 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                 />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Data Final</label>
+                <label className="form-label" htmlFor="pncp-date-final" style={{ fontSize: '0.75rem' }}>Data Final</label>
                 <input
+                  id="pncp-date-final"
                   type="date"
                   className="form-input"
                   value={dataFinal}
@@ -291,8 +297,9 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           ) : (
             <>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem' }}>Encerramento até</label>
+                <label className="form-label" htmlFor="pncp-date-final" style={{ fontSize: '0.75rem' }}>Encerramento até</label>
                 <input
+                  id="pncp-date-final"
                   type="date"
                   className="form-input"
                   value={dataFinal}
@@ -319,10 +326,11 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           )}
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '0.75rem' }}>Palavra-chave (filtro)</label>
+            <label className="form-label" htmlFor="pncp-keyword" style={{ fontSize: '0.75rem' }}>Palavra-chave (filtro)</label>
             <div style={{ position: 'relative' }}>
               <Filter size={14} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
+                id="pncp-keyword"
                 type="text"
                 className="form-input"
                 style={{ paddingLeft: '32px' }}

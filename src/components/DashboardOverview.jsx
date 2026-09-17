@@ -228,7 +228,12 @@ export default function DashboardOverview({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
         
         {/* KPI 1: Licitações em Disputa / Agendadas */}
-        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', transition: 'transform 0.2s ease', animationDelay: '0.1s' }} onClick={() => setActiveTab('biddings')}>
+        <button
+          type="button"
+          className="glass-card hover-scale animate-fade-in"
+          style={{ padding: '20px', cursor: 'pointer', transition: 'transform 0.2s ease', animationDelay: '0.1s', width: '100%', textAlign: 'left', color: 'inherit' }}
+          onClick={() => setActiveTab('biddings')}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase' }}>
@@ -246,10 +251,15 @@ export default function DashboardOverview({
             <span>Valor em disputa:</span>
             <strong style={{ color: '#a78bfa' }}>{formatCurrency(biddingStats.totalValueAgendadas)}</strong>
           </div>
-        </div>
+        </button>
 
         {/* KPI 2: Total Licitações no Pipeline */}
-        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.2s' }} onClick={() => setActiveTab('biddings')}>
+        <button
+          type="button"
+          className="glass-card hover-scale animate-fade-in"
+          style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.2s', width: '100%', textAlign: 'left', color: 'inherit' }}
+          onClick={() => setActiveTab('biddings')}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-cyan)', textTransform: 'uppercase' }}>
@@ -267,10 +277,15 @@ export default function DashboardOverview({
             <span>Contratos cadastrados:</span>
             <strong style={{ color: 'var(--brand-cyan)' }}>{biddingStats.total} processos</strong>
           </div>
-        </div>
+        </button>
 
         {/* KPI 3: Clientes Cadastrados (CRM) */}
-        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.3s' }} onClick={() => setActiveTab('clients')}>
+        <button
+          type="button"
+          className="glass-card hover-scale animate-fade-in"
+          style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.3s', width: '100%', textAlign: 'left', color: 'inherit' }}
+          onClick={() => setActiveTab('clients')}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--success)', textTransform: 'uppercase' }}>
@@ -288,10 +303,15 @@ export default function DashboardOverview({
             <span>{clientStats.cnpjCount} Pessoas Jurídicas</span>
             <strong style={{ color: 'var(--success)' }}>{clientStats.maringaCount} em Maringá</strong>
           </div>
-        </div>
+        </button>
 
         {/* KPI 4: Fornecedores & Catálogo de Papéis */}
-        <div className="glass-card hover-scale animate-fade-in" style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.4s' }} onClick={() => setActiveTab('suppliers')}>
+        <button
+          type="button"
+          className="glass-card hover-scale animate-fade-in"
+          style={{ padding: '20px', cursor: 'pointer', animationDelay: '0.4s', width: '100%', textAlign: 'left', color: 'inherit' }}
+          onClick={() => setActiveTab('suppliers')}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-yellow)', textTransform: 'uppercase' }}>
@@ -309,7 +329,7 @@ export default function DashboardOverview({
             <span>{supplierStats.papeisCount} Papelarias / {supplierStats.acabamentoCount} Acabamentos</span>
             <strong style={{ color: 'var(--brand-yellow)' }}>{papers.length} papéis ativos</strong>
           </div>
-        </div>
+        </button>
 
       </div>
 

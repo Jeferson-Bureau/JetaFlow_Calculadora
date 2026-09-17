@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FileText, Search, Plus, Trash2, Printer, Eye, Copy, CheckCircle2, Clock, Calendar, DollarSign, User, AlertCircle, FileCheck, Edit, X, Save, RefreshCw } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function QuoteHistoryManager({
   quotes = [],
@@ -12,6 +13,7 @@ export default function QuoteHistoryManager({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [editingQuote, setEditingQuote] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const filteredQuotes = useMemo(() => {
     return quotes.filter(q => {
@@ -165,7 +167,7 @@ export default function QuoteHistoryManager({
                       <button
                         onClick={() => onReopenQuoteInCalculator && onReopenQuoteInCalculator(q)}
                         title="Recarregar Parâmetros na Calculadora"
-                        style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', color: 'var(--success)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
+                        style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', color: 'var(--success)', padding: '6px 10px', minHeight: '44px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
                       >
                         <RefreshCw size={14} /> Recarregar
                       </button>
@@ -173,7 +175,7 @@ export default function QuoteHistoryManager({
                       <button
                         onClick={() => setEditingQuote({ ...q })}
                         title="Editar Dados e Status"
-                        style={{ background: 'rgba(247, 181, 0, 0.15)', border: '1px solid rgba(247, 181, 0, 0.4)', color: 'var(--brand-yellow)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
+                        style={{ background: 'rgba(247, 181, 0, 0.15)', border: '1px solid rgba(247, 181, 0, 0.4)', color: 'var(--brand-yellow)', padding: '6px 10px', minHeight: '44px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
                       >
                         <Edit size={14} /> Editar
                       </button>
@@ -181,16 +183,17 @@ export default function QuoteHistoryManager({
                       <button
                         onClick={() => onOpenQuoteModal && onOpenQuoteModal(q)}
                         title="Visualizar / Reemitir Proposta PDF"
-                        style={{ background: 'rgba(0, 168, 232, 0.15)', border: '1px solid rgba(0, 168, 232, 0.4)', color: 'var(--brand-cyan)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
+                        style={{ background: 'rgba(0, 168, 232, 0.15)', border: '1px solid rgba(0, 168, 232, 0.4)', color: 'var(--brand-cyan)', padding: '6px 10px', minHeight: '44px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700 }}
                       >
                         <Printer size={14} /> PDF
                       </button>
 
                       {onDeleteQuote && (
                         <button
-                          onClick={() => onDeleteQuote(q.id)}
+                          onClick={() => setDeleteTarget(q)}
                           title="Excluir Orçamento"
-                          style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444', padding: '6px', borderRadius: '6px', cursor: 'pointer' }}
+                          aria-label="Excluir orçamento"
+                          style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', cursor: 'pointer' }}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -233,7 +236,7 @@ export default function QuoteHistoryManager({
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--brand-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Edit size={20} /> Editar Orçamento [{editingQuote.code}]
               </h3>
-              <button onClick={() => setEditingQuote(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <button onClick={() => setEditingQuote(null)} aria-label="Fechar" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={20} />
               </button>
             </div>
@@ -242,8 +245,9 @@ export default function QuoteHistoryManager({
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Nome / Razão Social do Cliente</label>
+                  <label className="form-label" htmlFor="quote-edit-client-name">Nome / Razão Social do Cliente</label>
                   <input
+                    id="quote-edit-client-name"
                     type="text"
                     className="form-input"
                     list="history-clients-list"
@@ -267,8 +271,9 @@ export default function QuoteHistoryManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">CNPJ / CPF do Cliente</label>
+                  <label className="form-label" htmlFor="quote-edit-client-doc">CNPJ / CPF do Cliente</label>
                   <input
+                    id="quote-edit-client-doc"
                     type="text"
                     className="form-input"
                     value={editingQuote.clientDoc || ''}
@@ -278,8 +283,9 @@ export default function QuoteHistoryManager({
               </div>
 
               <div className="form-group">
-                <label className="form-label">Descrição do Material / Produto</label>
+                <label className="form-label" htmlFor="quote-edit-description">Descrição do Material / Produto</label>
                 <input
+                  id="quote-edit-description"
                   type="text"
                   className="form-input"
                   value={editingQuote.description || ''}
@@ -290,8 +296,9 @@ export default function QuoteHistoryManager({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Quantidade</label>
+                  <label className="form-label" htmlFor="quote-edit-quantity">Quantidade</label>
                   <input
+                    id="quote-edit-quantity"
                     type="number"
                     min="1"
                     className="form-input"
@@ -301,8 +308,9 @@ export default function QuoteHistoryManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Valor Total (R$)</label>
+                  <label className="form-label" htmlFor="quote-edit-total-value">Valor Total (R$)</label>
                   <input
+                    id="quote-edit-total-value"
                     type="number"
                     step="0.01"
                     className="form-input"
@@ -313,8 +321,9 @@ export default function QuoteHistoryManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Status da Venda</label>
+                  <label className="form-label" htmlFor="quote-edit-status">Status da Venda</label>
                   <select
+                    id="quote-edit-status"
                     className="form-select"
                     style={{ fontWeight: 700 }}
                     value={editingQuote.status || 'rascunho'}
@@ -348,6 +357,17 @@ export default function QuoteHistoryManager({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Excluir orçamento"
+        message={deleteTarget ? `Tem certeza que deseja excluir o orçamento "${deleteTarget.code || ''}" (${deleteTarget.clientName || 'Cliente Balcão'})? Essa ação não pode ser desfeita.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          onDeleteQuote(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
 
     </div>
   );

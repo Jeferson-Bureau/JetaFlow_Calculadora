@@ -595,7 +595,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                     onBlur={() => lookupCep(address.zip)}
                   />
                   {cepStatus.loading && (
-                    <Loader2 size={14} className="cep-spin" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--brand-cyan)' }} />
+                    <Loader2 size={14} className="cep-spin motion-essential" role="status" aria-label="Consultando CEP…" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--brand-cyan)' }} />
                   )}
                 </div>
                 {cepStatus.error && (

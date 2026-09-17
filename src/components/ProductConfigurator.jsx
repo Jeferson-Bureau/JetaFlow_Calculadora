@@ -159,10 +159,11 @@ export default function ProductConfigurator({
 
         {/* Quantity Field */}
         <div className="form-group" style={{ marginBottom: '24px' }}>
-          <label className="form-label">
+          <label className="form-label" htmlFor="product-config-quantity">
             Quantidade <span style={{ color: 'var(--text-muted)', fontWeight: 'normal', fontSize: '0.85em', textTransform: 'none' }}>(Mínimo: {productData.min_order_qty})</span>
           </label>
-          <input 
+          <input
+            id="product-config-quantity"
             type="number"
             className="form-input"
             min={productData.min_order_qty}

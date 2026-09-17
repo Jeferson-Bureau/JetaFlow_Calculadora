@@ -50,6 +50,19 @@ function TabLoader() {
   );
 }
 
+// Título de página (h1) por aba — anuncia o módulo ativo para leitores de
+// tela e navegação por headings; visualmente oculto pois cada módulo já
+// exibe seu próprio título estilizado no corpo do conteúdo.
+const TAB_PAGE_TITLES = {
+  dashboard: 'Dashboard — JetaFlow',
+  clients: 'Clientes — JetaFlow',
+  suppliers: 'Fornecedores — JetaFlow',
+  biddings: 'Licitações — JetaFlow',
+  labels: 'Etiquetas — JetaFlow',
+  settings: 'Insumos & Preços — JetaFlow',
+  quotes: 'Histórico de Orçamentos — JetaFlow'
+};
+
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -500,6 +513,10 @@ export default function App() {
         setActiveTab={setActiveTab}
         onReset={handleResetDefaults}
       />
+
+      <h1 className="sr-only">
+        {TAB_PAGE_TITLES[activeTab] || 'Orçamentos — JetaFlow'}
+      </h1>
 
       <Suspense fallback={<TabLoader />}>
         {/* Main Workspace Tabs */}

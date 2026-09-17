@@ -18,6 +18,7 @@ import {
   Copy,
   Hash
 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function ClientManager({
   clients,
@@ -31,6 +32,7 @@ export default function ClientManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -356,8 +358,13 @@ export default function ClientManager({
                       <button
                         onClick={() => handleCopyClient(client)}
                         title="Copiar informações"
+                        aria-label="Copiar informações do cliente"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-input)',
@@ -371,8 +378,13 @@ export default function ClientManager({
                       <button
                         onClick={() => openEditClientModal(client)}
                         title="Editar cliente"
+                        aria-label="Editar cliente"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-input)',
@@ -384,10 +396,15 @@ export default function ClientManager({
                       </button>
 
                       <button
-                        onClick={() => onDeleteClient(client.id)}
+                        onClick={() => setDeleteTarget(client)}
                         title="Excluir cliente"
+                        aria-label="Excluir cliente"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid rgba(239, 68, 68, 0.3)',
                           background: 'rgba(239, 68, 68, 0.1)',
@@ -508,7 +525,8 @@ export default function ClientManager({
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                aria-label="Fechar"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={20} />
               </button>
@@ -519,8 +537,9 @@ export default function ClientManager({
               {/* Type, Trade Name & Razão Social */}
               <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Tipo de Pessoa</label>
+                  <label className="form-label" htmlFor="client-doctype">Tipo de Pessoa</label>
                   <select
+                    id="client-doctype"
                     className="form-select"
                     value={formData.docType}
                     onChange={(e) => setFormData({ ...formData, docType: e.target.value })}
@@ -531,8 +550,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Nome Fantasia / Marca</label>
+                  <label className="form-label" htmlFor="client-tradename">Nome Fantasia / Marca</label>
                   <input
+                    id="client-tradename"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Editora Brasil"
@@ -542,8 +562,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Razão Social / Nome Completo *</label>
+                  <label className="form-label" htmlFor="client-name">Razão Social / Nome Completo *</label>
                   <input
+                    id="client-name"
                     type="text"
                     required
                     className="form-input"
@@ -557,8 +578,9 @@ export default function ClientManager({
               {/* Doc & Phone */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">{formData.docType === 'cnpj' ? 'CNPJ' : 'CPF'}</label>
+                  <label className="form-label" htmlFor="client-doc">{formData.docType === 'cnpj' ? 'CNPJ' : 'CPF'}</label>
                   <input
+                    id="client-doc"
                     type="text"
                     className="form-input"
                     placeholder={formData.docType === 'cnpj' ? '00.000.000/0001-00' : '000.000.000-00'}
@@ -568,8 +590,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Telefone / WhatsApp</label>
+                  <label className="form-label" htmlFor="client-phone">Telefone / WhatsApp</label>
                   <input
+                    id="client-phone"
                     type="text"
                     className="form-input"
                     placeholder="(44) 99999-8888"
@@ -582,8 +605,9 @@ export default function ClientManager({
               {/* Email & Contact Person */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">E-mail Comercial</label>
+                  <label className="form-label" htmlFor="client-email">E-mail Comercial</label>
                   <input
+                    id="client-email"
                     type="email"
                     className="form-input"
                     placeholder="contato@cliente.com.br"
@@ -593,8 +617,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Pessoa de Contato / Responsável</label>
+                  <label className="form-label" htmlFor="client-contact-person">Pessoa de Contato / Responsável</label>
                   <input
+                    id="client-contact-person"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Carlos Eduardo (Compras)"
@@ -607,8 +632,9 @@ export default function ClientManager({
               {/* Address Row 1 */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Logradouro / Rua</label>
+                  <label className="form-label" htmlFor="client-street">Logradouro / Rua</label>
                   <input
+                    id="client-street"
                     type="text"
                     className="form-input"
                     placeholder="Av. Brasil"
@@ -618,8 +644,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Número</label>
+                  <label className="form-label" htmlFor="client-number">Número</label>
                   <input
+                    id="client-number"
                     type="text"
                     className="form-input"
                     placeholder="1500"
@@ -629,8 +656,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Bairro</label>
+                  <label className="form-label" htmlFor="client-neighborhood">Bairro</label>
                   <input
+                    id="client-neighborhood"
                     type="text"
                     className="form-input"
                     placeholder="Centro"
@@ -643,8 +671,9 @@ export default function ClientManager({
               {/* Address Row 2 */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 120px', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Cidade</label>
+                  <label className="form-label" htmlFor="client-city">Cidade</label>
                   <input
+                    id="client-city"
                     type="text"
                     className="form-input"
                     value={formData.city}
@@ -653,8 +682,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">UF</label>
+                  <label className="form-label" htmlFor="client-state">UF</label>
                   <input
+                    id="client-state"
                     type="text"
                     className="form-input"
                     value={formData.state}
@@ -663,8 +693,9 @@ export default function ClientManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">CEP</label>
+                  <label className="form-label" htmlFor="client-zip">CEP</label>
                   <input
+                    id="client-zip"
                     type="text"
                     className="form-input"
                     placeholder="87000-000"
@@ -676,8 +707,9 @@ export default function ClientManager({
 
               {/* Notes */}
               <div className="form-group">
-                <label className="form-label">Observações / Condições Comerciais</label>
+                <label className="form-label" htmlFor="client-notes">Observações / Condições Comerciais</label>
                 <textarea
+                  id="client-notes"
                   className="form-input"
                   rows="3"
                   placeholder="Ex: Faturado 15 dias, entrega prioritária, etc."
@@ -725,6 +757,17 @@ export default function ClientManager({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Excluir cliente"
+        message={deleteTarget ? `Tem certeza que deseja excluir "${deleteTarget.tradeName || deleteTarget.name}"? Essa ação não pode ser desfeita.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          onDeleteClient(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
 
     </div>
   );
