@@ -39,7 +39,7 @@ Análise técnica da calculadora e desfecho das 8 recomendações priorizadas.
 | 7 | Proposta do histórico mostrava cálculo errado | Resolvido |
 | 8 | `allorigins.win` — proxy de terceiros para CNPJ | Resolvido — `fetchRazaoSocialByCnpj` usa rotas próprias `/api/cnpjws/*` e `/api/brasilapi/*` (proxy→direto), configuradas em `vercel.json`, `public/_redirects` e `vite.config.js` |
 | 9 | Acabamento `per_sheet_sra3` usa `grossSheets` no offset | Resolvido — em offset o acabamento por folha agora incide sobre a folha-máquina impressa (`grossSheets × cutsPerFullSheet`); digital/grande formato inalterados. Tabela Positiva mantém `grossSheets` (cotada por milheiro da folha inteira) |
-| 10 | Números de precificação fora do `SettingsManager` | Resolvido (parcial) — fatores de formato e tarifas de encadernação editorial viraram `DEFAULT_FORMAT_MULTIPLIERS` / `DEFAULT_EDITORIAL_BINDING` em `initialData.js`, persistidos em `digitalClickRates` e editáveis em *Insumos & Preços → Cliques Digitais*; a tabela de `bulk` de papel virou `DEFAULT_PAPER_BULK` (constante nomeada, ainda sem UI). Margens de garra do offset e defaults da tabela Positiva seguem no engine |
+| 10 | Números de precificação fora do `SettingsManager` | Resolvido — fatores de formato, tarifas de encadernação editorial e bulk de papel viraram `DEFAULT_FORMAT_MULTIPLIERS` / `DEFAULT_EDITORIAL_BINDING` / `DEFAULT_PAPER_BULK` em `initialData.js`, persistidos em `digitalClickRates` e editáveis em *Insumos & Preços → Cliques Digitais*. Margens de garra do offset e defaults da tabela Positiva seguem no engine (não editáveis via UI) |
 | 11 | `Header.jsx` copy-paste (270 linhas) | Resolvido |
 | 12 | `vite.config.js.timestamp-*.mjs` versionado | Resolvido |
 | 13 | Sem README | Resolvido |
@@ -60,10 +60,10 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
 
 ## Pendências fora das 8 prioridades
 
-- **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI.
-- **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir.
-- **Estilos majoritariamente inline e `<label>` sem `htmlFor`.** (Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado.)
-- **Dashboard é a aba inicial** e força o carregamento do `recharts` (~120 KB gzip) no primeiro acesso.
+- **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI. **Aberto.**
+- **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir. **Aberto.**
+- **Estilos majoritariamente inline.** Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado. `<label>` sem `htmlFor` — **Resolvido** (ver rodada abaixo); estilos inline em si seguem como estão (baixo risco, alto custo de refatorar sem sistema de design definido).
+- **Dashboard é a aba inicial** — **Resolvido** (ver rodada abaixo).
 
 ## Refinamentos posteriores
 
@@ -215,6 +215,26 @@ Agora:
   passam a considerar/gravar `quote.mode`.
 - Acabamentos, resumo financeiro e proposta continuam compartilhados entre os 3 modos.
 - "Produtos Personalizados" (`configurable`, motor `pricing.js`) intacto.
+
+## Rodada de ajustes — pendências fora das 8 prioridades
+
+- **Dashboard deixou de ser a aba inicial.** `activeTab` agora inicia em `'digital'`
+  (Orçamentos) — primeiro acesso não carrega mais o chunk do `recharts` (~120 KB gzip).
+  → `App.jsx`
+- **`DEFAULT_PAPER_BULK` ganhou UI editável.** Cada família de papel recebeu uma `key`
+  estável; `calculateSpineThickness` passa a aceitar uma tabela de bulk e um fallback
+  como parâmetros (em vez de importar a constante fixa). Novo helper
+  `resolvePaperBulkTable()` mescla overrides de `digitalClickRates.paperBulk` com os
+  defaults. Editor em *Insumos & Preços → Cliques Digitais* (mesmo padrão das tarifas de
+  encadernação): bulk por família + fallback para papel não reconhecido, persistidos em
+  `jetaflow_clicks`. → `initialData.js`, `calculatorEngine.js`, `SettingsManager.jsx`
+- **`<label>` sem `htmlFor` residual.** Revisão dos componentes restantes
+  (`DigitalCalculator`, `FinancialSummary`, `ProductConfigurator`, `QuoteGenerator`):
+  labels que eram cabeçalho de grupo (sem input único associado) viraram `<div
+  className="form-label">`; labels de campo único ganharam `id`/`htmlFor` pareados.
+  Labels que já envolvem o próprio input (checkbox, radio) foram deixados como estavam —
+  já são acessíveis sem `htmlFor`. Build de produção OK, smoke test em Chromium headless
+  sem erros de console.
 
 ## Arquivos novos nesta rodada
 

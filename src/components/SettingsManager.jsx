@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Sliders, Save, RotateCcw, Plus, Trash2, Layers, Cpu, Scissors, Download, Upload, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { downloadBackup, restoreBackup } from '../utils/storage';
-import { DEFAULT_FORMAT_MULTIPLIERS, DEFAULT_EDITORIAL_BINDING } from '../data/initialData';
+import { DEFAULT_FORMAT_MULTIPLIERS, DEFAULT_EDITORIAL_BINDING, DEFAULT_PAPER_BULK, DEFAULT_PAPER_BULK_FALLBACK } from '../data/initialData';
 
 // Rótulos legíveis para os formatos de folha editáveis (keys iguais às de DEFAULT_SHEET_SIZES)
 const FORMAT_MULTIPLIER_ROWS = [
@@ -592,6 +592,66 @@ export default function SettingsManager({
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Bulk de papel (cm³/g) por família — usado no cálculo de lombada editorial */}
+          <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)', marginTop: '16px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px', color: 'var(--text-light)' }}>
+              📖 Bulk de Papel (cm³/g) — Espessura de Lombada
+            </div>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 10px' }}>
+              Usado para estimar a espessura do miolo (aba Digital → categoria Editorial) quando
+              a espessura não é informada diretamente. A família é reconhecida pelo nome do papel.
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                  <th style={{ padding: '6px' }}>Família de Papel</th>
+                  <th style={{ padding: '6px', width: '140px' }}>Bulk (cm³/g)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DEFAULT_PAPER_BULK.map(({ key, label, bulk }) => (
+                  <tr key={key} style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
+                    <td style={{ padding: '6px', fontWeight: 600 }}>{label}</td>
+                    <td style={{ padding: '6px' }}>
+                      <input
+                        type="number"
+                        step="0.05"
+                        min="0"
+                        className="form-input"
+                        style={{ width: '110px' }}
+                        value={Number((digitalClickRates.paperBulk || {})[key] ?? bulk)}
+                        onChange={(e) => setDigitalClickRates({
+                          ...digitalClickRates,
+                          paperBulk: {
+                            ...(digitalClickRates.paperBulk || {}),
+                            [key]: parseFloat(e.target.value) || 0
+                          }
+                        })}
+                      />
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td style={{ padding: '6px', fontWeight: 600 }}>Padrão (papel não reconhecido)</td>
+                  <td style={{ padding: '6px' }}>
+                    <input
+                      type="number"
+                      step="0.05"
+                      min="0"
+                      className="form-input"
+                      style={{ width: '110px' }}
+                      value={Number(digitalClickRates.paperBulkFallback ?? DEFAULT_PAPER_BULK_FALLBACK)}
+                      onChange={(e) => setDigitalClickRates({
+                        ...digitalClickRates,
+                        paperBulkFallback: parseFloat(e.target.value) || 0
+                      })}
+                    />
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

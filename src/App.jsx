@@ -65,7 +65,7 @@ const TAB_PAGE_TITLES = {
 
 export default function App() {
   // Navigation
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('digital');
   // Modalidade dentro da aba "Orçamentos": 'digital' | 'offset' | 'large_format'
   const [productionMode, setProductionMode] = useState('digital');
   // Ajuste manual do multiplicador de marcação para o orçamento corrente

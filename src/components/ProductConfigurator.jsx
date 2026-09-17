@@ -184,9 +184,9 @@ export default function ProductConfigurator({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {productData.attribute_groups.map(group => (
             <div key={group.id} className="form-group" style={{ background: 'var(--tint-hairline)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-              <label className="form-label" style={{ color: 'var(--text-main)' }}>
+              <div className="form-label" style={{ color: 'var(--text-main)' }}>
                 {group.name}
-              </label>
+              </div>
               
               <div style={{ display: 'grid', gap: '8px' }}>
                 {group.options.map(option => {

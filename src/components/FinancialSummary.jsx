@@ -395,9 +395,9 @@ export default function FinancialSummary({
 
           {/* Seleção do Tipo de Nota / Tributação */}
           <div style={{ marginBottom: '16px' }}>
-            <label className="form-label" style={{ fontWeight: 700, color: 'var(--brand-cyan)' }}>
+            <div className="form-label" style={{ fontWeight: 700, color: 'var(--brand-cyan)' }}>
               Tipo de Nota / Segregação de Impostos:
-            </label>
+            </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '6px' }}>
               <button
@@ -545,8 +545,9 @@ export default function FinancialSummary({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
 
             <div className="form-group">
-              <label className="form-label">Alíquota Produto - Anexo II (%)</label>
+              <label className="form-label" htmlFor="fin-tax-product">Alíquota Produto - Anexo II (%)</label>
               <input
+                id="fin-tax-product"
                 type="number"
                 step="0.1"
                 className="form-input"
@@ -563,8 +564,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Alíquota Serviço - ISS (%)</label>
+              <label className="form-label" htmlFor="fin-tax-service">Alíquota Serviço - ISS (%)</label>
               <input
+                id="fin-tax-service"
                 type="number"
                 step="0.1"
                 className="form-input"
@@ -581,8 +583,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Perda Técnica (%)</label>
+              <label className="form-label" htmlFor="fin-technical-loss">Perda Técnica (%)</label>
               <input
+                id="fin-technical-loss"
                 type="number"
                 step="0.5"
                 className="form-input"
@@ -592,8 +595,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Custo Fixo Rateio (%)</label>
+              <label className="form-label" htmlFor="fin-fixed-overhead">Custo Fixo Rateio (%)</label>
               <input
+                id="fin-fixed-overhead"
                 type="number"
                 step="0.5"
                 className="form-input"
@@ -603,8 +607,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Comissão de Venda (%)</label>
+              <label className="form-label" htmlFor="fin-sales-commission">Comissão de Venda (%)</label>
               <input
+                id="fin-sales-commission"
                 type="number"
                 step="0.5"
                 className="form-input"
@@ -614,10 +619,11 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--success)' }}>
+              <label className="form-label" htmlFor="fin-desired-profit" style={{ color: 'var(--success)' }}>
                 Meta de Lucro Líquido (%)
               </label>
               <input
+                id="fin-desired-profit"
                 type="number"
                 step="1"
                 className="form-input"

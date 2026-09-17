@@ -93,9 +93,9 @@ export default function DigitalCalculator({
           {/* VINCULAÇÃO DE CLIENTE AO ORÇAMENTO (CÓDIGO DO CLIENTE & NOME FANTASIA) */}
           <div className="form-group" style={{ background: 'rgba(16, 185, 129, 0.06)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-              <label className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
+              <div className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
                 <User size={18} /> Vinculação do Cliente (CRM)
-              </label>
+              </div>
 
               {selectedClientId ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

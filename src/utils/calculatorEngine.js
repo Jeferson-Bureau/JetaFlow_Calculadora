@@ -58,21 +58,34 @@ function resolveFormatFactor(digitalClickRates = {}, sheetSize = {}) {
 }
 
 /**
+ * Tabela de bulk de papel (cm³/g) com overrides de `digitalClickRates.paperBulk`
+ * (editável em Insumos & Preços → Cliques Digitais) aplicados por cima dos defaults.
+ */
+function resolvePaperBulkTable(digitalClickRates = {}) {
+  const overrides = digitalClickRates.paperBulk || {};
+  return DEFAULT_PAPER_BULK.map(entry => ({
+    ...entry,
+    bulk: Number(overrides[entry.key] ?? entry.bulk) || entry.bulk
+  }));
+}
+
+/**
  * Calculates book spine thickness based on page count, paper GSM, paper bulk (cm³/g), and glue technical compensation.
  * Formula: Lombada = (Páginas / 2 * EspessuraFolha) + CompensaçãoTécnica
  * EspessuraFolha (mm) = (Gramatura * Bulk) / 1000  (se espessura direta não informada)
  */
-export function calculateSpineThickness(pageCount, gsm, paperType = 'couche', customBulk = null, customSheetThicknessMm = null, glueType = 'hot_melt') {
+export function calculateSpineThickness(pageCount, gsm, paperType = 'couche', customBulk = null, customSheetThicknessMm = null, glueType = 'hot_melt', paperBulkTable = DEFAULT_PAPER_BULK, paperBulkFallback = DEFAULT_PAPER_BULK_FALLBACK) {
   const pages = Math.max(0, Number(pageCount || 0));
   const g = Number(gsm || 90);
   const sheets = pages / 2;
 
-  // Determine bulk in cm³/g if not directly provided (tabela em initialData.js)
+  // Determine bulk in cm³/g if not directly provided (tabela em initialData.js,
+  // editável em Insumos & Preços → Cliques Digitais)
   let bulk = Number(customBulk);
   if (!bulk || isNaN(bulk) || bulk <= 0) {
     const pType = String(paperType).toLowerCase();
-    const hit = DEFAULT_PAPER_BULK.find(entry => entry.match.some(term => pType.includes(term)));
-    bulk = hit ? hit.bulk : DEFAULT_PAPER_BULK_FALLBACK;
+    const hit = paperBulkTable.find(entry => entry.match.some(term => pType.includes(term)));
+    bulk = hit ? hit.bulk : paperBulkFallback;
   }
 
   // Calculate sheet thickness in mm
@@ -326,7 +339,9 @@ export function calculateBudget(config) {
       mioloPaper.name || 'offset',
       editorial.customBulk,
       editorial.customSheetThicknessMm,
-      editorial.glueType || 'hot_melt'
+      editorial.glueType || 'hot_melt',
+      resolvePaperBulkTable(digitalClickRates),
+      Number(digitalClickRates.paperBulkFallback) || DEFAULT_PAPER_BULK_FALLBACK
     );
     spineMm = typeof spineResult === 'object' ? spineResult.spineMm : spineResult;
     const flapW = Number(editorial.flapW || 0);

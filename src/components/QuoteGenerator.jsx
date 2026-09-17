@@ -391,8 +391,9 @@ export default function QuoteGenerator({
           {/* Condições & Observações Personalizadas */}
           <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Validade:</label>
+              <label htmlFor="quote-validity" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Validade:</label>
               <input
+                id="quote-validity"
                 type="text"
                 value={quoteValidity}
                 onChange={(e) => setQuoteValidity(e.target.value)}
@@ -400,8 +401,9 @@ export default function QuoteGenerator({
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Prazo de Produção:</label>
+              <label htmlFor="quote-delivery-term" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Prazo de Produção:</label>
               <input
+                id="quote-delivery-term"
                 type="text"
                 value={deliveryTerm}
                 onChange={(e) => setDeliveryTerm(e.target.value)}
@@ -409,8 +411,9 @@ export default function QuoteGenerator({
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Observações / Condições:</label>
+              <label htmlFor="quote-general-notes" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>Observações / Condições:</label>
               <input
+                id="quote-general-notes"
                 type="text"
                 value={generalNotes}
                 onChange={(e) => setGeneralNotes(e.target.value)}

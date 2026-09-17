@@ -151,11 +151,11 @@ export const DEFAULT_EDITORIAL_BINDING = {
 // Bulk (cm³/g) por família de papel — usado no cálculo de espessura de lombada.
 // Antes: cadeia de if/includes hardcoded em calculateSpineThickness().
 export const DEFAULT_PAPER_BULK = [
-  { match: ['polen bold'], bulk: 1.8 },
-  { match: ['polen soft', 'polen'], bulk: 1.5 },
-  { match: ['offset', 'sulfite', 'chambril'], bulk: 1.2 },
-  { match: ['couche', 'couché'], bulk: 0.95 },
-  { match: ['triplex', 'duplex'], bulk: 1.3 }
+  { key: 'polen_bold', label: 'Pólen Bold', match: ['polen bold'], bulk: 1.8 },
+  { key: 'polen_soft', label: 'Pólen Soft / Pólen', match: ['polen soft', 'polen'], bulk: 1.5 },
+  { key: 'offset_sulfite', label: 'Offset / Sulfite / Chambril', match: ['offset', 'sulfite', 'chambril'], bulk: 1.2 },
+  { key: 'couche', label: 'Couché', match: ['couche', 'couché'], bulk: 0.95 },
+  { key: 'triplex_duplex', label: 'Triplex / Duplex', match: ['triplex', 'duplex'], bulk: 1.3 }
 ];
 export const DEFAULT_PAPER_BULK_FALLBACK = 1.1;
 
@@ -166,7 +166,9 @@ export const DEFAULT_DIGITAL_CLICKS = {
   clickMonoDuplex: 0.144,    // 1/1 Base A4 (2x) (-5%)
   largeFormatM2Tinta: 12.00, // Impressão m² Comunicação Visual
   formatMultipliers: { ...DEFAULT_FORMAT_MULTIPLIERS },
-  bindingRates: { ...DEFAULT_EDITORIAL_BINDING }
+  bindingRates: { ...DEFAULT_EDITORIAL_BINDING },
+  paperBulk: {},
+  paperBulkFallback: DEFAULT_PAPER_BULK_FALLBACK
 };
 
 export const DEFAULT_OFFSET_SETTINGS = {
