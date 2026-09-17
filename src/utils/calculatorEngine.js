@@ -5,8 +5,47 @@ import {
   DEFAULT_EDITORIAL_BINDING,
   DEFAULT_PAPER_BULK,
   DEFAULT_PAPER_BULK_FALLBACK,
-  PAPER_FORMAT_DIMENSIONS
+  PAPER_FORMAT_DIMENSIONS,
+  DEFAULT_MARKUP_TIERS
 } from '../data/initialData';
+
+const MARKUP_TIER_LABELS = {
+  small: 'Pequenas tiragens',
+  medium: 'Médias tiragens',
+  large: 'Grandes tiragens'
+};
+
+/**
+ * Resolve a MARCAÇÃO (multiplicador sobre o Custo Industrial) para uma tiragem.
+ * A quantidade cai numa das faixas de `financialConfig.markupTiers`
+ * (small ≤ maxQty, medium ≤ maxQty, large = resto). Um `override` numérico > 0
+ * vence a faixa (ajuste manual do orçamento).
+ */
+export function resolveMarkup(financialConfig = {}, qty = 1, override = null) {
+  const tiers = financialConfig.markupTiers || DEFAULT_MARKUP_TIERS;
+  const smallMax = Number(tiers.small?.maxQty ?? DEFAULT_MARKUP_TIERS.small.maxQty);
+  const mediumMax = Number(tiers.medium?.maxQty ?? DEFAULT_MARKUP_TIERS.medium.maxQty);
+
+  let tier;
+  if (qty <= smallMax) tier = 'small';
+  else if (qty <= mediumMax) tier = 'medium';
+  else tier = 'large';
+
+  const tierMultiplier = Number(
+    tiers[tier]?.multiplier ?? DEFAULT_MARKUP_TIERS[tier].multiplier
+  ) || 1;
+
+  const ov = Number(override);
+  const isOverride = Number.isFinite(ov) && ov > 0;
+
+  return {
+    tier,
+    tierLabel: MARKUP_TIER_LABELS[tier],
+    tierMultiplier,
+    multiplier: isOverride ? ov : tierMultiplier,
+    isOverride
+  };
+}
 
 /**
  * Multiplicador de custo de clique conforme o formato da folha impressa.
@@ -503,29 +542,26 @@ export function calculateBudget(config) {
   }
 
   const commissionPct = Number(financialConfig.salesCommissionPercent || 5);
-  const profitPct = Number(financialConfig.desiredProfitPercent || 30);
+  const profitTargetPct = Number(financialConfig.desiredProfitPercent || 30); // meta/referência
 
   const techLossVal = directCost * (techLossPct / 100);
   const baseCost = directCost + techLossVal;
   const fixedOverheadVal = baseCost * (fixedOverheadPct / 100);
   const totalIndustrialCost = baseCost + fixedOverheadVal;
 
-  // Cálculo "Por Dentro" (Markup por Divisor): PV = CI / (1 - (Imposto% + Comissão% + Lucro%) / 100)
-  const totalDeductionsPct = taxPct + commissionPct + profitPct;
-  const effectiveDivisor = Math.max(0.01, 1 - (totalDeductionsPct / 100));
+  // MARCAÇÃO por faixa de quantidade: Preço de Venda = Custo Industrial × multiplicador.
+  const markup = resolveMarkup(financialConfig, qty, config.markupOverride);
+  const finalPrice = totalIndustrialCost * markup.multiplier;
 
-  let finalPrice = 0;
-  if (totalDeductionsPct < 100) {
-    finalPrice = totalIndustrialCost / effectiveDivisor;
-  } else {
-    finalPrice = totalIndustrialCost * 2.0;
-  }
-
+  // Imposto e comissão saem do preço de venda; o lucro líquido é o resíduo.
   const taxVal = finalPrice * (taxPct / 100);
   const commissionVal = finalPrice * (commissionPct / 100);
-  const profitVal = finalPrice * (profitPct / 100);
+  const grossMarkupVal = finalPrice - totalIndustrialCost;           // marcação bruta
+  const netProfitVal = grossMarkupVal - taxVal - commissionVal;      // lucro líquido real
+  const netProfitPct = finalPrice > 0 ? (netProfitVal / finalPrice) * 100 : 0;
 
-  const markupMultiplier = totalIndustrialCost > 0 ? (finalPrice / totalIndustrialCost) : 1;
+  const markupMultiplier = markup.multiplier;
+  const effectiveDivisor = markup.multiplier > 0 ? 1 / markup.multiplier : 1;
   const unitCost = totalIndustrialCost / qty;
   const unitPrice = finalPrice / qty;
 
@@ -550,11 +586,20 @@ export function calculateBudget(config) {
       taxType,
       taxTypeName,
       taxPct,
+      commissionPct,
+      profitTargetPct,
       effectiveDivisor: Math.round(effectiveDivisor * 10000) / 10000,
-      markupMultiplier: Math.round(markupMultiplier * 10000) / 10000,
+      markupMultiplier: Math.round(markupMultiplier * 1000) / 1000,
+      markupTier: markup.tier,
+      markupTierLabel: markup.tierLabel,
+      markupTierMultiplier: Math.round(markup.tierMultiplier * 1000) / 1000,
+      markupIsOverride: markup.isOverride,
+      grossMarkupVal: Math.round(grossMarkupVal * 100) / 100,
       taxVal: Math.round(taxVal * 100) / 100,
       commissionVal: Math.round(commissionVal * 100) / 100,
-      profitVal: Math.round(profitVal * 100) / 100,
+      netProfitVal: Math.round(netProfitVal * 100) / 100,
+      netProfitPct: Math.round(netProfitPct * 10) / 10,
+      profitVal: Math.round(netProfitVal * 100) / 100, // compat: consumidores antigos
       finalPrice: Math.round(finalPrice * 100) / 100,
       unitCost: Math.round(unitCost * 100) / 100,
       unitPrice: Math.round(unitPrice * 100) / 100
@@ -567,14 +612,18 @@ export function calculateBudget(config) {
  * Generates pricing scale comparison across multiple quantity tiers.
  */
 export function generateTierMatrix(config, tiers = [100, 250, 500, 1000, 2500, 5000]) {
+  // Cada linha usa o multiplicador da PRÓPRIA faixa — ignora o override do orçamento.
   return tiers.map(qty => {
-    const res = calculateBudget({ ...config, quantity: qty });
+    const res = calculateBudget({ ...config, quantity: qty, markupOverride: null });
     return {
       qty,
       totalPrice: res.costs.finalPrice,
       unitPrice: res.costs.unitPrice,
       totalIndustrialCost: res.costs.totalIndustrialCost,
-      profitVal: res.costs.profitVal
+      profitVal: res.costs.netProfitVal,
+      markupMultiplier: res.costs.markupMultiplier,
+      markupTier: res.costs.markupTier,
+      markupTierLabel: res.costs.markupTierLabel
     };
   });
 }

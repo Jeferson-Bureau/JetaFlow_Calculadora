@@ -221,17 +221,27 @@ export const DEFAULT_FINISHINGS = [
   { id: 'ilhos-bastao', name: 'JetaPrint - Ilhós + Bastão (Banners)', category: 'interna', type: 'per_unit', unitCost: 8.00, setupCost: 0.00 }
 ];
 
+// Tabela de MARCAÇÃO por faixa de quantidade. O preço de venda é
+// Custo Industrial × multiplier da faixa em que a tiragem cai. `large` é a
+// faixa aberta (sem maxQty). Editável no painel financeiro do FinancialSummary.
+export const DEFAULT_MARKUP_TIERS = {
+  small:  { maxQty: 100, multiplier: 2.5 },  // Pequenas tiragens
+  medium: { maxQty: 500, multiplier: 2.0 },  // Médias tiragens
+  large:  { multiplier: 1.7 }                // Grandes tiragens (acima do medium)
+};
+
 export const DEFAULT_FINANCIAL_CONFIG = {
   taxType: 'product',            // 'product' (3.0%), 'service' (6.0%), 'custom'
   taxProductPercent: 3.0,        // Simples Nacional Produto / Indústria (3.0%)
   taxServicePercent: 6.0,        // Simples Nacional Serviço / ISS (6.0%)
   taxCustomPercent: 3.0,         // Alíquota personalizada
   taxSimplesPercent: 3.0,        // Alíquota ativa (default produto)
-  calculationMethod: 'divisor',  // Markup por Divisor ("Por Dentro")
+  calculationMethod: 'multiplier', // Marcação = Custo Industrial × multiplicador da faixa
+  markupTiers: DEFAULT_MARKUP_TIERS,
   technicalLossPercent: 5.0,     // Perda técnica (%)
   fixedOverheadPercent: 12.0,    // Rateio Custo Fixo (%)
   salesCommissionPercent: 5.0,   // Comissão de Venda (%)
-  desiredProfitPercent: 30.0     // Margem de Lucro Desejada sobre Venda (%)
+  desiredProfitPercent: 30.0     // Meta de lucro líquido (%) — referência p/ comparação
 };
 
 export const DEFAULT_CLIENTS = [

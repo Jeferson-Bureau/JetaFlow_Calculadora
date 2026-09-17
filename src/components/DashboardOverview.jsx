@@ -44,7 +44,8 @@ export default function DashboardOverview({
   equipments = [],
   financialConfig = {},
   digitalClickRates = {},
-  setActiveTab
+  setActiveTab,
+  goToQuote = () => {}
 }) {
   // ── 1. Estatísticas de Licitações ──
   const biddingStats = useMemo(() => {
@@ -216,8 +217,8 @@ export default function DashboardOverview({
           }}>
             <Activity size={16} color="var(--brand-cyan)" />
             <div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Margem Desejada</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-cyan)' }}>{financialConfig.desiredProfitPercent || 30}% Líquida</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Meta de Lucro</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-cyan)' }}>{financialConfig.desiredProfitPercent || 30}% Líquido</div>
             </div>
           </div>
         </div>
@@ -591,7 +592,7 @@ export default function DashboardOverview({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
           
           <button
-            onClick={() => setActiveTab('digital')}
+            onClick={() => goToQuote('digital')}
             style={{
               padding: '14px',
               borderRadius: '10px',
@@ -641,7 +642,7 @@ export default function DashboardOverview({
           </button>
 
           <button
-            onClick={() => setActiveTab('offset')}
+            onClick={() => goToQuote('offset')}
             style={{
               padding: '14px',
               borderRadius: '10px',

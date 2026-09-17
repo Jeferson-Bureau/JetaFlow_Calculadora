@@ -27,6 +27,7 @@ import { usePersistentState } from './hooks/usePersistentState';
 
 // Módulos carregados sob demanda (code-splitting por aba).
 const DashboardOverview = lazy(() => import('./components/DashboardOverview'));
+const ProductionModeSwitch = lazy(() => import('./components/ProductionModeSwitch'));
 const DigitalCalculator = lazy(() => import('./components/DigitalCalculator'));
 const OffsetCalculator = lazy(() => import('./components/OffsetCalculator'));
 const LargeFormatCalculator = lazy(() => import('./components/LargeFormatCalculator'));
@@ -52,6 +53,16 @@ function TabLoader() {
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
+  // Modalidade dentro da aba "Orçamentos": 'digital' | 'offset' | 'large_format'
+  const [productionMode, setProductionMode] = useState('digital');
+  // Ajuste manual do multiplicador de marcação para o orçamento corrente
+  // (null = usa o valor da faixa de quantidade).
+  const [markupOverride, setMarkupOverride] = useState(null);
+
+  const goToQuote = (mode = 'digital') => {
+    setProductionMode(mode);
+    setActiveTab('digital');
+  };
 
   // Quotes History Storage
   const [quotesHistory, setQuotesHistory] = usePersistentState(STORAGE_KEYS.quotes, () => ([
@@ -79,6 +90,7 @@ export default function App() {
       code,
       date: new Date().toLocaleDateString('pt-BR'),
       status: 'enviado',
+      mode: productionMode,
       clientId: selectedClientId || '',
       clientName: linkedClient ? (linkedClient.tradeName || linkedClient.name) : (quoteData.clientName || 'Cliente Balcão'),
       clientDoc: linkedClient ? linkedClient.doc : (quoteData.clientDoc || 'Não Informado'),
@@ -264,8 +276,10 @@ export default function App() {
   };
 
   const handleReopenQuoteInCalculator = (quote) => {
+    setProductionMode(['offset', 'large_format'].includes(quote.mode) ? quote.mode : 'digital');
     setActiveTab('digital');
     setProductCategory('flat');
+    setMarkupOverride(null);
     if (quote.quantity) setQuantity(Number(quote.quantity));
     if (quote.paperId) setSelectedPaperId(quote.paperId);
     if (quote.sheetId) setSelectedSheetId(quote.sheetId);
@@ -378,16 +392,19 @@ export default function App() {
   // No off-set o equipamento tem de ser uma prensa off-set — se a seleção herdada
   // for uma digital (Xerox/Canon), cai para a primeira prensa off-set.
   const budgetEquipment = useMemo(() => {
-    if (activeTab === 'offset' && selectedEquipment.type !== 'offset') {
+    if (productionMode === 'offset' && selectedEquipment.type !== 'offset') {
       return equipments.find(e => e.type === 'offset') || selectedEquipment;
     }
     return selectedEquipment;
-  }, [activeTab, selectedEquipment, equipments]);
+  }, [productionMode, selectedEquipment, equipments]);
+
+  // Categoria de produto só se aplica ao Digital; off-set/grande formato usam 'flat'.
+  const effectiveProductCategory = productionMode === 'digital' ? productCategory : 'flat';
 
   // Current Budget Calculation
   const budgetConfig = useMemo(() => ({
-    mode: activeTab === 'large_format' ? 'large_format' : activeTab === 'offset' ? 'offset' : 'digital',
-    productCategory,
+    mode: productionMode,
+    productCategory: effectiveProductCategory,
     quantity,
     paper: selectedPaper,
     sheetSize: selectedSheet,
@@ -399,13 +416,14 @@ export default function App() {
     offsetSettings,
     finishings: selectedFinishings,
     financialConfig,
+    markupOverride,
     largeFormat,
     equipment: budgetEquipment,
     editorial
   }), [
-    activeTab, productCategory, quantity, selectedPaper, selectedSheet, productW, productH,
+    productionMode, effectiveProductCategory, quantity, selectedPaper, selectedSheet, productW, productH,
     bleed, colors, activeDigitalClickRates, offsetSettings, selectedFinishings,
-    financialConfig, largeFormat, budgetEquipment, editorial
+    financialConfig, markupOverride, largeFormat, budgetEquipment, editorial
   ]);
 
   const budgetResult = useMemo(() => {
@@ -437,6 +455,8 @@ export default function App() {
     setColors('4/0');
     setQuantity(500);
     setSelectedFinishings([]);
+    setProductionMode('digital');
+    setMarkupOverride(null);
   };
 
   const digitalCalculatorProps = {
@@ -493,6 +513,7 @@ export default function App() {
             financialConfig={financialConfig}
             digitalClickRates={digitalClickRates}
             setActiveTab={setActiveTab}
+            goToQuote={goToQuote}
           />
         ) : activeTab === 'settings' ? (
           <SettingsManager
@@ -548,8 +569,11 @@ export default function App() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
+            {/* Seletor de modalidade: Digital · Off-set · Grande Formato */}
+            <ProductionModeSwitch value={productionMode} onChange={(m) => { setProductionMode(m); setMarkupOverride(null); }} />
+
             {/* Top Section: Form Inputs & 2D Sheet Viewer */}
-            {activeTab === 'digital' && productCategory === 'quotes_history' ? (
+            {productionMode === 'digital' && productCategory === 'quotes_history' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <DigitalCalculator {...digitalCalculatorProps} />
                 <QuoteHistoryManager
@@ -566,11 +590,11 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
 
                   {/* Left Column: Specific Calculator Inputs */}
-                  {activeTab === 'digital' && (
+                  {productionMode === 'digital' && (
                     <DigitalCalculator {...digitalCalculatorProps} />
                   )}
 
-                  {activeTab === 'offset' && (
+                  {productionMode === 'offset' && (
                     <OffsetCalculator
                       equipments={equipments}
                       selectedEquipmentId={selectedEquipmentId}
@@ -596,7 +620,7 @@ export default function App() {
                     />
                   )}
 
-                  {activeTab === 'large_format' && (
+                  {productionMode === 'large_format' && (
                     <LargeFormatCalculator
                       largeFormat={largeFormat}
                       setLargeFormat={setLargeFormat}
@@ -606,11 +630,11 @@ export default function App() {
                   )}
 
                   {/* Right Column: Sheet Visualizer */}
-                  {activeTab !== 'large_format' && productCategory !== 'configurable' && (
+                  {productionMode !== 'large_format' && effectiveProductCategory !== 'configurable' && (
                     <SheetViewer
                       layout={budgetResult.layout}
                       sheetSize={selectedSheet}
-                      productW={productCategory === 'editorial' ? ((2 * productW) + (budgetResult.spineMm || 0) + (2 * (editorial.flapW || 0))) : productW}
+                      productW={effectiveProductCategory === 'editorial' ? ((2 * productW) + (budgetResult.spineMm || 0) + (2 * (editorial.flapW || 0))) : productW}
                       productH={productH}
                       bleed={bleed}
                     />
@@ -618,7 +642,7 @@ export default function App() {
 
                 </div>
 
-                {productCategory !== 'configurable' && (
+                {effectiveProductCategory !== 'configurable' && (
                   <>
                     {/* Middle Section: Finishings */}
                     <FinishingSelector
@@ -633,6 +657,8 @@ export default function App() {
                       tierMatrix={tierMatrix}
                       financialConfig={financialConfig}
                       setFinancialConfig={setFinancialConfig}
+                      markupOverride={markupOverride}
+                      setMarkupOverride={setMarkupOverride}
                       onOpenQuoteModal={openLiveProposal}
                       onSaveQuoteToHistory={handleSaveQuoteToHistory}
                     />
@@ -656,7 +682,7 @@ export default function App() {
             productW={productW}
             productH={productH}
             colors={colors}
-            mode={activeTab}
+            mode={productionMode}
             selectedFinishings={selectedFinishings}
             clients={clients}
             onAddClient={handleAddClient}

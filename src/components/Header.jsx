@@ -1,12 +1,10 @@
 import React from 'react';
-import { LayoutDashboard, Printer, Cpu, Sliders, Layers, RefreshCw, Users, Truck, Award, Tag } from 'lucide-react';
+import { LayoutDashboard, Calculator, Sliders, RefreshCw, Users, Truck, Award, Tag } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
-  { key: 'digital', label: 'Digital & Orçamentos', Icon: Printer },
-  { key: 'offset', label: 'Off-set', Icon: Cpu },
-  { key: 'large_format', label: 'Grande Formato', Icon: Layers },
+  { key: 'digital', label: 'Orçamentos', Icon: Calculator },
   { key: 'clients', label: 'Clientes', Icon: Users },
   { key: 'suppliers', label: 'Fornecedores', Icon: Truck },
   { key: 'biddings', label: 'Licitações', Icon: Award },
