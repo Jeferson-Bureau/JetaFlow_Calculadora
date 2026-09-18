@@ -28,8 +28,9 @@ export default function LargeFormatCalculator({
         
         {/* Substrato Grande Formato */}
         <div className="form-group">
-          <label className="form-label">Material / Mídia</label>
+          <label className="form-label" htmlFor="largeformat-material">Material / Mídia</label>
           <select
+            id="largeformat-material"
             className="form-select"
             value={largeFormat.materialPriceM2}
             onChange={(e) => setLargeFormat({ ...largeFormat, materialPriceM2: parseFloat(e.target.value) })}
@@ -44,10 +45,11 @@ export default function LargeFormatCalculator({
 
         {/* Largura (Metros) */}
         <div className="form-group">
-          <label className="form-label">
+          <label className="form-label" htmlFor="largeformat-width">
             <Maximize2 size={14} /> Largura (Metros)
           </label>
           <input
+            id="largeformat-width"
             type="number"
             step="0.05"
             min="0.1"
@@ -59,10 +61,11 @@ export default function LargeFormatCalculator({
 
         {/* Altura (Metros) */}
         <div className="form-group">
-          <label className="form-label">
+          <label className="form-label" htmlFor="largeformat-height">
             <Maximize2 size={14} /> Altura (Metros)
           </label>
           <input
+            id="largeformat-height"
             type="number"
             step="0.05"
             min="0.1"
@@ -74,10 +77,11 @@ export default function LargeFormatCalculator({
 
         {/* Quantidade */}
         <div className="form-group">
-          <label className="form-label">
+          <label className="form-label" htmlFor="largeformat-qty">
             <Hash size={14} /> Quantidade de Unidades
           </label>
           <input
+            id="largeformat-qty"
             type="number"
             min="1"
             className="form-input"

@@ -151,11 +151,11 @@ export const DEFAULT_EDITORIAL_BINDING = {
 // Bulk (cm³/g) por família de papel — usado no cálculo de espessura de lombada.
 // Antes: cadeia de if/includes hardcoded em calculateSpineThickness().
 export const DEFAULT_PAPER_BULK = [
-  { match: ['polen bold'], bulk: 1.8 },
-  { match: ['polen soft', 'polen'], bulk: 1.5 },
-  { match: ['offset', 'sulfite', 'chambril'], bulk: 1.2 },
-  { match: ['couche', 'couché'], bulk: 0.95 },
-  { match: ['triplex', 'duplex'], bulk: 1.3 }
+  { key: 'polen_bold', label: 'Pólen Bold', match: ['polen bold'], bulk: 1.8 },
+  { key: 'polen_soft', label: 'Pólen Soft / Pólen', match: ['polen soft', 'polen'], bulk: 1.5 },
+  { key: 'offset_sulfite', label: 'Offset / Sulfite / Chambril', match: ['offset', 'sulfite', 'chambril'], bulk: 1.2 },
+  { key: 'couche', label: 'Couché', match: ['couche', 'couché'], bulk: 0.95 },
+  { key: 'triplex_duplex', label: 'Triplex / Duplex', match: ['triplex', 'duplex'], bulk: 1.3 }
 ];
 export const DEFAULT_PAPER_BULK_FALLBACK = 1.1;
 
@@ -166,7 +166,9 @@ export const DEFAULT_DIGITAL_CLICKS = {
   clickMonoDuplex: 0.144,    // 1/1 Base A4 (2x) (-5%)
   largeFormatM2Tinta: 12.00, // Impressão m² Comunicação Visual
   formatMultipliers: { ...DEFAULT_FORMAT_MULTIPLIERS },
-  bindingRates: { ...DEFAULT_EDITORIAL_BINDING }
+  bindingRates: { ...DEFAULT_EDITORIAL_BINDING },
+  paperBulk: {},
+  paperBulkFallback: DEFAULT_PAPER_BULK_FALLBACK
 };
 
 export const DEFAULT_OFFSET_SETTINGS = {
@@ -221,17 +223,27 @@ export const DEFAULT_FINISHINGS = [
   { id: 'ilhos-bastao', name: 'JetaPrint - Ilhós + Bastão (Banners)', category: 'interna', type: 'per_unit', unitCost: 8.00, setupCost: 0.00 }
 ];
 
+// Tabela de MARCAÇÃO por faixa de quantidade. O preço de venda é
+// Custo Industrial × multiplier da faixa em que a tiragem cai. `large` é a
+// faixa aberta (sem maxQty). Editável no painel financeiro do FinancialSummary.
+export const DEFAULT_MARKUP_TIERS = {
+  small:  { maxQty: 100, multiplier: 2.5 },  // Pequenas tiragens
+  medium: { maxQty: 500, multiplier: 2.0 },  // Médias tiragens
+  large:  { multiplier: 1.7 }                // Grandes tiragens (acima do medium)
+};
+
 export const DEFAULT_FINANCIAL_CONFIG = {
   taxType: 'product',            // 'product' (3.0%), 'service' (6.0%), 'custom'
   taxProductPercent: 3.0,        // Simples Nacional Produto / Indústria (3.0%)
   taxServicePercent: 6.0,        // Simples Nacional Serviço / ISS (6.0%)
   taxCustomPercent: 3.0,         // Alíquota personalizada
   taxSimplesPercent: 3.0,        // Alíquota ativa (default produto)
-  calculationMethod: 'divisor',  // Markup por Divisor ("Por Dentro")
+  calculationMethod: 'multiplier', // Marcação = Custo Industrial × multiplicador da faixa
+  markupTiers: DEFAULT_MARKUP_TIERS,
   technicalLossPercent: 5.0,     // Perda técnica (%)
   fixedOverheadPercent: 12.0,    // Rateio Custo Fixo (%)
   salesCommissionPercent: 5.0,   // Comissão de Venda (%)
-  desiredProfitPercent: 30.0     // Margem de Lucro Desejada sobre Venda (%)
+  desiredProfitPercent: 30.0     // Meta de lucro líquido (%) — referência p/ comparação
 };
 
 export const DEFAULT_CLIENTS = [

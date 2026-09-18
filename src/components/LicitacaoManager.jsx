@@ -32,6 +32,7 @@ import {
 import { KNOWN_PNCP_DATABASE } from '../data/initialData';
 import { getContratacao, mapPncpToBidding, searchBiddingByUasgAndEdital } from '../services/pncpService';
 import PncpSearchPanel from './PncpSearchPanel';
+import ConfirmDialog from './ConfirmDialog';
 
 export function parseBrlCurrencyToFloat(str) {
   if (!str && str !== 0) return 0;
@@ -454,6 +455,7 @@ export default function LicitacaoManager({
   const [selectedClientId, setSelectedClientId] = useState('');
   const [isPncpSearchOpen, setIsPncpSearchOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const handleImportBiddingFromPncp = (pncpData) => {
     const existing = biddings.find(b => 
@@ -1081,8 +1083,13 @@ export default function LicitacaoManager({
                       <button
                         onClick={() => handleCopyBidding(bidding)}
                         title="Copiar dados da licitação"
+                        aria-label="Copiar dados da licitação"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-input)',
@@ -1096,8 +1103,13 @@ export default function LicitacaoManager({
                       <button
                         onClick={() => openEditBiddingModal(bidding)}
                         title="Editar licitação"
+                        aria-label="Editar licitação"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-input)',
@@ -1109,10 +1121,15 @@ export default function LicitacaoManager({
                       </button>
 
                       <button
-                        onClick={() => onDeleteBidding(bidding.id)}
+                        onClick={() => setDeleteTarget(bidding)}
                         title="Excluir licitação"
+                        aria-label="Excluir licitação"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid rgba(239, 68, 68, 0.3)',
                           background: 'rgba(239, 68, 68, 0.1)',
@@ -1327,7 +1344,8 @@ export default function LicitacaoManager({
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                aria-label="Fechar"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={20} />
               </button>
@@ -1338,8 +1356,9 @@ export default function LicitacaoManager({
               {/* Bidding Number, UASG & Modality */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.2fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Número da Licitação *</label>
+                  <label className="form-label" htmlFor="bidding-number">Número da Licitação *</label>
                   <input
+                    id="bidding-number"
                     type="text"
                     required
                     className="form-input"
@@ -1350,8 +1369,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">UASG (Código)</label>
+                  <label className="form-label" htmlFor="bidding-uasg">UASG (Código)</label>
                   <input
+                    id="bidding-uasg"
                     type="text"
                     className="form-input"
                     placeholder="Ex: 986969"
@@ -1361,8 +1381,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Modalidade</label>
+                  <label className="form-label" htmlFor="bidding-modality">Modalidade</label>
                   <select
+                    id="bidding-modality"
                     className="form-select"
                     value={formData.modality}
                     onChange={(e) => setFormData({ ...formData, modality: e.target.value })}
@@ -1400,8 +1421,9 @@ export default function LicitacaoManager({
               {/* Agency & CNPJ */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Órgão Contratante *</label>
+                  <label className="form-label" htmlFor="bidding-agency">Órgão Contratante *</label>
                   <input
+                    id="bidding-agency"
                     type="text"
                     required
                     className="form-input"
@@ -1412,8 +1434,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">CNPJ do Órgão</label>
+                  <label className="form-label" htmlFor="bidding-agency-cnpj">CNPJ do Órgão</label>
                   <input
+                    id="bidding-agency-cnpj"
                     type="text"
                     className="form-input"
                     placeholder="56.024.581/0001-56"
@@ -1425,8 +1448,9 @@ export default function LicitacaoManager({
 
               {/* Do Objeto */}
               <div className="form-group">
-                <label className="form-label">Do Objeto (Descrição dos Impressos / Serviços) *</label>
+                <label className="form-label" htmlFor="bidding-object">Do Objeto (Descrição dos Impressos / Serviços) *</label>
                 <textarea
+                  id="bidding-object"
                   required
                   className="form-input"
                   rows="3"
@@ -1439,8 +1463,9 @@ export default function LicitacaoManager({
               {/* Links do Edital (PNCP & Alerta Licitação) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Link do PNCP (Governo)</label>
+                  <label className="form-label" htmlFor="bidding-pncp-url">Link do PNCP (Governo)</label>
                   <input
+                    id="bidding-pncp-url"
                     type="url"
                     className="form-input"
                     placeholder="Ex: https://pncp.gov.br/app/editais/56024581000156/2026/374"
@@ -1450,8 +1475,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Link do Alerta Licitação</label>
+                  <label className="form-label" htmlFor="bidding-edital-url">Link do Alerta Licitação</label>
                   <input
+                    id="bidding-edital-url"
                     type="url"
                     className="form-input"
                     placeholder="Ex: https://alertalicitacao.com.br/!licitacao/PNCP-56024581000156-1-000374-2026"
@@ -1464,8 +1490,9 @@ export default function LicitacaoManager({
               {/* Value, Session Date & Time */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Valor Total / Referência (R$)</label>
+                  <label className="form-label" htmlFor="bidding-total-value">Valor Total / Referência (R$)</label>
                   <input
+                    id="bidding-total-value"
                     type="text"
                     className="form-input"
                     placeholder="Ex: 855.00"
@@ -1475,8 +1502,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Data da Sessão</label>
+                  <label className="form-label" htmlFor="bidding-session-date">Data da Sessão</label>
                   <input
+                    id="bidding-session-date"
                     type="date"
                     className="form-input"
                     value={formData.sessionDate}
@@ -1485,8 +1513,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Horário</label>
+                  <label className="form-label" htmlFor="bidding-session-time">Horário</label>
                   <input
+                    id="bidding-session-time"
                     type="time"
                     className="form-input"
                     value={formData.sessionTime}
@@ -1495,8 +1524,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Status da Licitação</label>
+                  <label className="form-label" htmlFor="bidding-status">Status da Licitação</label>
                   <select
+                    id="bidding-status"
                     className="form-select"
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -1515,8 +1545,9 @@ export default function LicitacaoManager({
               {/* CATSER & Platform */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">CATSER / CATMAT</label>
+                  <label className="form-label" htmlFor="bidding-catser">CATSER / CATMAT</label>
                   <input
+                    id="bidding-catser"
                     type="text"
                     className="form-input"
                     placeholder="Ex: 24180 - CONFECÇÃO DE IMPRESSOS EM GERAL"
@@ -1526,8 +1557,9 @@ export default function LicitacaoManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Plataforma ou Local</label>
+                  <label className="form-label" htmlFor="bidding-platform">Plataforma ou Local</label>
                   <input
+                    id="bidding-platform"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Compras.gov.br (Comprasnet), Licitações-e, PNCP, BLL"
@@ -1539,8 +1571,9 @@ export default function LicitacaoManager({
 
               {/* Delivery Address */}
               <div className="form-group">
-                <label className="form-label">Local de Entrega do Objeto</label>
+                <label className="form-label" htmlFor="bidding-delivery-address">Local de Entrega do Objeto</label>
                 <input
+                  id="bidding-delivery-address"
                   type="text"
                   className="form-input"
                   placeholder="Ex: Ribeirão Preto (SP)"
@@ -1551,8 +1584,9 @@ export default function LicitacaoManager({
 
               {/* Notes */}
               <div className="form-group">
-                <label className="form-label">Observações Técnicas / Edital</label>
+                <label className="form-label" htmlFor="bidding-notes">Observações Técnicas / Edital</label>
                 <textarea
+                  id="bidding-notes"
                   className="form-input"
                   rows="2"
                   placeholder="Ex: Exige amostras prévias, garantia de proposta de 5%, prazos de faturamento, etc."
@@ -1633,7 +1667,8 @@ export default function LicitacaoManager({
               </div>
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                aria-label="Fechar"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={20} />
               </button>
@@ -1698,10 +1733,11 @@ export default function LicitacaoManager({
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label className="form-label" htmlFor="bidding-import-edital" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <FileText size={14} color="var(--brand-yellow)" /> Número do Edital *
                     </label>
                     <input
+                      id="bidding-import-edital"
                       type="text"
                       className="form-input"
                       placeholder="Ex: Edital nº 179/2026 ou 179"
@@ -1715,10 +1751,11 @@ export default function LicitacaoManager({
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label className="form-label" htmlFor="bidding-import-uasg" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Building size={14} color="var(--brand-cyan)" /> Unidade Compradora / UASG *
                     </label>
                     <input
+                      id="bidding-import-uasg"
                       type="text"
                       className="form-input"
                       placeholder="Ex: 102174"
@@ -1941,6 +1978,17 @@ export default function LicitacaoManager({
           <span>{toastMessage}</span>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Excluir licitação"
+        message={deleteTarget ? `Tem certeza que deseja excluir "${deleteTarget.biddingNumber || deleteTarget.code}"? Essa ação não pode ser desfeita.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          onDeleteBidding(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
 
     </div>
   );

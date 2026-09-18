@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Sliders, Save, RotateCcw, Plus, Trash2, Layers, Cpu, Scissors, Download, Upload, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { downloadBackup, restoreBackup } from '../utils/storage';
-import { DEFAULT_FORMAT_MULTIPLIERS, DEFAULT_EDITORIAL_BINDING } from '../data/initialData';
+import { DEFAULT_FORMAT_MULTIPLIERS, DEFAULT_EDITORIAL_BINDING, DEFAULT_PAPER_BULK, DEFAULT_PAPER_BULK_FALLBACK } from '../data/initialData';
 
 // Rótulos legíveis para os formatos de folha editáveis (keys iguais às de DEFAULT_SHEET_SIZES)
 const FORMAT_MULTIPLIER_ROWS = [
@@ -412,8 +412,9 @@ export default function SettingsManager({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
             
             <div className="form-group">
-              <label className="form-label">Colorido Frente (4/0) - A4 (R$/Clique)</label>
+              <label className="form-label" htmlFor="settings-click-color-simplex">Colorido Frente (4/0) - A4 (R$/Clique)</label>
               <input
+                id="settings-click-color-simplex"
                 type="number"
                 step="0.01"
                 className="form-input"
@@ -424,8 +425,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Colorido Frente e Verso (4/4) - A4 (R$/Clique)</label>
+              <label className="form-label" htmlFor="settings-click-color-duplex">Colorido Frente e Verso (4/4) - A4 (R$/Clique)</label>
               <input
+                id="settings-click-color-duplex"
                 type="number"
                 step="0.01"
                 className="form-input"
@@ -437,8 +439,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">PB Frente (1/0) - A4 (R$/Clique)</label>
+              <label className="form-label" htmlFor="settings-click-mono-simplex">PB Frente (1/0) - A4 (R$/Clique)</label>
               <input
+                id="settings-click-mono-simplex"
                 type="number"
                 step="0.01"
                 className="form-input"
@@ -448,8 +451,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">PB Frente e Verso (1/1) - A4 (R$/Clique)</label>
+              <label className="form-label" htmlFor="settings-click-mono-duplex">PB Frente e Verso (1/1) - A4 (R$/Clique)</label>
               <input
+                id="settings-click-mono-duplex"
                 type="number"
                 step="0.01"
                 className="form-input"
@@ -460,8 +464,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Tinta Grande Formato (R$/m²)</label>
+              <label className="form-label" htmlFor="settings-large-format-tinta">Tinta Grande Formato (R$/m²)</label>
               <input
+                id="settings-large-format-tinta"
                 type="number"
                 step="1"
                 className="form-input"
@@ -590,6 +595,66 @@ export default function SettingsManager({
               </tbody>
             </table>
           </div>
+
+          {/* Bulk de papel (cm³/g) por família — usado no cálculo de lombada editorial */}
+          <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-color)', marginTop: '16px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px', color: 'var(--text-light)' }}>
+              📖 Bulk de Papel (cm³/g) — Espessura de Lombada
+            </div>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 10px' }}>
+              Usado para estimar a espessura do miolo (aba Digital → categoria Editorial) quando
+              a espessura não é informada diretamente. A família é reconhecida pelo nome do papel.
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                  <th style={{ padding: '6px' }}>Família de Papel</th>
+                  <th style={{ padding: '6px', width: '140px' }}>Bulk (cm³/g)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DEFAULT_PAPER_BULK.map(({ key, label, bulk }) => (
+                  <tr key={key} style={{ borderBottom: '1px solid var(--tint-hairline)' }}>
+                    <td style={{ padding: '6px', fontWeight: 600 }}>{label}</td>
+                    <td style={{ padding: '6px' }}>
+                      <input
+                        type="number"
+                        step="0.05"
+                        min="0"
+                        className="form-input"
+                        style={{ width: '110px' }}
+                        value={Number((digitalClickRates.paperBulk || {})[key] ?? bulk)}
+                        onChange={(e) => setDigitalClickRates({
+                          ...digitalClickRates,
+                          paperBulk: {
+                            ...(digitalClickRates.paperBulk || {}),
+                            [key]: parseFloat(e.target.value) || 0
+                          }
+                        })}
+                      />
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td style={{ padding: '6px', fontWeight: 600 }}>Padrão (papel não reconhecido)</td>
+                  <td style={{ padding: '6px' }}>
+                    <input
+                      type="number"
+                      step="0.05"
+                      min="0"
+                      className="form-input"
+                      style={{ width: '110px' }}
+                      value={Number(digitalClickRates.paperBulkFallback ?? DEFAULT_PAPER_BULK_FALLBACK)}
+                      onChange={(e) => setDigitalClickRates({
+                        ...digitalClickRates,
+                        paperBulkFallback: parseFloat(e.target.value) || 0
+                      })}
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -602,8 +667,9 @@ export default function SettingsManager({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             
             <div className="form-group">
-              <label className="form-label">Preço por Chapa CTP (R$)</label>
+              <label className="form-label" htmlFor="settings-ctp-plate-price">Preço por Chapa CTP (R$)</label>
               <input
+                id="settings-ctp-plate-price"
                 type="number"
                 step="1"
                 className="form-input"
@@ -613,8 +679,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Folhas de Acerto (Make-ready)</label>
+              <label className="form-label" htmlFor="settings-makeready-sheets">Folhas de Acerto (Make-ready)</label>
               <input
+                id="settings-makeready-sheets"
                 type="number"
                 step="10"
                 className="form-input"
@@ -624,8 +691,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Custo por 1.000 Giros (R$)</label>
+              <label className="form-label" htmlFor="settings-cost-per-thousand-turns">Custo por 1.000 Giros (R$)</label>
               <input
+                id="settings-cost-per-thousand-turns"
                 type="number"
                 step="1"
                 className="form-input"
@@ -635,8 +703,9 @@ export default function SettingsManager({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Taxa Mínima de Rodagem (R$)</label>
+              <label className="form-label" htmlFor="settings-min-turn-fee">Taxa Mínima de Rodagem (R$)</label>
               <input
+                id="settings-min-turn-fee"
                 type="number"
                 step="5"
                 className="form-input"

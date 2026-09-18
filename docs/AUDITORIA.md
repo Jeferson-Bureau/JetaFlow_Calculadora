@@ -39,7 +39,7 @@ Análise técnica da calculadora e desfecho das 8 recomendações priorizadas.
 | 7 | Proposta do histórico mostrava cálculo errado | Resolvido |
 | 8 | `allorigins.win` — proxy de terceiros para CNPJ | Resolvido — `fetchRazaoSocialByCnpj` usa rotas próprias `/api/cnpjws/*` e `/api/brasilapi/*` (proxy→direto), configuradas em `vercel.json`, `public/_redirects` e `vite.config.js` |
 | 9 | Acabamento `per_sheet_sra3` usa `grossSheets` no offset | Resolvido — em offset o acabamento por folha agora incide sobre a folha-máquina impressa (`grossSheets × cutsPerFullSheet`); digital/grande formato inalterados. Tabela Positiva mantém `grossSheets` (cotada por milheiro da folha inteira) |
-| 10 | Números de precificação fora do `SettingsManager` | Resolvido (parcial) — fatores de formato e tarifas de encadernação editorial viraram `DEFAULT_FORMAT_MULTIPLIERS` / `DEFAULT_EDITORIAL_BINDING` em `initialData.js`, persistidos em `digitalClickRates` e editáveis em *Insumos & Preços → Cliques Digitais*; a tabela de `bulk` de papel virou `DEFAULT_PAPER_BULK` (constante nomeada, ainda sem UI). Margens de garra do offset e defaults da tabela Positiva seguem no engine |
+| 10 | Números de precificação fora do `SettingsManager` | Resolvido — fatores de formato, tarifas de encadernação editorial e bulk de papel viraram `DEFAULT_FORMAT_MULTIPLIERS` / `DEFAULT_EDITORIAL_BINDING` / `DEFAULT_PAPER_BULK` em `initialData.js`, persistidos em `digitalClickRates` e editáveis em *Insumos & Preços → Cliques Digitais*. Margens de garra do offset e defaults da tabela Positiva seguem no engine (não editáveis via UI) |
 | 11 | `Header.jsx` copy-paste (270 linhas) | Resolvido |
 | 12 | `vite.config.js.timestamp-*.mjs` versionado | Resolvido |
 | 13 | Sem README | Resolvido |
@@ -60,10 +60,10 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
 
 ## Pendências fora das 8 prioridades
 
-- **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI.
-- **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir.
-- **Estilos majoritariamente inline e `<label>` sem `htmlFor`.** (Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado.)
-- **Dashboard é a aba inicial** e força o carregamento do `recharts` (~120 KB gzip) no primeiro acesso.
+- **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI. **Aberto.**
+- **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir. **Aberto.**
+- **Estilos majoritariamente inline.** Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado. `<label>` sem `htmlFor` — **Resolvido** (ver rodada abaixo); estilos inline em si seguem como estão (baixo risco, alto custo de refatorar sem sistema de design definido).
+- **Dashboard é a aba inicial** — **Resolvido** (ver rodada abaixo).
 
 ## Refinamentos posteriores
 
@@ -110,6 +110,31 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
     padding-bottom: 6mm }` (base, para o QR não colar na linha) — 4mm nos layouts
     compactos, ambos espelhados na prévia. Os `cardMm` dos layouts 1–4 foram reduzidos
     ~5 mm (281/134/87/64) para o conjunto + margens caber na folha.
+  - **Rodapé modernizado** — o número do VOLUME vira o elemento tipográfico dominante
+    da etiqueta: dígito principal em destaque (3,9 rem normal / 2,7 rem compacto,
+    peso 900) com o `/n` menor e acinzentado ao lado, em vez do antigo "1/3" num
+    tamanho só. "Neste volume" e "Lote total" também ampliados (2 rem / 1,5 rem,
+    algarismos tabulares) com o sufixo "un." reduzido junto ao número. Cabeçalho e
+    corpo ganharam mais respiro (`padding` maior nos layouts não compactos) e o nome
+    do destinatário e o texto do conteúdo/endereço subiram um ponto para reforçar a
+    hierarquia visual.
+  - **Correção: layout bagunçado com conteúdo real.** As fontes ampliadas do rodapé
+    somadas ao cabeçalho com NF (3 linhas) faziam o orçamento de altura dos layouts
+    compactos (3–4/folha) estourar com endereço completo + nome longo + descrição —
+    o bloco Conteúdo/Especificações sumia por completo (`flex:1; min-height:0`
+    encolhia a zero) e o texto de Endereço ficava cortado colado no rodapé seguinte.
+    Corrigido com: NF unificado na linha do PEDIDO (economiza uma linha no
+    cabeçalho); `.label-addr` com `max-height` travada nos compactos (12 mm — cabe
+    rua + cidade/CEP; telefone só aparece com folga, 1–2/folha); `.label-content`
+    com `min-height` garantido (7 mm compacto / 14 mm normal) em vez de `0`, então
+    nunca mais desaparece; paddings de cabeçalho/corpo/rodapé e o próprio
+    `padding-bottom` do cartão cortados mais um pouco nos compactos para abrir
+    espaço. Números do rodapé recuados de 3,9/2,7 rem para 3,4/2,1 rem (volume) e de
+    2/1,5 rem para 1,7/1,1 rem (quantidades) — ainda bem maiores que antes da
+    modernização, mas sem espremer o resto. Testado com nome de cliente longo,
+    endereço completo (rua + bairro + cidade/UF/CEP + telefone), descrição de 89
+    caracteres e observação, nos 4 layouts — sem sobreposição, corte de texto ou
+    página extra.
 
 ## Rodada de ajustes — itens 8, 9 e 10
 
@@ -160,7 +185,58 @@ Agora:
   (desperdício, papel ~2×); Industrial+66×96 → 66×96 inteira = 1/folha. `per_sheet_sra3` e
   Positiva batem com `grossSheets`. Digital/editorial inalterados.
 
+## Marcação por faixa de quantidade + aba de orçamentos unificada
+
+**Marcação (substitui o markup por divisor "por dentro"):**
+- `DEFAULT_MARKUP_TIERS` em `initialData.js` — `small` ≤ 100 (×2,5) · `medium` ≤ 500 (×2,0)
+  · `large` (×1,7). Entra em `DEFAULT_FINANCIAL_CONFIG.markupTiers`;
+  `calculationMethod: 'multiplier'`. `desiredProfitPercent` vira **meta/referência**.
+- `resolveMarkup(financialConfig, qty, override)` no engine escolhe a faixa por `qty` (ou
+  usa o `override` numérico do orçamento). `calculateBudget`:
+  `Preço de Venda = Custo Industrial × multiplicador`; imposto e comissão são deduzidos
+  e exibidos; **lucro líquido = resíduo** (`netProfitVal` / `netProfitPct`).
+  Novos campos em `costs`: `markupMultiplier`, `markupTier(Label)`, `markupTierMultiplier`,
+  `markupIsOverride`, `grossMarkupVal`, `netProfitVal`, `netProfitPct`
+  (`profitVal` mantido = `netProfitVal` para compat). `generateTierMatrix` roda cada
+  linha na sua própria faixa (ignora override).
+- `FinancialSummary`: input **Multiplicador de Marcação (×)** pré-preenchido pela faixa,
+  editável → grava `markupOverride` transitório (estado no `App.jsx`); link "usar valor
+  da faixa" limpa. Tabela editável das 3 faixas (limite + multiplicador). DRE novo
+  (CI × mult − imposto − comissão = lucro líquido). Matriz de tiragens ganha coluna
+  "Marcação". Verificado: qty 80/300/2000 → ×2,5/2,0/1,7.
+
+**Aba única "Orçamentos":**
+- `Header`: removidas as abas `offset` e `large_format`; `digital` → **"Orçamentos"**
+  (ícone `Calculator`).
+- `App.jsx`: estado `productionMode` (`digital|offset|large_format`) dirige `budgetConfig.mode`,
+  `productCategory` efetivo, `budgetEquipment` e o render do workspace. Novo
+  `ProductionModeSwitch.jsx` (seletor segmentado no topo). `goToQuote(mode)` para os
+  atalhos do Dashboard; `handleReopenQuoteInCalculator` e `handleSaveQuoteToHistory`
+  passam a considerar/gravar `quote.mode`.
+- Acabamentos, resumo financeiro e proposta continuam compartilhados entre os 3 modos.
+- "Produtos Personalizados" (`configurable`, motor `pricing.js`) intacto.
+
+## Rodada de ajustes — pendências fora das 8 prioridades
+
+- **Dashboard deixou de ser a aba inicial.** `activeTab` agora inicia em `'digital'`
+  (Orçamentos) — primeiro acesso não carrega mais o chunk do `recharts` (~120 KB gzip).
+  → `App.jsx`
+- **`DEFAULT_PAPER_BULK` ganhou UI editável.** Cada família de papel recebeu uma `key`
+  estável; `calculateSpineThickness` passa a aceitar uma tabela de bulk e um fallback
+  como parâmetros (em vez de importar a constante fixa). Novo helper
+  `resolvePaperBulkTable()` mescla overrides de `digitalClickRates.paperBulk` com os
+  defaults. Editor em *Insumos & Preços → Cliques Digitais* (mesmo padrão das tarifas de
+  encadernação): bulk por família + fallback para papel não reconhecido, persistidos em
+  `jetaflow_clicks`. → `initialData.js`, `calculatorEngine.js`, `SettingsManager.jsx`
+- **`<label>` sem `htmlFor` residual.** Revisão dos componentes restantes
+  (`DigitalCalculator`, `FinancialSummary`, `ProductConfigurator`, `QuoteGenerator`):
+  labels que eram cabeçalho de grupo (sem input único associado) viraram `<div
+  className="form-label">`; labels de campo único ganharam `id`/`htmlFor` pareados.
+  Labels que já envolvem o próprio input (checkbox, radio) foram deixados como estavam —
+  já são acessíveis sem `htmlFor`. Build de produção OK, smoke test em Chromium headless
+  sem erros de console.
+
 ## Arquivos novos nesta rodada
 
 `src/utils/storage.js` · `src/hooks/usePersistentState.js` · `src/components/ErrorBoundary.jsx` ·
-`vercel.json` · `public/_redirects` · `README.md`
+`src/components/ProductionModeSwitch.jsx` · `vercel.json` · `public/_redirects` · `README.md`

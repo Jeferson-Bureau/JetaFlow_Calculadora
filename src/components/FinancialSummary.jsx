@@ -6,6 +6,8 @@ export default function FinancialSummary({
   tierMatrix,
   financialConfig,
   setFinancialConfig,
+  markupOverride,
+  setMarkupOverride,
   onOpenQuoteModal,
   onSaveQuoteToHistory
 }) {
@@ -14,6 +16,20 @@ export default function FinancialSummary({
   const costs = budgetResult ? budgetResult.costs : {};
   const finishingsDetail = budgetResult ? budgetResult.finishingsDetail || [] : [];
   const qty = budgetResult.quantity || 1;
+
+  const tiers = financialConfig.markupTiers || {};
+  const markupMult = Number(markupOverride ?? costs.markupMultiplier ?? 2);
+  const isMarkupOverridden = markupOverride != null && Number(markupOverride) > 0;
+
+  const setTier = (key, field, value) => {
+    setFinancialConfig({
+      ...financialConfig,
+      markupTiers: {
+        ...tiers,
+        [key]: { ...(tiers[key] || {}), [field]: parseFloat(value) || 0 }
+      }
+    });
+  };
 
   const handleQuickSave = () => {
     if (!onSaveQuoteToHistory || !budgetResult) return;
@@ -133,16 +149,16 @@ export default function FinancialSummary({
             </div>
           </div>
 
-          {/* Lucro Bruto Previsto */}
+          {/* Lucro Líquido Previsto */}
           <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '12px', padding: '16px' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--success)', textTransform: 'uppercase' }}>
               Lucro Líquido Previsto
             </div>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '4px' }}>
-              R$ {Number(costs.profitVal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              R$ {Number(costs.netProfitVal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Margem líquida de {financialConfig.desiredProfitPercent}%
+              Margem líquida de {Number(costs.netProfitPct || 0).toFixed(1)}% · meta {financialConfig.desiredProfitPercent}%
             </div>
           </div>
 
@@ -341,30 +357,30 @@ export default function FinancialSummary({
               <span style={{ color: 'var(--brand-yellow)' }}>R$ {Number(costs.totalIndustrialCost || 0).toFixed(2)}</span>
             </div>
 
-            {/* DRE de Deduções do Preço Final (Por Dentro) */}
-            <div style={{ marginTop: '8px', background: 'rgba(0, 168, 232, 0.05)', borderRadius: '8px', padding: '10px 12px', border: '1px border-color' }}>
+            {/* Formação do Preço por Marcação */}
+            <div style={{ marginTop: '8px', background: 'rgba(0, 168, 232, 0.05)', borderRadius: '8px', padding: '10px 12px', border: '1px solid var(--border-color)' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-cyan)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Formação por Dentro (Divisor Markup {costs.effectiveDivisor}):
+                Marcação — {costs.markupTierLabel || 'faixa'}{costs.markupIsOverride ? ' (ajuste manual)' : ''}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                <span>+ Imposto ({costs.taxTypeName}):</span>
+                <span>Custo Industrial × <strong style={{ color: 'var(--brand-yellow)' }}>{Number(costs.markupMultiplier || 0).toFixed(3)}×</strong></span>
+                <span style={{ color: 'var(--text-strong)', fontWeight: 700 }}>R$ {Number(costs.finalPrice || 0).toFixed(2)}</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                <span>− Imposto ({costs.taxTypeName}):</span>
                 <span style={{ color: 'var(--brand-magenta)' }}>R$ {Number(costs.taxVal || 0).toFixed(2)}</span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                <span>+ Comissão de Venda ({financialConfig.salesCommissionPercent}%):</span>
+                <span>− Comissão de Venda ({financialConfig.salesCommissionPercent}%):</span>
                 <span>R$ {Number(costs.commissionVal || 0).toFixed(2)}</span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                <span>+ Lucro Líquido Real ({financialConfig.desiredProfitPercent}%):</span>
-                <span style={{ color: 'var(--success)' }}>R$ {Number(costs.profitVal || 0).toFixed(2)}</span>
-              </div>
-
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 800, color: 'var(--text-strong)', borderTop: '1px solid var(--border-color)', paddingTop: '6px', marginTop: '6px' }}>
-                <span>= Preço de Venda Final:</span>
-                <span style={{ color: 'var(--brand-cyan)' }}>R$ {Number(costs.finalPrice || 0).toFixed(2)}</span>
+                <span>= Lucro Líquido ({Number(costs.netProfitPct || 0).toFixed(1)}%):</span>
+                <span style={{ color: 'var(--success)' }}>R$ {Number(costs.netProfitVal || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -374,14 +390,14 @@ export default function FinancialSummary({
         <div className="glass-card" style={{ padding: '20px' }}>
           <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <TrendingUp size={18} color="var(--brand-yellow)" />
-            Regime Tributário & Divisor Markup
+            Marcação por Faixa & Regime Tributário
           </h4>
 
           {/* Seleção do Tipo de Nota / Tributação */}
           <div style={{ marginBottom: '16px' }}>
-            <label className="form-label" style={{ fontWeight: 700, color: 'var(--brand-cyan)' }}>
+            <div className="form-label" style={{ fontWeight: 700, color: 'var(--brand-cyan)' }}>
               Tipo de Nota / Segregação de Impostos:
-            </label>
+            </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '6px' }}>
               <button
@@ -437,12 +453,101 @@ export default function FinancialSummary({
             </div>
           </div>
 
+          {/* ── MARCAÇÃO POR FAIXA DE QUANTIDADE ── */}
+          <div style={{ marginBottom: '16px', background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '10px', padding: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+              <label className="form-label" htmlFor="markup-mult" style={{ fontWeight: 800, color: 'var(--brand-yellow)', margin: 0 }}>
+                Multiplicador de Marcação (×)
+              </label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                Faixa da tiragem: <strong style={{ color: 'var(--text-strong)' }}>{costs.markupTierLabel || '—'}</strong>
+                {' '}({(costs.markupTierMultiplier ?? 0).toFixed(2)}×)
+                {isMarkupOverridden && (
+                  <button
+                    type="button"
+                    onClick={() => setMarkupOverride(null)}
+                    style={{ marginLeft: '8px', background: 'transparent', border: 'none', color: 'var(--brand-cyan)', fontWeight: 700, fontSize: '0.72rem', cursor: 'pointer' }}
+                  >
+                    usar valor da faixa
+                  </button>
+                )}
+              </span>
+            </div>
+
+            <input
+              id="markup-mult"
+              type="number"
+              step="0.05"
+              min="1"
+              className="form-input"
+              style={{ fontWeight: 800, fontSize: '1.05rem', borderColor: isMarkupOverridden ? 'var(--brand-cyan)' : 'var(--brand-yellow)', maxWidth: '160px' }}
+              value={markupMult}
+              onChange={(e) => setMarkupOverride(parseFloat(e.target.value) || 0)}
+            />
+            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              {isMarkupOverridden
+                ? 'Ajuste manual deste orçamento — não altera a tabela.'
+                : 'Pré-preenchido pela faixa da quantidade. Edite para ajustar só este orçamento.'}
+            </span>
+
+            {/* Tabela de faixas (edita a política padrão) */}
+            <div style={{ marginTop: '12px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                <thead>
+                  <tr style={{ color: 'var(--text-muted)', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
+                    <th style={{ padding: '4px 6px' }}>Faixa</th>
+                    <th style={{ padding: '4px 6px' }}>Até (un)</th>
+                    <th style={{ padding: '4px 6px' }}>Multiplicador ×</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: 'small', label: 'Pequena' },
+                    { key: 'medium', label: 'Média' },
+                    { key: 'large', label: 'Grande' }
+                  ].map(({ key, label }) => (
+                    <tr key={key} style={{ borderBottom: '1px solid var(--tint-hairline)', background: costs.markupTier === key ? 'rgba(245, 158, 11, 0.12)' : 'transparent' }}>
+                      <td style={{ padding: '4px 6px', fontWeight: 700 }}>{label}</td>
+                      <td style={{ padding: '4px 6px' }}>
+                        {key === 'large' ? (
+                          <span style={{ color: 'var(--text-muted)' }}>acima da Média</span>
+                        ) : (
+                          <input
+                            type="number"
+                            step="10"
+                            min="1"
+                            className="form-input"
+                            style={{ width: '90px', padding: '4px 6px' }}
+                            value={Number(tiers[key]?.maxQty ?? 0)}
+                            onChange={(e) => setTier(key, 'maxQty', e.target.value)}
+                          />
+                        )}
+                      </td>
+                      <td style={{ padding: '4px 6px' }}>
+                        <input
+                          type="number"
+                          step="0.05"
+                          min="1"
+                          className="form-input"
+                          style={{ width: '80px', padding: '4px 6px', fontWeight: 700 }}
+                          value={Number(tiers[key]?.multiplier ?? 0)}
+                          onChange={(e) => setTier(key, 'multiplier', e.target.value)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Form Inputs com Alíquotas */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            
+
             <div className="form-group">
-              <label className="form-label">Alíquota Produto - Anexo II (%)</label>
+              <label className="form-label" htmlFor="fin-tax-product">Alíquota Produto - Anexo II (%)</label>
               <input
+                id="fin-tax-product"
                 type="number"
                 step="0.1"
                 className="form-input"
@@ -459,8 +564,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Alíquota Serviço - ISS (%)</label>
+              <label className="form-label" htmlFor="fin-tax-service">Alíquota Serviço - ISS (%)</label>
               <input
+                id="fin-tax-service"
                 type="number"
                 step="0.1"
                 className="form-input"
@@ -477,8 +583,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Perda Técnica (%)</label>
+              <label className="form-label" htmlFor="fin-technical-loss">Perda Técnica (%)</label>
               <input
+                id="fin-technical-loss"
                 type="number"
                 step="0.5"
                 className="form-input"
@@ -488,8 +595,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Custo Fixo Rateio (%)</label>
+              <label className="form-label" htmlFor="fin-fixed-overhead">Custo Fixo Rateio (%)</label>
               <input
+                id="fin-fixed-overhead"
                 type="number"
                 step="0.5"
                 className="form-input"
@@ -499,8 +607,9 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Comissão de Venda (%)</label>
+              <label className="form-label" htmlFor="fin-sales-commission">Comissão de Venda (%)</label>
               <input
+                id="fin-sales-commission"
                 type="number"
                 step="0.5"
                 className="form-input"
@@ -510,10 +619,11 @@ export default function FinancialSummary({
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--success)' }}>
-                Margem Lucro Líquido (%)
+              <label className="form-label" htmlFor="fin-desired-profit" style={{ color: 'var(--success)' }}>
+                Meta de Lucro Líquido (%)
               </label>
               <input
+                id="fin-desired-profit"
                 type="number"
                 step="1"
                 className="form-input"
@@ -521,11 +631,12 @@ export default function FinancialSummary({
                 value={financialConfig.desiredProfitPercent}
                 onChange={(e) => setFinancialConfig({ ...financialConfig, desiredProfitPercent: parseFloat(e.target.value) || 0 })}
               />
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>referência — resultante: {Number(costs.netProfitPct || 0).toFixed(1)}%</span>
             </div>
 
           </div>
 
-          {/* Resumo do Cálculo "Por Dentro" (Markup por Divisor) */}
+          {/* Metodologia: Marcação por Faixa */}
           <div style={{
             marginTop: '14px',
             background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))',
@@ -535,12 +646,12 @@ export default function FinancialSummary({
             fontSize: '0.8rem'
           }}>
             <div style={{ fontWeight: 700, color: 'var(--brand-cyan)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={14} /> Metodologia: Markup por Divisor ("Por Dentro")
+              <Sparkles size={14} /> Metodologia: Marcação por Faixa de Quantidade
             </div>
             <div style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              Fórmula: <code>Preço Final = Custo Industrial / Divisor Efetivo</code><br />
-              • Divisor Efetivo: <strong style={{ color: 'var(--text-strong)' }}>{costs.effectiveDivisor}</strong> <i>(100% - {costs.taxPct}% Imposto - {financialConfig.salesCommissionPercent}% Comis. - {financialConfig.desiredProfitPercent}% Lucro)</i><br />
-              • Multiplicador Equivalente: <strong style={{ color: 'var(--brand-yellow)' }}>{costs.markupMultiplier}x</strong> sobre Custo Industrial.
+              Fórmula: <code>Preço de Venda = Custo Industrial × Multiplicador</code><br />
+              • Multiplicador aplicado: <strong style={{ color: 'var(--brand-yellow)' }}>{Number(costs.markupMultiplier || 0).toFixed(3)}×</strong> ({costs.markupTierLabel}{costs.markupIsOverride ? ', ajuste manual' : ''})<br />
+              • Marcação bruta: <strong style={{ color: 'var(--text-strong)' }}>R$ {Number(costs.grossMarkupVal || 0).toFixed(2)}</strong> — dela saem {costs.taxPct}% de imposto e {financialConfig.salesCommissionPercent}% de comissão; o restante é lucro líquido ({Number(costs.netProfitPct || 0).toFixed(1)}%).
             </div>
           </div>
         </div>
@@ -559,10 +670,11 @@ export default function FinancialSummary({
             <thead>
               <tr style={{ background: 'var(--bg-input)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
                 <th style={{ padding: '10px 12px' }}>Quantidade</th>
+                <th style={{ padding: '10px 12px' }}>Marcação</th>
                 <th style={{ padding: '10px 12px' }}>Custo Industrial</th>
                 <th style={{ padding: '10px 12px' }}>Preço Total Venda</th>
                 <th style={{ padding: '10px 12px' }}>Preço Unitário</th>
-                <th style={{ padding: '10px 12px' }}>Lucro Gerado</th>
+                <th style={{ padding: '10px 12px' }}>Lucro Líquido</th>
               </tr>
             </thead>
             <tbody>
@@ -579,6 +691,9 @@ export default function FinancialSummary({
                   >
                     <td style={{ padding: '10px 12px', color: isCurrent ? 'var(--brand-cyan)' : 'var(--text-main)' }}>
                       {tier.qty.toLocaleString()} un {isCurrent ? '(Atual)' : ''}
+                    </td>
+                    <td style={{ padding: '10px 12px', color: 'var(--brand-yellow)', fontWeight: 700 }}>
+                      {Number(tier.markupMultiplier || 0).toFixed(2)}×
                     </td>
                     <td style={{ padding: '10px 12px' }}>
                       R$ {tier.totalIndustrialCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}

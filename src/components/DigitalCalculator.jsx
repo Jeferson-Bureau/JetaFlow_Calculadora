@@ -93,9 +93,9 @@ export default function DigitalCalculator({
           {/* VINCULAÇÃO DE CLIENTE AO ORÇAMENTO (CÓDIGO DO CLIENTE & NOME FANTASIA) */}
           <div className="form-group" style={{ background: 'rgba(16, 185, 129, 0.06)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-              <label className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
+              <div className="form-label" style={{ color: 'var(--success)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}>
                 <User size={18} /> Vinculação do Cliente (CRM)
-              </label>
+              </div>
 
               {selectedClientId ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -122,10 +122,11 @@ export default function DigitalCalculator({
               
               {/* Campo 1: Código do Cliente (Com auto-preenchimento e busca rápida) */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <label className="form-label" htmlFor="digital-client-code" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   Código do Cliente (Ex: CLI-A0001)
                 </label>
                 <input
+                  id="digital-client-code"
                   type="text"
                   className="form-input"
                   placeholder="Digite o código (ex: CLI-A0001)..."
@@ -147,10 +148,11 @@ export default function DigitalCalculator({
 
               {/* Campo 2: Nome Fantasia (Auto-preenchimento + Dropdown de Clientes) */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <label className="form-label" htmlFor="digital-client-tradename" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   Nome Fantasia do Cliente
                 </label>
                 <select
+                  id="digital-client-tradename"
                   className="form-select"
                   style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-strong)', background: 'var(--bg-input)', border: '1px solid rgba(16, 185, 129, 0.4)' }}
                   value={selectedClientId || ''}
@@ -185,10 +187,11 @@ export default function DigitalCalculator({
           {productCategory !== 'configurable' && (
             <>
               <div className="form-group" style={{ background: 'rgba(0, 168, 232, 0.06)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(0, 168, 232, 0.2)', marginBottom: '16px' }}>
-                <label className="form-label" style={{ color: 'var(--brand-cyan)' }}>
+                <label className="form-label" htmlFor="digital-equipment" style={{ color: 'var(--brand-cyan)' }}>
                   <Printer size={16} /> Impressora Digital Selecionada
                 </label>
             <select
+              id="digital-equipment"
               className="form-select"
               style={{ fontWeight: 700, fontSize: '0.95rem' }}
               value={selectedEquipmentId}
@@ -236,10 +239,11 @@ export default function DigitalCalculator({
         /* --- PRODUTO COMERCIAL / AVULSO --- */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label" htmlFor="digital-flat-paper">
               <Layers size={14} /> Substrato (Papel)
             </label>
             <select
+              id="digital-flat-paper"
               className="form-select"
               value={selectedPaperId}
               onChange={(e) => setSelectedPaperId(e.target.value)}
@@ -253,10 +257,11 @@ export default function DigitalCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label" htmlFor="digital-flat-sheet">
               <Box size={14} /> Formato da Folha de Impressão
             </label>
             <select
+              id="digital-flat-sheet"
               className="form-select"
               value={selectedSheetId}
               onChange={(e) => setSelectedSheetId(e.target.value)}
@@ -270,10 +275,11 @@ export default function DigitalCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label" htmlFor="digital-flat-colors">
               <Palette size={14} /> Cores de Impressão
             </label>
             <select
+              id="digital-flat-colors"
               className="form-select"
               value={colors}
               onChange={(e) => setColors(e.target.value)}
@@ -286,10 +292,11 @@ export default function DigitalCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label" htmlFor="digital-flat-qty">
               <Hash size={14} /> Tiragem / Quantidade
             </label>
             <input
+              id="digital-flat-qty"
               type="number"
               min="1"
               className="form-input"
@@ -303,10 +310,11 @@ export default function DigitalCalculator({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--brand-yellow)' }}>
+              <label className="form-label" htmlFor="digital-ed-pages" style={{ color: 'var(--brand-yellow)' }}>
                 <BookOpen size={14} /> Número de Páginas (Miolo)
               </label>
               <input
+                id="digital-ed-pages"
                 type="number"
                 step="4"
                 min="4"
@@ -318,10 +326,11 @@ export default function DigitalCalculator({
             </div>
 
             <div className="form-group">
-              <label className="form-label">
+              <label className="form-label" htmlFor="digital-ed-qty">
                 <Hash size={14} /> Tiragem de Exemplares
               </label>
               <input
+                id="digital-ed-qty"
                 type="number"
                 min="1"
                 className="form-input"
@@ -331,8 +340,9 @@ export default function DigitalCalculator({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Tipo de Encadernação</label>
+              <label className="form-label" htmlFor="digital-ed-binding">Tipo de Encadernação</label>
               <select
+                id="digital-ed-binding"
                 className="form-select"
                 value={editorial.bindingMethod}
                 onChange={(e) => setEditorial({ ...editorial, bindingMethod: e.target.value })}
@@ -347,8 +357,9 @@ export default function DigitalCalculator({
           {editorial.bindingMethod === 'lombada_quadrada' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '6px' }}>
               <div className="form-group">
-                <label className="form-label">Tipo de Cola / Processo</label>
+                <label className="form-label" htmlFor="digital-ed-glue">Tipo de Cola / Processo</label>
                 <select
+                  id="digital-ed-glue"
                   className="form-select"
                   value={editorial.glueType || 'hot_melt'}
                   onChange={(e) => setEditorial({ ...editorial, glueType: e.target.value })}
@@ -359,8 +370,9 @@ export default function DigitalCalculator({
               </div>
 
               <div className="form-group">
-                <label className="form-label">Bulk do Papel (cm³/g - Opcional)</label>
+                <label className="form-label" htmlFor="digital-ed-bulk">Bulk do Papel (cm³/g - Opcional)</label>
                 <input
+                  id="digital-ed-bulk"
                   type="number"
                   step="0.05"
                   placeholder="Ex: 1.5 (Pólen Soft)"
@@ -400,8 +412,9 @@ export default function DigitalCalculator({
                 1. Papel & Impressão do Miolo
               </h4>
               <div className="form-group">
-                <label className="form-label">Papel do Miolo</label>
+                <label className="form-label" htmlFor="digital-ed-miolo-paper">Papel do Miolo</label>
                 <select
+                  id="digital-ed-miolo-paper"
                   className="form-select"
                   value={editorial.mioloPaper.id || selectedPaperId}
                   onChange={(e) => {
@@ -416,8 +429,9 @@ export default function DigitalCalculator({
               </div>
 
               <div className="form-group">
-                <label className="form-label">Cores do Miolo</label>
+                <label className="form-label" htmlFor="digital-ed-miolo-colors">Cores do Miolo</label>
                 <select
+                  id="digital-ed-miolo-colors"
                   className="form-select"
                   value={editorial.mioloColors}
                   onChange={(e) => setEditorial({ ...editorial, mioloColors: e.target.value })}
@@ -434,8 +448,9 @@ export default function DigitalCalculator({
                 2. Papel & Capa Aberta
               </h4>
               <div className="form-group">
-                <label className="form-label">Papel da Capa</label>
+                <label className="form-label" htmlFor="digital-ed-cover-paper">Papel da Capa</label>
                 <select
+                  id="digital-ed-cover-paper"
                   className="form-select"
                   value={editorial.coverPaper.id || selectedPaperId}
                   onChange={(e) => {
@@ -451,8 +466,9 @@ export default function DigitalCalculator({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div className="form-group">
-                  <label className="form-label">Cores Capa</label>
+                  <label className="form-label" htmlFor="digital-ed-cover-colors">Cores Capa</label>
                   <select
+                    id="digital-ed-cover-colors"
                     className="form-select"
                     value={editorial.coverColors}
                     onChange={(e) => setEditorial({ ...editorial, coverColors: e.target.value })}
@@ -464,8 +480,9 @@ export default function DigitalCalculator({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Orelha/Flap (mm)</label>
+                  <label className="form-label" htmlFor="digital-ed-flap">Orelha/Flap (mm)</label>
                   <input
+                    id="digital-ed-flap"
                     type="number"
                     className="form-input"
                     value={editorial.flapW}
@@ -533,8 +550,9 @@ export default function DigitalCalculator({
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
           <div className="form-group">
-            <label className="form-label">Largura (mm)</label>
+            <label className="form-label" htmlFor="digital-closed-w">Largura (mm)</label>
             <input
+              id="digital-closed-w"
               type="number"
               className="form-input"
               value={productW}
@@ -543,8 +561,9 @@ export default function DigitalCalculator({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Altura (mm)</label>
+            <label className="form-label" htmlFor="digital-closed-h">Altura (mm)</label>
             <input
+              id="digital-closed-h"
               type="number"
               className="form-input"
               value={productH}

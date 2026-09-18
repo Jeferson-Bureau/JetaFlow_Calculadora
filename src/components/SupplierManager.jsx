@@ -21,6 +21,7 @@ import {
   Layers,
   Cpu
 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function SupplierManager({
   suppliers,
@@ -33,6 +34,7 @@ export default function SupplierManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -369,8 +371,13 @@ export default function SupplierManager({
                       <button
                         onClick={() => handleCopySupplier(supplier)}
                         title="Copiar dados do fornecedor"
+                        aria-label="Copiar dados do fornecedor"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-input)',
@@ -384,8 +391,13 @@ export default function SupplierManager({
                       <button
                         onClick={() => openEditSupplierModal(supplier)}
                         title="Editar fornecedor"
+                        aria-label="Editar fornecedor"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid var(--border-color)',
                           background: 'var(--bg-input)',
@@ -397,10 +409,15 @@ export default function SupplierManager({
                       </button>
 
                       <button
-                        onClick={() => onDeleteSupplier(supplier.id)}
+                        onClick={() => setDeleteTarget(supplier)}
                         title="Excluir fornecedor"
+                        aria-label="Excluir fornecedor"
                         style={{
-                          padding: '6px',
+                          minWidth: '44px',
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           borderRadius: '6px',
                           border: '1px solid rgba(239, 68, 68, 0.3)',
                           background: 'rgba(239, 68, 68, 0.1)',
@@ -528,7 +545,8 @@ export default function SupplierManager({
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                aria-label="Fechar"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={20} />
               </button>
@@ -539,8 +557,9 @@ export default function SupplierManager({
               {/* Category & Trade Name */}
               <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Categoria</label>
+                  <label className="form-label" htmlFor="supplier-category">Categoria</label>
                   <select
+                    id="supplier-category"
                     className="form-select"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -555,8 +574,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Nome Fantasia *</label>
+                  <label className="form-label" htmlFor="supplier-tradename">Nome Fantasia *</label>
                   <input
+                    id="supplier-tradename"
                     type="text"
                     required
                     className="form-input"
@@ -570,8 +590,9 @@ export default function SupplierManager({
               {/* Razão Social & CNPJ */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Razão Social Completa</label>
+                  <label className="form-label" htmlFor="supplier-name">Razão Social Completa</label>
                   <input
+                    id="supplier-name"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Battaglia Distribuidora de Papéis Ltda"
@@ -581,8 +602,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">CNPJ / CPF</label>
+                  <label className="form-label" htmlFor="supplier-doc">CNPJ / CPF</label>
                   <input
+                    id="supplier-doc"
                     type="text"
                     className="form-input"
                     placeholder="00.000.000/0001-00"
@@ -595,8 +617,9 @@ export default function SupplierManager({
               {/* IE & Phone */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Inscrição Estadual (I.E.)</label>
+                  <label className="form-label" htmlFor="supplier-ie">Inscrição Estadual (I.E.)</label>
                   <input
+                    id="supplier-ie"
                     type="text"
                     className="form-input"
                     placeholder="Isento ou Nº I.E."
@@ -606,8 +629,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Telefone / WhatsApp</label>
+                  <label className="form-label" htmlFor="supplier-phone">Telefone / WhatsApp</label>
                   <input
+                    id="supplier-phone"
                     type="text"
                     className="form-input"
                     placeholder="(44) 3333-4444"
@@ -617,8 +641,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Pessoa de Contato</label>
+                  <label className="form-label" htmlFor="supplier-contact-person">Pessoa de Contato</label>
                   <input
+                    id="supplier-contact-person"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Vendas / Roberto"
@@ -631,8 +656,9 @@ export default function SupplierManager({
               {/* Email & Website & Payment Terms */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">E-mail Comercial</label>
+                  <label className="form-label" htmlFor="supplier-email">E-mail Comercial</label>
                   <input
+                    id="supplier-email"
                     type="email"
                     className="form-input"
                     placeholder="vendas@fornecedor.com.br"
@@ -642,8 +668,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Site / Portal</label>
+                  <label className="form-label" htmlFor="supplier-website">Site / Portal</label>
                   <input
+                    id="supplier-website"
                     type="text"
                     className="form-input"
                     placeholder="www.fornecedor.com.br"
@@ -653,8 +680,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Condições de Pagamento</label>
+                  <label className="form-label" htmlFor="supplier-payment-terms">Condições de Pagamento</label>
                   <input
+                    id="supplier-payment-terms"
                     type="text"
                     className="form-input"
                     placeholder="Ex: Faturado 30/60 Dias"
@@ -667,8 +695,9 @@ export default function SupplierManager({
               {/* Address */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Logradouro / Rua</label>
+                  <label className="form-label" htmlFor="supplier-street">Logradouro / Rua</label>
                   <input
+                    id="supplier-street"
                     type="text"
                     className="form-input"
                     placeholder="Av. das Indústrias"
@@ -678,8 +707,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Cidade</label>
+                  <label className="form-label" htmlFor="supplier-city">Cidade</label>
                   <input
+                    id="supplier-city"
                     type="text"
                     className="form-input"
                     value={formData.city}
@@ -688,8 +718,9 @@ export default function SupplierManager({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">UF</label>
+                  <label className="form-label" htmlFor="supplier-state">UF</label>
                   <input
+                    id="supplier-state"
                     type="text"
                     className="form-input"
                     value={formData.state}
@@ -700,8 +731,9 @@ export default function SupplierManager({
 
               {/* Notes */}
               <div className="form-group">
-                <label className="form-label">Observações Técnicas / Comerciais</label>
+                <label className="form-label" htmlFor="supplier-notes">Observações Técnicas / Comerciais</label>
                 <textarea
+                  id="supplier-notes"
                   className="form-input"
                   rows="3"
                   placeholder="Ex: Prazos de entrega, limites de faturamento, frete cif/fob, etc."
@@ -749,6 +781,17 @@ export default function SupplierManager({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Excluir fornecedor"
+        message={deleteTarget ? `Tem certeza que deseja excluir "${deleteTarget.tradeName || deleteTarget.name}"? Essa ação não pode ser desfeita.` : ''}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          onDeleteSupplier(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
 
     </div>
   );

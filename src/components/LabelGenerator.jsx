@@ -244,13 +244,13 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
           border-bottom: 2px dotted rgba(0, 0, 0, 0.3) !important;
           border-radius: 0 !important;
           box-shadow: none !important;
-          padding-bottom: ${layout.compact ? '4mm' : '6mm'} !important;
+          padding-bottom: ${layout.compact ? '3mm' : '6mm'} !important;
         }
         .print-area .label-header { border-bottom: 1px solid rgba(0,0,0,0.5) !important; }
         .print-area .label-addr,
         .print-area .label-content { border: none !important; background: transparent !important; }
         .print-area .label-dest > div { border-bottom: none !important; }
-        .print-area .label-dest { border-bottom: 1px solid rgba(0,0,0,0.5) !important; padding-bottom: 4px !important; }
+        .print-area .label-dest { border-bottom: 1px solid rgba(0,0,0,0.5) !important; padding-bottom: 3px !important; }
         .print-area .label-addr { border-bottom: 1px solid rgba(0,0,0,0.5) !important; }
         .print-area .label-footer { border-top: 1px solid rgba(0,0,0,0.5) !important; }
 
@@ -298,7 +298,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             border: none !important;
             border-bottom: 2px dotted rgba(0, 0, 0, 0.3) !important;
             /* Respiro entre o conteúdo e a linha de corte de baixo. */
-            padding-bottom: ${layout.compact ? '4mm' : '6mm'} !important;
+            padding-bottom: ${layout.compact ? '3mm' : '6mm'} !important;
             background: #fff !important;
             color: #000 !important;
             border-radius: 0 !important;
@@ -316,13 +316,14 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             flex-shrink: 0 !important;
             border: none !important;
             border-bottom: 1px solid rgba(0,0,0,0.5) !important;
+            padding: ${layout.compact ? '4px 10px' : '6px 14px'} !important;
           }
           .label-card .label-addr,
           .label-card .label-content { border: none !important; background: #fff !important; }
           .label-card .label-dest > div { border: none !important; }
           .label-card .label-dest {
             border-bottom: 1px solid rgba(0,0,0,0.5) !important;
-            padding-bottom: 4px !important;
+            padding-bottom: 3px !important;
           }
           .label-card .label-addr { border-bottom: 1px solid rgba(0,0,0,0.5) !important; }
 
@@ -330,8 +331,8 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
             flex: 1 !important;
             display: flex !important;
             flex-direction: column !important;
-            padding: ${layout.compact ? '4px 10px' : '8px 14px'} !important;
-            gap: ${layout.compact ? '3px' : '5px'} !important;
+            padding: ${layout.compact ? '5px 10px' : '9px 14px'} !important;
+            gap: ${layout.compact ? '3px' : '6px'} !important;
             overflow: hidden !important;
             min-height: 0 !important;
           }
@@ -339,28 +340,17 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
           .label-card .label-footer {
             flex-shrink: 0 !important;
             border-top: 1px solid rgba(0,0,0,0.5) !important;
-            padding: ${layout.compact ? '3px 10px' : '5px 14px'} !important;
+            padding: ${layout.compact ? '3px 10px' : '8px 14px'} !important;
           }
 
           .label-dest { flex-shrink: 0 !important; }
 
-          .label-addr {
-            flex-shrink: 0 !important;
-            ${layout.compact ? 'font-size: 0.72rem !important;' : ''}
-          }
+          .label-addr { flex-shrink: 0 !important; }
 
           .label-content {
             flex: 1 !important;
             min-height: 0 !important;
             overflow: hidden !important;
-          }
-
-          .label-dest-name {
-            ${layout.compact ? 'font-size: 0.9rem !important;' : ''}
-          }
-
-          .vol-number {
-            ${layout.compact ? 'font-size: 1.9rem !important;' : ''}
           }
 
           body { background: #fff !important; }
@@ -605,7 +595,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                     onBlur={() => lookupCep(address.zip)}
                   />
                   {cepStatus.loading && (
-                    <Loader2 size={14} className="cep-spin" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--brand-cyan)' }} />
+                    <Loader2 size={14} className="cep-spin motion-essential" role="status" aria-label="Consultando CEP…" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--brand-cyan)' }} />
                   )}
                 </div>
                 {cepStatus.error && (
@@ -868,7 +858,7 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   borderBottom: FIELD_RULE,
-                  padding: '5px 12px',
+                  padding: layout.compact ? '4px 10px' : '6px 14px',
                   background: '#ffffff',
                   color: '#0f172a',
                   flexShrink: 0
@@ -884,11 +874,9 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                   />
 
                   <div style={{ textAlign: 'right', lineHeight: 1.2 }}>
-                    {notaFiscal && (
-                      <div style={{ fontSize: '0.62rem', color: '#475569' }}>NF: {notaFiscal}</div>
-                    )}
                     <div style={{ fontWeight: 900, fontSize: '0.9rem', letterSpacing: '0.5px', color: '#000' }}>
                       PEDIDO: {computedQuote.code}
+                      {notaFiscal && <span style={{ fontWeight: 700, color: '#475569' }}> · NF {notaFiscal}</span>}
                     </div>
                     <div style={{ fontSize: '0.62rem', color: '#475569' }}>{computedQuote.date}</div>
                   </div>
@@ -897,18 +885,18 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                 {/* ── CORPO ── */}
                 <div className="label-body" style={{
                   flex: 1,
-                  padding: '8px 12px',
+                  padding: layout.compact ? '5px 10px' : '9px 14px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '5px',
+                  gap: layout.compact ? '3px' : '6px',
                   minHeight: 0,
                   overflow: 'hidden'
                 }}>
 
                   {/* Destinatário */}
-                  <div className="label-dest" style={{ flexShrink: 0, paddingBottom: '4px', borderBottom: FIELD_RULE }}>
+                  <div className="label-dest" style={{ flexShrink: 0, paddingBottom: '3px', borderBottom: FIELD_RULE }}>
                     <div style={SEC_LABEL_STYLE}>Destinatário</div>
-                    <div className="label-dest-name" style={{ fontSize: '1rem', fontWeight: 900, lineHeight: 1.15, color: '#000' }}>
+                    <div className="label-dest-name" style={{ fontSize: layout.compact ? '0.92rem' : '1.05rem', fontWeight: 900, lineHeight: 1.15, color: '#000', letterSpacing: '-0.01em' }}>
                       {computedQuote.clientName}
                     </div>
                     {(computedQuote.clientDoc || address.contact) && (
@@ -919,14 +907,18 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                     )}
                   </div>
 
-                  {/* Endereço */}
+                  {/* Endereço — altura travada nos layouts compactos para nunca engolir
+                      o Conteúdo abaixo; o telefone (info de escritório, não do entregador)
+                      só aparece quando sobra folga (1–2 etiquetas por folha). */}
                   <div className="label-addr" style={{
                     flexShrink: 0,
-                    paddingBottom: '4px',
+                    paddingBottom: '3px',
                     borderBottom: FIELD_RULE,
-                    fontSize: '0.82rem',
-                    lineHeight: 1.4,
-                    color: '#0f172a'
+                    fontSize: layout.compact ? '0.72rem' : '0.86rem',
+                    lineHeight: layout.compact ? 1.3 : 1.42,
+                    color: '#0f172a',
+                    maxHeight: layout.compact ? '12mm' : 'none',
+                    overflow: layout.compact ? 'hidden' : 'visible'
                   }}>
                     <div style={SEC_LABEL_STYLE}>Endereço de Entrega</div>
                     {(address.street || address.city || address.zip || address.phone) ? (
@@ -943,51 +935,88 @@ export default function LabelGenerator({ quotes = [], clients = [] }) {
                             {address.zip && <span style={{ marginLeft: '8px' }}>CEP <strong>{address.zip}</strong></span>}
                           </div>
                         )}
-                        {address.phone && <div>Tel: <strong>{address.phone}</strong></div>}
+                        {address.phone && !layout.compact && <div>Tel: <strong>{address.phone}</strong></div>}
                       </>
                     ) : (
                       <div style={{ color: '#64748b', fontStyle: 'italic' }}>Endereço de entrega não informado</div>
                     )}
                   </div>
 
-                  {/* Conteúdo */}
-                  <div className="label-content" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                  {/* Conteúdo — altura mínima garantida: mesmo sob aperto, o rótulo e ao
+                      menos uma linha da descrição sempre ficam visíveis. */}
+                  <div className="label-content" style={{
+                    flex: 1,
+                    minHeight: layout.compact ? '7mm' : '14mm',
+                    overflow: 'hidden'
+                  }}>
                     <div style={SEC_LABEL_STYLE}>Conteúdo / Especificações</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.3, color: '#0f172a' }}>
+                    <div style={{ fontWeight: 700, fontSize: layout.compact ? '0.78rem' : '0.88rem', lineHeight: layout.compact ? 1.24 : 1.32, color: '#0f172a' }}>
                       {computedQuote.description}
                     </div>
                     {observacoes && (
-                      <div style={{ marginTop: '4px', fontSize: '0.74rem', fontWeight: 800, color: '#b91c1c' }}>
+                      <div style={{ marginTop: '3px', fontSize: layout.compact ? '0.66rem' : '0.74rem', fontWeight: 800, color: '#b91c1c' }}>
                         <span className="print-obs">⚠ {observacoes}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* ── RODAPÉ: Volume e Quantidades ── */}
+                {/* ── RODAPÉ: Volume e Quantidades — hierarquia grande, números em destaque ── */}
                 <div className="label-footer" style={{
                   flexShrink: 0,
                   borderTop: FIELD_RULE,
-                  padding: '5px 12px',
+                  padding: layout.compact ? '3px 10px' : '8px 14px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: '10px'
+                  gap: '12px'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-                    <span style={{ ...SEC_LABEL_STYLE, marginBottom: 0 }}>Volume</span>
-                    <span className="vol-number" style={{ fontSize: layout.compact ? '1.9rem' : '2.5rem', fontWeight: 400, lineHeight: 1, color: '#000' }}>
-                      <strong style={{ fontWeight: 900 }}>{i + 1}</strong>/{volumes}
+                  {/* Número do volume — o dado mais escaneado da etiqueta, maior elemento do rodapé */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1 }}>
+                    <span style={{ ...SEC_LABEL_STYLE, marginBottom: layout.compact ? '1px' : '3px' }}>Volume</span>
+                    <span
+                      className="vol-number"
+                      style={{
+                        fontSize: layout.compact ? '2.1rem' : '3.4rem',
+                        fontWeight: 900,
+                        lineHeight: 0.85,
+                        color: '#000',
+                        letterSpacing: '-0.03em',
+                        fontVariantNumeric: 'tabular-nums'
+                      }}
+                    >
+                      {i + 1}
+                      <span style={{ fontWeight: 700, color: '#64748b', fontSize: '0.42em' }}>/{volumes}</span>
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '18px', textAlign: 'right' }}>
+
+                  {/* Quantidades — deste volume e do lote, lado a lado, números grandes */}
+                  <div style={{ display: 'flex', gap: layout.compact ? '14px' : '22px', textAlign: 'right' }}>
                     <div>
-                      <div style={{ ...SEC_LABEL_STYLE, marginBottom: '1px', letterSpacing: '0.5px' }}>Qtd. neste volume</div>
-                      <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#000' }}>{volQty} un.</div>
+                      <div style={{ ...SEC_LABEL_STYLE, marginBottom: '1px', letterSpacing: '0.5px' }}>Neste volume</div>
+                      <div style={{
+                        fontSize: layout.compact ? '1.1rem' : '1.7rem',
+                        fontWeight: 900,
+                        color: '#000',
+                        lineHeight: 1,
+                        letterSpacing: '-0.02em',
+                        fontVariantNumeric: 'tabular-nums'
+                      }}>
+                        {volQty}<span style={{ fontSize: '0.42em', fontWeight: 700, color: '#475569', marginLeft: '3px' }}>un.</span>
+                      </div>
                     </div>
                     <div>
                       <div style={{ ...SEC_LABEL_STYLE, marginBottom: '1px', letterSpacing: '0.5px' }}>Lote total</div>
-                      <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#000' }}>{volSum} un.</div>
+                      <div style={{
+                        fontSize: layout.compact ? '1.1rem' : '1.7rem',
+                        fontWeight: 800,
+                        color: '#000',
+                        lineHeight: 1,
+                        letterSpacing: '-0.02em',
+                        fontVariantNumeric: 'tabular-nums'
+                      }}>
+                        {volSum}<span style={{ fontSize: '0.42em', fontWeight: 700, color: '#475569', marginLeft: '3px' }}>un.</span>
+                      </div>
                     </div>
                   </div>
                 </div>
