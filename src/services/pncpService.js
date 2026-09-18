@@ -5,7 +5,10 @@
 const PROXY_PNCP_URL = '/api/pncp';
 const DIRECT_PNCP_URL = 'https://pncp.gov.br/api/consulta';
 
-async function fetchFromPncp(endpoint, options = {}) {
+// `timeoutMs` vira um `AbortSignal.timeout()` NOVO por tentativa — um sinal já
+// criado dispara uma vez só, então reaproveitá-lo entre proxy e fallback direto
+// fazia o 2º fetch rejeitar na hora (sinal já abortado) sem sequer tentar a rede.
+async function fetchFromPncp(endpoint, { timeoutMs = 15000, ...fetchOptions } = {}) {
   const isBrowser = typeof window !== 'undefined';
   const urls = isBrowser
     ? [`${PROXY_PNCP_URL}${endpoint}`, `${DIRECT_PNCP_URL}${endpoint}`]
@@ -14,7 +17,7 @@ async function fetchFromPncp(endpoint, options = {}) {
   let lastError;
   for (const url of urls) {
     try {
-      const res = await fetch(url, options);
+      const res = await fetch(url, { ...fetchOptions, signal: AbortSignal.timeout(timeoutMs) });
       return res;
     } catch (err) {
       lastError = err;
@@ -116,7 +119,7 @@ export async function searchByPublication(filters = {}) {
   if (filters.cnpj) params.set('cnpj', filters.cnpj.replace(/[^0-9]/g, ''));
 
   const endpoint = `/v1/contratacoes/publicacao?${params.toString()}`;
-  const res = await fetchFromPncp(endpoint, { signal: AbortSignal.timeout(15000) });
+  const res = await fetchFromPncp(endpoint, { timeoutMs: 25000 });
 
   if (res.status === 204) return { data: [], totalRegistros: 0, totalPaginas: 0, numeroPagina: 1, empty: true };
   if (!res.ok) throw new Error(`PNCP API Error: ${res.status} ${res.statusText}`);
@@ -148,7 +151,7 @@ export async function searchOpenProposals(filters = {}) {
   if (filters.cnpj) params.set('cnpj', filters.cnpj.replace(/[^0-9]/g, ''));
 
   const endpoint = `/v1/contratacoes/proposta?${params.toString()}`;
-  const res = await fetchFromPncp(endpoint, { signal: AbortSignal.timeout(15000) });
+  const res = await fetchFromPncp(endpoint, { timeoutMs: 25000 });
 
   if (res.status === 204) return { data: [], totalRegistros: 0, totalPaginas: 0, numeroPagina: 1, empty: true };
   if (!res.ok) throw new Error(`PNCP API Error: ${res.status} ${res.statusText}`);
@@ -165,7 +168,7 @@ export async function searchOpenProposals(filters = {}) {
 export async function getContratacao(cnpj, ano, sequencial) {
   const cleanCnpj = cnpj.replace(/[^0-9]/g, '');
   const endpoint = `/v1/orgaos/${cleanCnpj}/compras/${ano}/${sequencial}`;
-  const res = await fetchFromPncp(endpoint, { signal: AbortSignal.timeout(15000) });
+  const res = await fetchFromPncp(endpoint, { timeoutMs: 25000 });
 
   if (res.status === 204) return null;
   if (!res.ok) throw new Error(`PNCP API Error: ${res.status} ${res.statusText}`);
@@ -378,7 +381,7 @@ export async function searchBiddingByUasgAndEdital(editalInput, uasgInput, anoIn
 
     try {
       const endpoint = `/v1/contratacoes/publicacao?${params.toString()}`;
-      const res = await fetchFromPncp(endpoint, { signal: AbortSignal.timeout(8000) });
+      const res = await fetchFromPncp(endpoint, { timeoutMs: 8000 });
       if (res.ok && res.status !== 204) {
         const json = await res.json();
         const items = json.data || [];
