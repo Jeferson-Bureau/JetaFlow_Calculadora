@@ -240,3 +240,17 @@ Agora:
 
 `src/utils/storage.js` · `src/hooks/usePersistentState.js` · `src/components/ErrorBoundary.jsx` ·
 `src/components/ProductionModeSwitch.jsx` · `vercel.json` · `public/_redirects` · `README.md`
+
+## Bug corrigido — fallback da busca PNCP nunca disparava
+
+`fetchFromPncp()` (`src/services/pncpService.js`) tentava o proxy (`/api/pncp/...`) e, se
+falhasse, caía para a URL direta (`https://pncp.gov.br/...`) — mas as duas tentativas
+reaproveitavam o **mesmo** `AbortSignal.timeout()`, criado uma única vez pelo chamador. Um
+`AbortSignal.timeout()` dispara uma vez só a partir da criação; quando a 1ª tentativa consumia
+o timeout inteiro (comum — a API pública do PNCP é lenta/instável), a 2ª chegava com o sinal
+já abortado e o `fetch` rejeitava na hora, sem nunca tentar a rede. Corrigido: cada tentativa
+do loop cria seu próprio `AbortSignal.timeout()` via um novo parâmetro `timeoutMs` (15s → 25s
+por tentativa). Verificado em Chromium headless: antes só 1 requisição aparecia na rede; depois,
+as 2 (proxy e direta) são efetivamente disparadas. A API do PNCP em si seguiu instável durante
+os testes (confirmado via `curl` direto, fora do app) — isso é externo, sem solução do nosso lado.
+Commit `0c823fa`.
