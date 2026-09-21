@@ -10,8 +10,10 @@ const DIRECT_PNCP_URL = 'https://pncp.gov.br/api/consulta';
 // fazia o 2º fetch rejeitar na hora (sinal já abortado) sem sequer tentar a rede.
 async function fetchOnce(endpoint, { timeoutMs, ...fetchOptions }) {
   const isBrowser = typeof window !== 'undefined';
+  // A API do PNCP libera CORS (access-control-allow-origin: *), então o navegador chama direto —
+  // o mesmo caminho do Swagger, que funciona. O proxy (Node) fica como reserva.
   const urls = isBrowser
-    ? [`${PROXY_PNCP_URL}${endpoint}`, `${DIRECT_PNCP_URL}${endpoint}`]
+    ? [`${DIRECT_PNCP_URL}${endpoint}`, `${PROXY_PNCP_URL}${endpoint}`]
     : [`${DIRECT_PNCP_URL}${endpoint}`];
 
   let lastError;
@@ -26,25 +28,18 @@ async function fetchOnce(endpoint, { timeoutMs, ...fetchOptions }) {
   throw lastError;
 }
 
-// O PNCP oscila com frequência (502/503/504 ou sem resposta). Repete a consulta
-// algumas vezes com espera crescente antes de desistir; erros do cliente (4xx) não repetem.
+// O PNCP oscila com frequência. Repete a consulta com espera crescente quando ele
+// responde 502/503/504; erros do cliente (4xx) e timeouts não repetem.
 const TRANSIENT_STATUS = new Set([502, 503, 504]);
 const RETRY_DELAYS_MS = [1500, 4000];
 
 async function fetchFromPncp(endpoint, { timeoutMs = 15000, ...fetchOptions } = {}) {
-  let lastError;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
     if (attempt > 0) await new Promise(r => setTimeout(r, RETRY_DELAYS_MS[attempt - 1]));
-    try {
-      const res = await fetchOnce(endpoint, { timeoutMs, ...fetchOptions });
-      if (!TRANSIENT_STATUS.has(res.status) || attempt === RETRY_DELAYS_MS.length) return res;
-      lastError = null;
-    } catch (err) {
-      lastError = err;
-      if (attempt === RETRY_DELAYS_MS.length) throw lastError;
-    }
+    // Sem try/catch de propósito: timeout já consumiu a espera toda e repetir deixaria o usuário minutos parado.
+    const res = await fetchOnce(endpoint, { timeoutMs, ...fetchOptions });
+    if (!TRANSIENT_STATUS.has(res.status) || attempt === RETRY_DELAYS_MS.length) return res;
   }
-  throw lastError;
 }
 
 // Erro HTTP da API: inclui a mensagem que o PNCP devolve no corpo (ex.: 422
