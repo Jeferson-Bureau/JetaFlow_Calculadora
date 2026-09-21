@@ -241,6 +241,21 @@ Agora:
 `src/utils/storage.js` · `src/hooks/usePersistentState.js` · `src/components/ErrorBoundary.jsx` ·
 `src/components/ProductionModeSwitch.jsx` · `vercel.json` · `public/_redirects` · `README.md`
 
+## Refinamento do módulo Licitações (`LicitacaoManager.jsx`)
+
+- **Código `LIC-A…` duplicava após exclusão** na importação via painel PNCP: o handler
+  calculava `biddings.length + 1` (mesmo bug já corrigido nos orçamentos). Agora usa
+  `generateNextBiddingCode` (deriva do maior código existente).
+- **Badge "SESSÃO HOJE/AMANHÃ" errava à noite:** comparava com `toISOString()` (UTC); no Brasil
+  o dia virava às 21h. Agora usa data local (`toLocalDateStr`).
+- **Estilos inválidos:** `justify` → `justifyContent` no cartão e na caixa de sessão (data à
+  esquerda, horário à direita, como pretendido).
+- **"Valor Total Estimado"** deixa de somar licitações canceladas/fracassadas.
+- Build de produção OK. Sem suíte de testes (pendência já registrada acima).
+- **Ideias não feitas (aguardam decisão):** ordenar cards por data de sessão; fechar modais com
+  Esc; trocar os `alert()` do import por toast; e-mail fixo do banner
+  (`jeferson.arte@gmail.com`) virar configuração.
+
 ## Bug corrigido — fallback da busca PNCP nunca disparava
 
 `fetchFromPncp()` (`src/services/pncpService.js`) tentava o proxy (`/api/pncp/...`) e, se
