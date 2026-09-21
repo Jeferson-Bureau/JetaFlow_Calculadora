@@ -376,13 +376,10 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--brand-yellow)', fontWeight: 700 }}>Atalhos Gráfica:</span>
             {[
-              { label: '🖨️ Impressão / Gráfica', term: 'impressão' },
-              { label: '📖 Cartilhas & Livros', term: 'cartilha' },
-              { label: '✉️ Envelopes & Pastas', term: 'envelope' },
-              { label: '🏷️ Banners & Adesivos', term: 'adesivo' },
-              { label: '📄 Blocos & Formulários', term: 'bloco' },
-              { label: '📦 Agendas & Cadernos', term: 'agenda' }
-            ].map(chip => {
+              'Impressão', 'Impressos', 'Embalagens Personalizadas', 'Diagramação', 'Editoração',
+              'Talonário', 'Blocos', 'Livro', 'Revista', 'Cartões', 'Fichas', 'Artefinalização',
+              'Pastas', 'Receituário', 'Adesivos', 'Ebook'
+            ].map(term => ({ label: term, term })).map(chip => {
               const isSelected = keyword.toLowerCase() === chip.term.toLowerCase();
               return (
                 <button
