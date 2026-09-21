@@ -132,6 +132,11 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           setIsLoading(false);
           return;
         }
+        if (!dataInicial || !dataFinal || dataInicial > dataFinal) {
+          setError('A Data Inicial deve ser anterior ou igual à Data Final.');
+          setIsLoading(false);
+          return;
+        }
         response = await searchByPublication({
           dataInicial,
           dataFinal,
@@ -155,6 +160,8 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
       console.error('PNCP Search Error:', err);
       if (err.name === 'TimeoutError' || err.message?.includes('timeout')) {
         setError('A API do PNCP não respondeu a tempo. Tente novamente em alguns instantes.');
+      } else if (/PNCP API Error: 5\d\d/.test(err.message || '')) {
+        setError('O PNCP está instável no momento (erro no servidor do governo). Tentamos várias vezes; aguarde alguns minutos e tente de novo.');
       } else {
         setError(`Erro ao consultar o PNCP: ${err.message}`);
       }
