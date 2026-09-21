@@ -30,6 +30,7 @@ import {
   Package
 } from 'lucide-react';
 import { KNOWN_PNCP_DATABASE } from '../data/initialData';
+import { generateNextBiddingCode } from '../utils/calculatorEngine';
 import { getContratacao, mapPncpToBidding, searchBiddingByUasgAndEdital } from '../services/pncpService';
 import PncpSearchPanel from './PncpSearchPanel';
 import ConfirmDialog from './ConfirmDialog';
@@ -407,17 +408,24 @@ export function parseBiddingEmailAlert(text = '') {
 
 
 
+// Data local em YYYY-MM-DD. `toISOString()` usa UTC e, no Brasil (UTC-3), vira o
+// dia às 21h — o badge "SESSÃO HOJE" passaria a marcar o dia seguinte à noite.
+function toLocalDateStr(d) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function getSessionBadge(sessionDateStr) {
 
   if (!sessionDateStr) return null;
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = toLocalDateStr(new Date());
   if (sessionDateStr === todayStr) {
     return { label: '🚨 SESSÃO HOJE', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.25)', border: 'rgba(239, 68, 68, 0.5)' };
   }
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const tomorrowStr = toLocalDateStr(tomorrow);
   if (sessionDateStr === tomorrowStr) {
     return { label: '⚠️ SESSÃO AMANHÃ', color: 'var(--brand-yellow)', bg: 'rgba(247, 181, 0, 0.25)', border: 'rgba(247, 181, 0, 0.5)' };
   }
@@ -469,8 +477,7 @@ export default function LicitacaoManager({
       return;
     }
 
-    const nextNum = biddings.length + 1;
-    const nextCode = `LIC-A${String(nextNum).padStart(4, '0')}`;
+    const nextCode = generateNextBiddingCode(biddings);
     const newBidding = {
       id: `lic-${Date.now()}`,
       code: nextCode,
@@ -770,7 +777,10 @@ export default function LicitacaoManager({
     return matchesSearch && matchesStatus;
   });
 
-  const totalEstimateValue = biddings.reduce((sum, b) => sum + (Number(b.totalValue) || 0), 0);
+  // Canceladas e fracassadas não representam oportunidade — ficam fora do total estimado.
+  const totalEstimateValue = biddings
+    .filter(b => b.status !== 'cancelada' && b.status !== 'fracassada')
+    .reduce((sum, b) => sum + (Number(b.totalValue) || 0), 0);
   const totalAgendadas = biddings.filter(b => b.status === 'agendada' || b.status === 'em_disputa').length;
   const totalVencedoras = biddings.filter(b => b.status === 'vencedora' || b.status === 'homologada').length;
 
@@ -1044,7 +1054,7 @@ export default function LicitacaoManager({
                   padding: '18px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   border: `1px solid ${stObj.border}`,
                   background: 'linear-gradient(135deg, var(--panel-grad-1), var(--panel-grad-2))'
                 }}
@@ -1177,7 +1187,7 @@ export default function LicitacaoManager({
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justify: 'space-between',
+                        justifyContent: 'space-between',
                         background: sBadge ? sBadge.bg : 'rgba(247, 181, 0, 0.08)',
                         border: `1px solid ${sBadge ? sBadge.border : 'rgba(247, 181, 0, 0.25)'}`,
                         borderRadius: '8px',
