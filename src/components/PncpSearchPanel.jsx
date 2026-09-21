@@ -30,6 +30,38 @@ import {
   formatCnpjForDisplay
 } from '../services/pncpService';
 
+const SHORTCUTS_STORAGE_KEY = 'jetaflow_pncp_atalhos';
+
+const DEFAULT_SHORTCUTS = [
+  { label: '🖨️ Impressão / Gráfica', term: 'impressão' },
+  { label: '📖 Cartilhas & Livros', term: 'cartilha' },
+  { label: '✉️ Envelopes & Pastas', term: 'envelope' },
+  { label: '🏷️ Banners & Adesivos', term: 'adesivo' },
+  { label: '📄 Blocos & Formulários', term: 'bloco' },
+  { label: '📦 Agendas & Cadernos', term: 'agenda' }
+];
+
+const loadShortcuts = () => {
+  try {
+    const raw = localStorage.getItem(SHORTCUTS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(parsed) && parsed.every(s => s && typeof s.label === 'string' && typeof s.term === 'string')) {
+      return parsed;
+    }
+  } catch { /* storage indisponível ou JSON inválido: usa o padrão */ }
+  return DEFAULT_SHORTCUTS;
+};
+
+const shortcutInputStyle = {
+  padding: '3px 6px',
+  borderRadius: '5px',
+  fontSize: '0.72rem',
+  border: '1px solid var(--border-color)',
+  background: 'var(--bg-input)',
+  color: 'var(--text-main)',
+  outline: 'none'
+};
+
 export default function PncpSearchPanel({ onImportBidding, onClose }) {
   // ── Search Filters ───────────────────────────────────────
   const defaults = getDefaultDateRange(7);
@@ -39,6 +71,20 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
   const [dataInicial, setDataInicial] = useState(defaults.dataInicial);
   const [dataFinal, setDataFinal] = useState(defaults.dataFinal);
   const [keyword, setKeyword] = useState('');
+
+  // ── Atalhos Gráfica (editáveis, persistidos no navegador) ─
+  const [shortcuts, setShortcuts] = useState(loadShortcuts);
+  const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
+
+  const saveShortcuts = (next) => {
+    setShortcuts(next);
+    try { localStorage.setItem(SHORTCUTS_STORAGE_KEY, JSON.stringify(next)); } catch { /* sem persistência */ }
+  };
+  const updateShortcut = (idx, field, value) =>
+    saveShortcuts(shortcuts.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
+  const removeShortcut = (idx) => saveShortcuts(shortcuts.filter((_, i) => i !== idx));
+  const addShortcut = () => saveShortcuts([...shortcuts, { label: '', term: '' }]);
+  const resetShortcuts = () => saveShortcuts(DEFAULT_SHORTCUTS);
 
   // ── Results State ────────────────────────────────────────
   const [results, setResults] = useState([]);
@@ -156,7 +202,8 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
     <div className="glass-card" style={{
       padding: '20px',
       border: '1px solid rgba(6, 182, 212, 0.4)',
-      background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.06), var(--panel-grad-1))'
+      // Base opaca: o gradiente é translúcido e o painel vive sobre o overlay escuro do modal
+      background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.06), var(--panel-grad-1)), var(--bg-card)'
     }}>
 
       {/* Header */}
@@ -375,18 +422,60 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'var(--tint-hairline)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--tint-hairline)' }}>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--brand-yellow)', fontWeight: 700 }}>Atalhos Gráfica:</span>
-            {[
-              { label: '🖨️ Impressão / Gráfica', term: 'impressão' },
-              { label: '📖 Cartilhas & Livros', term: 'cartilha' },
-              { label: '✉️ Envelopes & Pastas', term: 'envelope' },
-              { label: '🏷️ Banners & Adesivos', term: 'adesivo' },
-              { label: '📄 Blocos & Formulários', term: 'bloco' },
-              { label: '📦 Agendas & Cadernos', term: 'agenda' }
-            ].map(chip => {
+            {isEditingShortcuts ? (
+              <>
+                {shortcuts.map((chip, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      aria-label={`Nome do atalho ${idx + 1}`}
+                      placeholder="Nome"
+                      value={chip.label}
+                      onChange={(e) => updateShortcut(idx, 'label', e.target.value)}
+                      style={{ ...shortcutInputStyle, width: '150px' }}
+                    />
+                    <input
+                      type="text"
+                      aria-label={`Termo de busca do atalho ${idx + 1}`}
+                      placeholder="Termo"
+                      value={chip.term}
+                      onChange={(e) => updateShortcut(idx, 'term', e.target.value)}
+                      style={{ ...shortcutInputStyle, width: '100px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeShortcut(idx)}
+                      aria-label={`Remover atalho ${chip.label || idx + 1}`}
+                      style={{ ...shortcutInputStyle, color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)', cursor: 'pointer' }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={addShortcut} style={{ ...shortcutInputStyle, cursor: 'pointer', fontWeight: 700, color: 'var(--brand-cyan)' }}>
+                  + Adicionar
+                </button>
+                <button type="button" onClick={resetShortcuts} style={{ ...shortcutInputStyle, cursor: 'pointer', color: 'var(--text-muted)' }}>
+                  Restaurar padrão
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    saveShortcuts(shortcuts.filter(s => s.label.trim() && s.term.trim()));
+                    setIsEditingShortcuts(false);
+                  }}
+                  style={{ ...shortcutInputStyle, cursor: 'pointer', fontWeight: 800, color: 'var(--success)', border: '1px solid var(--success)' }}
+                >
+                  ✓ Concluir
+                </button>
+              </>
+            ) : (
+              <>
+            {shortcuts.map(chip => {
               const isSelected = keyword.toLowerCase() === chip.term.toLowerCase();
               return (
                 <button
-                  key={chip.term}
+                  key={chip.label + chip.term}
                   type="button"
                   onClick={() => handleKeywordChange(isSelected ? '' : chip.term)}
                   style={{
@@ -405,6 +494,16 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
                 </button>
               );
             })}
+                <button
+                  type="button"
+                  onClick={() => setIsEditingShortcuts(true)}
+                  title="Editar atalhos"
+                  style={{ ...shortcutInputStyle, cursor: 'pointer', fontWeight: 600, color: 'var(--text-muted)' }}
+                >
+                  ✏️ Editar
+                </button>
+              </>
+            )}
             {keyword && (
               <button
                 type="button"
