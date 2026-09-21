@@ -122,6 +122,11 @@ export default function PncpSearchPanel({ onImportBidding, onClose }) {
           setIsLoading(false);
           return;
         }
+        if (!dataInicial || !dataFinal || dataInicial > dataFinal) {
+          setError('A Data Inicial deve ser anterior ou igual à Data Final.');
+          setIsLoading(false);
+          return;
+        }
         response = await searchByPublication({
           dataInicial,
           dataFinal,

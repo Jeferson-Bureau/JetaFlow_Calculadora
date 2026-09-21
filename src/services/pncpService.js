@@ -26,6 +26,17 @@ async function fetchFromPncp(endpoint, { timeoutMs = 15000, ...fetchOptions } = 
   throw lastError;
 }
 
+// Erro HTTP da API: inclui a mensagem que o PNCP devolve no corpo (ex.: 422
+// "Data Inicial deve ser anterior ou igual à Data Final"), que é mais útil que o statusText.
+async function buildApiError(res) {
+  let detail = '';
+  try {
+    const body = await res.json();
+    detail = body?.message || '';
+  } catch { /* corpo ausente ou não-JSON */ }
+  return new Error(`PNCP API Error: ${res.status} ${res.statusText}${detail ? ` — ${detail}` : ''}`);
+}
+
 // ── Códigos de Modalidade ──────────────────────────────────
 export const MODALIDADES = [
   { id: 0,  label: 'Todas as Modalidades' },
@@ -122,7 +133,7 @@ export async function searchByPublication(filters = {}) {
   const res = await fetchFromPncp(endpoint, { timeoutMs: 25000 });
 
   if (res.status === 204) return { data: [], totalRegistros: 0, totalPaginas: 0, numeroPagina: 1, empty: true };
-  if (!res.ok) throw new Error(`PNCP API Error: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw await buildApiError(res);
 
   return res.json();
 }
@@ -154,7 +165,7 @@ export async function searchOpenProposals(filters = {}) {
   const res = await fetchFromPncp(endpoint, { timeoutMs: 25000 });
 
   if (res.status === 204) return { data: [], totalRegistros: 0, totalPaginas: 0, numeroPagina: 1, empty: true };
-  if (!res.ok) throw new Error(`PNCP API Error: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw await buildApiError(res);
 
   return res.json();
 }
@@ -171,7 +182,7 @@ export async function getContratacao(cnpj, ano, sequencial) {
   const res = await fetchFromPncp(endpoint, { timeoutMs: 25000 });
 
   if (res.status === 204) return null;
-  if (!res.ok) throw new Error(`PNCP API Error: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw await buildApiError(res);
 
   return res.json();
 }
