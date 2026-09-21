@@ -30,15 +30,25 @@ import {
   formatCnpjForDisplay
 } from '../services/pncpService';
 
-const SHORTCUTS_STORAGE_KEY = 'jetaflow_pncp_atalhos';
+const SHORTCUTS_STORAGE_KEY = 'jetaflow_pncp_atalhos_v2';
 
 const DEFAULT_SHORTCUTS = [
-  { label: '🖨️ Impressão / Gráfica', term: 'impressão' },
-  { label: '📖 Cartilhas & Livros', term: 'cartilha' },
-  { label: '✉️ Envelopes & Pastas', term: 'envelope' },
-  { label: '🏷️ Banners & Adesivos', term: 'adesivo' },
-  { label: '📄 Blocos & Formulários', term: 'bloco' },
-  { label: '📦 Agendas & Cadernos', term: 'agenda' }
+  { label: 'Impressão', term: 'Impressão' },
+  { label: 'Impressos', term: 'Impressos' },
+  { label: 'Embalagens Personalizadas', term: 'Embalagens Personalizadas' },
+  { label: 'Diagramação', term: 'Diagramação' },
+  { label: 'Editoração', term: 'Editoração' },
+  { label: 'Talonário', term: 'Talonário' },
+  { label: 'Blocos', term: 'Blocos' },
+  { label: 'Livro', term: 'Livro' },
+  { label: 'Revista', term: 'Revista' },
+  { label: 'Cartões', term: 'Cartões' },
+  { label: 'Fichas', term: 'Fichas' },
+  { label: 'Artefinalização', term: 'Artefinalização' },
+  { label: 'Pastas', term: 'Pastas' },
+  { label: 'Receituário', term: 'Receituário' },
+  { label: 'Adesivos', term: 'Adesivos' },
+  { label: 'Ebook', term: 'Ebook' }
 ];
 
 const loadShortcuts = () => {
