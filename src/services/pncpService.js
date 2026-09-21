@@ -10,8 +10,10 @@ const DIRECT_PNCP_URL = 'https://pncp.gov.br/api/consulta';
 // fazia o 2º fetch rejeitar na hora (sinal já abortado) sem sequer tentar a rede.
 async function fetchOnce(endpoint, { timeoutMs, ...fetchOptions }) {
   const isBrowser = typeof window !== 'undefined';
+  // A API do PNCP libera CORS (access-control-allow-origin: *), então o navegador chama direto —
+  // o mesmo caminho do Swagger, que funciona. O proxy (Node) fica como reserva.
   const urls = isBrowser
-    ? [`${PROXY_PNCP_URL}${endpoint}`, `${DIRECT_PNCP_URL}${endpoint}`]
+    ? [`${DIRECT_PNCP_URL}${endpoint}`, `${PROXY_PNCP_URL}${endpoint}`]
     : [`${DIRECT_PNCP_URL}${endpoint}`];
 
   let lastError;
