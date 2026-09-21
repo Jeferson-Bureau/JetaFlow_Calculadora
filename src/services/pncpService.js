@@ -50,7 +50,7 @@ async function buildApiError(res) {
     const body = await res.json();
     detail = body?.message || '';
   } catch { /* corpo ausente ou não-JSON */ }
-  return new Error(`PNCP API Error: ${res.status} ${res.statusText}${detail ? ` — ${detail}` : ''}`);
+  return new Error(`PNCP API Error: ${res.status} ${res.statusText}`.trim() + (detail ? ` — ${detail}` : ''));
 }
 
 // ── Códigos de Modalidade ──────────────────────────────────
