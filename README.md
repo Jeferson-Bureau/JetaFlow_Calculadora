@@ -20,6 +20,22 @@ npm run build    # gera dist/
 npm run preview  # serve o build localmente
 ```
 
+## Instalar como app de desktop (PWA)
+
+O app é um **PWA instalável**: o mesmo site (local ou online) pode virar um programa com
+ícone e janela próprios, sem instalador nem build separado.
+
+- **Chrome/Edge (desktop)**: abra o app, clique no ícone de instalar na barra de endereço
+  (ou menu ⋮ → "Instalar JetaFlow…"). Cria um atalho no desktop/menu Iniciar que abre em
+  janela própria, sem as abas do navegador.
+- **Funciona offline** para navegação entre abas/telas (o app em si fica em cache); as
+  consultas de licitações e CNPJ continuam exigindo internet, pois nunca são cacheadas.
+- **Instalado + online ao mesmo tempo**: é o mesmo deploy — instalar não substitui o acesso
+  pelo navegador normal (ex.: `jetaflow.vercel.app`), os dois funcionam em paralelo, sempre
+  na mesma origem, então **compartilham o mesmo `localStorage`** (mesmo perfil de navegador).
+- Ícones/manifest ficam em `public/icons/` (gerados de `JETAPRINT_LOGO_01_2026-01.jpg` via
+  `node scripts/gen-icons.cjs`) e a config do PWA (`VitePWA`) está em `vite.config.js`.
+
 ## Backup dos dados (importante)
 
 Todos os dados (clientes, fornecedores, licitações, orçamentos e tabelas de preços) vivem
