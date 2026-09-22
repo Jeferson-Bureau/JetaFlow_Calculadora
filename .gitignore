@@ -30,3 +30,6 @@ dist-ssr
 
 # Vite transient config bundle
 vite.config.js.timestamp-*
+
+.vercel
+.env*
