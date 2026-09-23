@@ -153,7 +153,7 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
   - Ambos persistidos junto de `jetaflow_clicks` e editáveis em *Cliques Digitais* (dois blocos
     novos: multiplicador por formato com preço efetivo ao vivo, e tarifas de encadernação).
   - `DEFAULT_PAPER_BULK` — a cadeia de `if/includes` do cálculo de lombada virou tabela
-    nomeada em `initialData.js` (mesma ordem de match). Sem editor de UI ainda.
+    nomeada em `initialData.js` (mesma ordem de match). Editor de UI adicionado depois (ver "Rodada de ajustes — pendências fora das 8 prioridades").
 ## Redesenho do módulo Off-set
 
 Antes: seletor "Formato de Folha Inteira (Compra)" + busca automática de melhor corte
@@ -429,3 +429,30 @@ Commit `0c823fa`.
 - Medido em Chromium headless em 360/390/768/1280 px, todas as 8 abas: rolagem horizontal da
   página 0 em todas (antes: 10 px em todas, 249 px em Insumos, 16 px no Dashboard/Orçamentos
   em 360 px). Tabelas largas continuam rolando dentro da própria caixa.
+
+## Rodada de ajustes — bugs encontrados na revisão
+
+Achados ao revisar o código depois do módulo Financeiro (não estavam registrados):
+
+1. **Dashboard contava errado as licitações.** Filtrava pelos status `vencida` e `em_analise`, que
+   não existem — os reais são `vencedora` e `em_disputa`. Vencedoras e em disputa ficavam fora do
+   gráfico, dos KPIs e da agenda. Novo `summarizeBiddings()` (`src/utils/summaries.js`) com as
+   mesmas regras da aba Licitações: em disputa = agendada + em_disputa; ganhas = vencedora +
+   homologada; pipeline sem canceladas/fracassadas. KPI renomeado para "Agendadas / Em Disputa".
+2. **"Salvar no Histórico" do resumo financeiro gravava dados fixos** (papel "Couché 150g",
+   medidas "Formato Personalizado") e sem `paperId/sheetId/productW/H/colors` — o "Recarregar"
+   do histórico não conseguia restaurar esses orçamentos. Agora o `App.jsx` monta o registro
+   com `buildQuoteFromCalculator()`: papel, formato, medidas, cores, acabamentos, valor unitário
+   e descrição por modo (digital / editorial com páginas / off-set / grande formato em metros).
+3. **Atalhos do PNCP fora do backup.** `jetaflow_pncp_atalhos_v2` virou
+   `STORAGE_KEYS.pncpShortcuts` (entra no backup). A restauração em modo "mesclar" passou a
+   comparar itens sem `id` pelo conteúdo — antes os duplicaria.
+
+Testes: `summaries.test.js` (8) e `storage.test.js` (4, com `localStorage` em memória) — suíte
+com 92. Verificado em Chromium headless: KPIs/pipeline/legenda do Dashboard, orçamento salvo
+com o papel escolhido e restaurado pelo "Recarregar", backup exportado com os atalhos.
+
+**Ainda em aberto (não escolhidos nesta rodada):** contraste dos filtros selecionados no tema
+claro (texto branco sobre fundo claro, 17 ocorrências em Licitações, Clientes, Fornecedores,
+Acabamentos, Insumos e resumo financeiro); margens de pinça do off-set e padrões da tabela
+Positiva editáveis; ESLint; testes de componentes.

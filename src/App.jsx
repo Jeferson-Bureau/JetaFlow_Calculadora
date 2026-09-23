@@ -24,6 +24,7 @@ import {
 } from './utils/calculatorEngine';
 import { STORAGE_KEYS, loadJSON, saveJSON } from './utils/storage';
 import { usePersistentState } from './hooks/usePersistentState';
+import { buildQuoteFromCalculator } from './utils/summaries';
 
 // Módulos carregados sob demanda (code-splitting por aba).
 const DashboardOverview = lazy(() => import('./components/DashboardOverview'));
@@ -456,6 +457,26 @@ export default function App() {
     return calculateBudget(budgetConfig);
   }, [budgetConfig]);
 
+  // "Salvar no Histórico" do resumo financeiro: grava o orçamento com os dados reais
+  // da calculadora (papel, formato, medidas, cores, acabamentos) — e com os ids que
+  // o "Recarregar" do histórico usa para restaurar a tela.
+  const handleSaveLiveQuote = () => {
+    handleSaveQuoteToHistory(buildQuoteFromCalculator({
+      mode: productionMode,
+      productCategory: effectiveProductCategory,
+      paper: selectedPaper,
+      sheet: selectedSheet,
+      productW,
+      productH,
+      colors,
+      quantity,
+      finishings: selectedFinishings,
+      editorial,
+      largeFormat,
+      budgetResult
+    }));
+  };
+
   const tierMatrix = useMemo(() => {
     const defaultTiers = [50, 100, 250, 500, 1000, 2500];
     if (!defaultTiers.includes(quantity)) {
@@ -711,7 +732,7 @@ export default function App() {
                       markupOverride={markupOverride}
                       setMarkupOverride={setMarkupOverride}
                       onOpenQuoteModal={openLiveProposal}
-                      onSaveQuoteToHistory={handleSaveQuoteToHistory}
+                      onSaveQuoteToHistory={handleSaveLiveQuote}
                     />
                   </>
                 )}

@@ -36,6 +36,7 @@ import {
   formatMonthBR,
   entryStatus
 } from '../utils/finance';
+import { summarizeBiddings } from '../utils/summaries';
 import {
   ResponsiveContainer,
   PieChart,
@@ -64,44 +65,15 @@ export default function DashboardOverview({
   setActiveTab,
   goToQuote = () => {}
 }) {
-  // ── 1. Estatísticas de Licitações ──
+  // ── 1. Estatísticas de Licitações (mesmos status da aba Licitações) ──
   const biddingStats = useMemo(() => {
-    const total = biddings.length;
-    const agendadas = biddings.filter(b => b.status === 'agendada');
-    const homologadas = biddings.filter(b => b.status === 'homologada' || b.status === 'vencida');
-    const emAnalise = biddings.filter(b => b.status === 'em_analise' || b.status === 'proposta_enviada');
-
-    const totalValueAll = biddings.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
-    const totalValueAgendadas = agendadas.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
-    const totalValueHomologadas = homologadas.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
-    const totalValueEmAnalise = emAnalise.reduce((acc, b) => acc + (Number(b.totalValue) || 0), 0);
-
-    // Próximas licitações ordenadas por data da sessão
-    const proximas = [...agendadas].sort((a, b) => {
-      const da = new Date(`${a.sessionDate || '9999-12-31'}T${a.sessionTime || '00:00'}`);
-      const db = new Date(`${b.sessionDate || '9999-12-31'}T${b.sessionTime || '00:00'}`);
-      return da - db;
-    }).slice(0, 4);
-
-    // Dados formatados para o gráfico de pizza de licitações
+    const st = summarizeBiddings(biddings);
     const pieData = [
-      { name: 'Agendadas (Disputa)', value: totalValueAgendadas, count: agendadas.length, color: '#8b5cf6' },
-      { name: 'Homologadas/Vencidas', value: totalValueHomologadas, count: homologadas.length, color: '#10b981' },
-      { name: 'Em Análise/Proposta', value: totalValueEmAnalise, count: emAnalise.length, color: '#00a8e8' }
+      { name: 'Agendadas / Em disputa', value: st.inDisputeValue, count: st.inDisputeCount, color: '#8b5cf6' },
+      { name: 'Vencedoras / Homologadas', value: st.wonValue, count: st.wonCount, color: '#10b981' },
+      { name: 'Propostas enviadas', value: st.proposalsValue, count: st.proposalsCount, color: '#00a8e8' }
     ].filter(item => item.value > 0 || item.count > 0);
-
-    return {
-      total,
-      agendadasCount: agendadas.length,
-      homologadasCount: homologadas.length,
-      emAnaliseCount: emAnalise.length,
-      totalValueAll,
-      totalValueAgendadas,
-      totalValueHomologadas,
-      totalValueEmAnalise,
-      proximas,
-      pieData
-    };
+    return { ...st, pieData };
   }, [biddings]);
 
   // ── 1b. Financeiro ──
@@ -404,10 +376,10 @@ export default function DashboardOverview({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase' }}>
-                Licitações Agendadas
+                Agendadas / Em Disputa
               </span>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '6px' }}>
-                {biddingStats.agendadasCount}
+                {biddingStats.inDisputeCount}
               </div>
             </div>
             <div style={{ background: 'rgba(139, 92, 246, 0.15)', padding: '10px', borderRadius: '12px', color: '#8b5cf6' }}>
@@ -416,7 +388,7 @@ export default function DashboardOverview({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', fontSize: '0.78rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
             <span>Valor em disputa:</span>
-            <strong style={{ color: '#a78bfa' }}>{formatCurrency(biddingStats.totalValueAgendadas)}</strong>
+            <strong style={{ color: '#a78bfa' }}>{formatCurrency(biddingStats.inDisputeValue)}</strong>
           </div>
         </button>
 
@@ -433,7 +405,7 @@ export default function DashboardOverview({
                 Pipeline Total Licitações
               </span>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-strong)', marginTop: '6px' }}>
-                {formatCurrency(biddingStats.totalValueAll)}
+                {formatCurrency(biddingStats.pipelineValue)}
               </div>
             </div>
             <div style={{ background: 'rgba(0, 168, 232, 0.15)', padding: '10px', borderRadius: '12px', color: 'var(--brand-cyan)' }}>
@@ -602,13 +574,13 @@ export default function DashboardOverview({
             </button>
           </div>
 
-          {biddingStats.proximas.length === 0 ? (
+          {biddingStats.upcoming.length === 0 ? (
             <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               Nenhuma licitação com sessão pendente agendada no momento.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {biddingStats.proximas.map((lic) => {
+              {biddingStats.upcoming.map((lic) => {
                 const isUrgent = lic.sessionDate === new Date().toISOString().split('T')[0];
                 const daysLeft = lic.sessionDate ? (() => {
                   const targetDate = new Date(lic.sessionDate + 'T00:00:00');

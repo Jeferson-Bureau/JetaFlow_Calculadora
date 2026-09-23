@@ -29,8 +29,10 @@ import {
   getDefaultDateRange,
   formatCnpjForDisplay
 } from '../services/pncpService';
+import { STORAGE_KEYS } from '../utils/storage';
 
-const SHORTCUTS_STORAGE_KEY = 'jetaflow_pncp_atalhos_v2';
+// Chave em STORAGE_KEYS para entrar no backup (Insumos & Preços → Backup).
+const SHORTCUTS_STORAGE_KEY = STORAGE_KEYS.pncpShortcuts;
 
 const DEFAULT_SHORTCUTS = [
   { label: 'Impressão', term: 'Impressão' },

@@ -14,7 +14,8 @@ export const STORAGE_KEYS = {
   biddings: 'jetaflow_biddings_v3',
   biddingAlertEmail: 'jetaflow_bidding_alert_email',
   finance: 'jetaflow_finance_v1',
-  financeSettings: 'jetaflow_finance_settings'
+  financeSettings: 'jetaflow_finance_settings',
+  pncpShortcuts: 'jetaflow_pncp_atalhos_v2'
 };
 
 // Chaves que compõem um backup completo. Inclui variações antigas para
@@ -127,8 +128,10 @@ export function restoreBackup(parsed, { merge = false } = {}) {
       const current = loadJSON(key, []);
       const byId = new Map();
       const all = [...(Array.isArray(current) ? current : []), ...incoming];
-      all.forEach((item, idx) => {
-        const id = item && item.id != null ? item.id : `__idx_${idx}`;
+      // Itens sem `id` (ex.: atalhos do PNCP) são comparados pelo conteúdo, para
+      // não duplicar o que já existe ao mesclar.
+      all.forEach((item) => {
+        const id = item && item.id != null ? `id:${item.id}` : `json:${JSON.stringify(item)}`;
         byId.set(id, item);
       });
       saveJSON(key, Array.from(byId.values()));
