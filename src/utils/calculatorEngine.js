@@ -48,6 +48,16 @@ export function resolveMarkup(financialConfig = {}, qty = 1, override = null) {
 }
 
 /**
+ * Percentual configurado, com o padrão só quando o campo está vazio ou inválido.
+ * `|| padrão` transformava um 0% configurado de propósito no valor padrão.
+ */
+function pctOr(value, fallback) {
+  if (value === null || value === undefined || value === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+/**
  * Multiplicador de custo de clique conforme o formato da folha impressa.
  * Usa a tabela vinda das configurações (digitalClickRates.formatMultipliers) e,
  * na ausência dela, os defaults de `initialData`.
@@ -261,6 +271,12 @@ export function calculateBudget(config) {
 
   const formatRatio = sheetSize.formatRatio || 4;
 
+  // Perda técnica: aplicada UMA vez. Onde a produção conta folhas com sobra
+  // (digital, editorial, multi-componentes) ela entra como folhas extras; nos
+  // demais modos (off-set, que já tem o acerto, e grande formato) entra no DRE.
+  const techLossPct = pctOr(financialConfig.technicalLossPercent, 5);
+  let lossInSheets = false;
+
   // ── SUPORTE A PRODUTOS MULTI-COMPONENTES (ex: Calendário de Mesa, Kits, Caixas Multi-Papel) ──
   if (config.components && Array.isArray(config.components) && config.components.length > 0) {
     let accumPaperCost = 0;
@@ -286,8 +302,7 @@ export function calculateBudget(config) {
       );
       const compNup = Math.max(1, compLayout.nUp);
       const compReqSheets = Math.ceil(compQty / compNup);
-      const techLossPct = Number(financialConfig.technicalLossPercent || 5) / 100;
-      const compGrossSheets = Math.ceil(compReqSheets * (1 + techLossPct));
+      const compGrossSheets = Math.ceil(compReqSheets * (1 + techLossPct / 100));
 
       const compRatio = compSheetSize.formatRatio || 4;
       const compRemaSheets = Math.ceil(compGrossSheets / compRatio);
@@ -318,6 +333,7 @@ export function calculateBudget(config) {
     requiredSheets = accumReqSheets;
     remaFullSheets = accumRemaSheets;
     totalRefiledPieces = qty;
+    lossInSheets = true;
     layout = calculateSheetLayout(sheetSize.printableW || 310, sheetSize.printableH || 440, productW, productH, bleed);
   } else if (mode === 'large_format') {
 
@@ -352,8 +368,7 @@ export function calculateBudget(config) {
     const coverLayout = calculateSheetLayout(sheetSize.printableW || 310, sheetSize.printableH || 440, flatCoverW, flatCoverH, bleed);
     const coverNup = Math.max(1, coverLayout.nUp);
     const reqCoverSheets = Math.ceil(qty / coverNup);
-    const techLossPct = Number(financialConfig.technicalLossPercent || 5) / 100;
-    const grossCoverSheets = Math.ceil(reqCoverSheets * (1 + techLossPct));
+    const grossCoverSheets = Math.ceil(reqCoverSheets * (1 + techLossPct / 100));
 
     const coverPaperPrice = Number(coverPaper.pricePerSheetSra3 || 0.70);
     const coverPaperCost = grossCoverSheets * coverPaperPrice;
@@ -375,7 +390,7 @@ export function calculateBudget(config) {
     const pagesPerSheet = 2 * mioloNup;
     const sheetsPerBook = Math.ceil(pages / pagesPerSheet);
     const reqMioloSheets = sheetsPerBook * qty;
-    const grossMioloSheets = Math.ceil(reqMioloSheets * (1 + techLossPct));
+    const grossMioloSheets = Math.ceil(reqMioloSheets * (1 + techLossPct / 100));
 
     const mioloPaperPrice = Number(mioloPaper.pricePerSheetSra3 || 0.35);
     const mioloPaperCost = grossMioloSheets * mioloPaperPrice;
@@ -405,13 +420,14 @@ export function calculateBudget(config) {
     remaFullSheets = Math.ceil(grossSheets / formatRatio);
     totalRefiledPieces = qty;
     layout = coverLayout;
+    lossInSheets = true;
 
   } else if (mode === 'digital') {
     layout = calculateSheetLayout(sheetSize.printableW || 310, sheetSize.printableH || 440, productW, productH, bleed);
     const nUp = Math.max(1, layout.nUp);
     requiredSheets = Math.ceil(qty / nUp);
-    const techLossPct = Number(financialConfig.technicalLossPercent || 5) / 100;
-    grossSheets = Math.ceil(requiredSheets * (1 + techLossPct));
+    grossSheets = Math.ceil(requiredSheets * (1 + techLossPct / 100));
+    lossInSheets = true;
 
     remaFullSheets = Math.ceil(grossSheets / formatRatio);
     totalRefiledPieces = grossSheets * nUp;
@@ -537,8 +553,7 @@ export function calculateBudget(config) {
   // --- 3. FINANCIAL DRE & PRICING (Markup por Divisor "Por Dentro") ---
   const directCost = paperCost + printCost + finishingsCost;
 
-  const techLossPct = Number(financialConfig.technicalLossPercent || 5);
-  const fixedOverheadPct = Number(financialConfig.fixedOverheadPercent || 12);
+  const fixedOverheadPct = pctOr(financialConfig.fixedOverheadPercent, 12);
   
   // Resolução de Impostos: Produto (3%), Serviço (6%) ou Custom
   const taxType = financialConfig.taxType || 'product';
@@ -556,10 +571,10 @@ export function calculateBudget(config) {
     taxTypeName = `Personalizado (${taxPct}%)`;
   }
 
-  const commissionPct = Number(financialConfig.salesCommissionPercent || 5);
-  const profitTargetPct = Number(financialConfig.desiredProfitPercent || 30); // meta/referência
+  const commissionPct = pctOr(financialConfig.salesCommissionPercent, 5);
+  const profitTargetPct = pctOr(financialConfig.desiredProfitPercent, 30); // meta/referência
 
-  const techLossVal = directCost * (techLossPct / 100);
+  const techLossVal = lossInSheets ? 0 : directCost * (techLossPct / 100);
   const baseCost = directCost + techLossVal;
   const fixedOverheadVal = baseCost * (fixedOverheadPct / 100);
   const totalIndustrialCost = baseCost + fixedOverheadVal;
@@ -596,6 +611,9 @@ export function calculateBudget(config) {
       clickRate: typeof clickRate !== 'undefined' ? Math.round(clickRate * 1000) / 1000 : 0,
       formatFactor: typeof formatFactor !== 'undefined' ? formatFactor : 1.0,
       techLossVal: Math.round(techLossVal * 100) / 100,
+      techLossPct,
+      techLossInSheets: lossInSheets,
+      fixedOverheadPct,
       fixedOverheadVal: Math.round(fixedOverheadVal * 100) / 100,
       totalIndustrialCost: Math.round(totalIndustrialCost * 100) / 100,
       taxType,

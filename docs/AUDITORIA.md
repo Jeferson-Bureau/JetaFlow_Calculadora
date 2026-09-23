@@ -330,8 +330,22 @@ Commit `0c823fa`.
 - **Bug encontrado e corrigido:** `generateSequentialCode` comparava só o número. Depois da
   virada `…-A9999 → …-B0001`, o maior continuava sendo A9999 e o próximo código gerado era
   `B0001` de novo (duplicado). Agora a letra entra na comparação.
-- **Observações, sem alteração (aguardam decisão):**
-  - Perda técnica contada duas vezes: o digital/editorial já soma 5% de folhas extras, e o DRE
-    aplica mais 5% de "perda técnica" sobre o custo direto.
-  - `technicalLossPercent`, `fixedOverheadPercent` e `salesCommissionPercent` usam `|| padrão`:
-    configurar **0%** vira 5% / 12% / 5%. Não dá para zerar comissão ou custo fixo.
+- **Observações** (perda técnica dupla; 0% virando o padrão) — **Resolvidas**, ver a rodada
+  abaixo.
+
+## Perda técnica uma vez só e 0% valendo
+
+- **Perda técnica aplicada uma única vez.** Antes, digital/editorial/multi-componentes somavam
+  5% de folhas extras **e** mais 5% sobre o custo direto no DRE. Agora: onde a produção conta
+  folhas com sobra (digital, editorial, multi-componentes) a perda fica **só nas folhas** e o
+  DRE mostra "já nas folhas"; off-set (que tem o acerto, sem % de sobra) e grande formato
+  seguem com a perda **só no DRE**. Efeito: orçamentos digitais/editoriais ~5% mais baratos
+  (ex.: cartão 90×50, 1000 un: R$ 108,09 → R$ 102,94); off-set e grande formato inalterados.
+  Orçamentos já salvos no histórico guardam o valor da época e não mudam.
+- **0% passa a valer.** Novo helper `pctOr()` no engine: perda técnica, custo fixo, comissão e
+  meta de lucro só caem no padrão quando o campo está vazio/inválido (antes `|| padrão`
+  transformava 0 em 5% / 12% / 5%). O imposto já tratava 0 corretamente.
+- `costs` ganhou `techLossPct`, `techLossInSheets` e `fixedOverheadPct`; o DRE do
+  `FinancialSummary` exibe os percentuais efetivos do engine (não os crus da configuração).
+- `npm test`: 52 testes (6 novos para 0% e para onde a perda entra). Conferido no navegador:
+  digital "já nas folhas", off-set com o valor da perda, 0% → R$ 0,00, sem erros de console.

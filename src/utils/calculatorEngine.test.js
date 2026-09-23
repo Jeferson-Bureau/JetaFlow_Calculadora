@@ -121,8 +121,8 @@ describe('calculateBudget — digital', () => {
   // Conta feita à mão:
   //   24 por folha → ceil(1000/24) = 42 folhas + 5% perda = ceil(44,1) = 45 folhas
   //   papel 45 × 0,50 = 22,50 · clique 0,305 × 2,3 (SRA3) = 0,7015 → 45 × 0,7015 = 31,5675
-  //   custo direto 54,0675 · +5% perda = 56,770875 · +12% custo fixo = 63,58338 (CI)
-  //   1000 un → faixa large ×1,7 → 108,091746
+  //   custo direto 54,0675 · perda já nas folhas (não soma de novo no DRE)
+  //   +12% custo fixo = 60,5556 (CI) · 1000 un → faixa large ×1,7 → 102,94452
   const r = calculateBudget(digitalCard());
 
   it('folhas e aproveitamento', () => {
@@ -141,15 +141,18 @@ describe('calculateBudget — digital', () => {
   });
 
   it('custo industrial, preço e DRE', () => {
-    expect(r.costs.totalIndustrialCost).toBe(63.58);
+    expect(r.costs.techLossInSheets).toBe(true);
+    expect(r.costs.techLossVal).toBe(0);
+    expect(r.costs.fixedOverheadVal).toBe(6.49);
+    expect(r.costs.totalIndustrialCost).toBe(60.56);
     expect(r.costs.markupTier).toBe('large');
     expect(r.costs.markupMultiplier).toBe(1.7);
-    expect(r.costs.finalPrice).toBe(108.09);
-    expect(r.costs.unitPrice).toBe(0.11);
-    expect(r.costs.taxVal).toBe(3.24);        // 3% produto
-    expect(r.costs.commissionVal).toBe(5.4);  // 5%
+    expect(r.costs.finalPrice).toBe(102.94);
+    expect(r.costs.unitPrice).toBe(0.1);
+    expect(r.costs.taxVal).toBe(3.09);         // 3% produto
+    expect(r.costs.commissionVal).toBe(5.15);  // 5%
     // lucro = preço − CI − imposto − comissão
-    expect(r.costs.netProfitVal).toBe(35.86);
+    expect(r.costs.netProfitVal).toBe(34.15);
     expect(r.costs.profitVal).toBe(r.costs.netProfitVal);
   });
 
@@ -170,13 +173,13 @@ describe('calculateBudget — digital', () => {
     const ov = calculateBudget(digitalCard({ markupOverride: 3 }));
     expect(ov.costs.totalIndustrialCost).toBe(r.costs.totalIndustrialCost);
     expect(ov.costs.markupIsOverride).toBe(true);
-    expect(ov.costs.finalPrice).toBeCloseTo(63.58338 * 3, 1);
+    expect(ov.costs.finalPrice).toBeCloseTo(60.5556 * 3, 1);
   });
 
   it('imposto de serviço (6%)', () => {
     const svc = calculateBudget(digitalCard({ financialConfig: { ...DEFAULT_FINANCIAL_CONFIG, taxType: 'service' } }));
     expect(svc.costs.taxPct).toBe(6);
-    expect(svc.costs.taxVal).toBe(6.49);
+    expect(svc.costs.taxVal).toBe(6.18);
   });
 
   it('quantidade mínima é 1', () => {
@@ -241,6 +244,11 @@ describe('calculateBudget — off-set', () => {
     expect(r.costs.printCost).toBe(210);
   });
 
+  it('perda técnica entra no DRE (off-set não tem folhas extras em %, só o acerto)', () => {
+    expect(r.costs.techLossInSheets).toBe(false);
+    expect(r.costs.techLossVal).toBeCloseTo((218.1168 + 210) * 0.05, 2); // 21,41
+  });
+
   it('preço da resma (pricePerFullSheet) substitui o cálculo por kg', () => {
     const rema = calculateBudget({
       mode: 'offset', quantity: 5000,
@@ -276,6 +284,47 @@ describe('calculateBudget — grande formato', () => {
     expect(r.costs.printCost).toBe(240);
     expect(r.remaFullSheets).toBe(20);
     expect(r.costs.markupTier).toBe('small');
+    expect(r.costs.techLossVal).toBe(37); // 5% de 740 no DRE
+  });
+});
+
+describe('calculateBudget — percentuais configurados em 0%', () => {
+  const fin = (patch) => ({ ...DEFAULT_FINANCIAL_CONFIG, ...patch });
+
+  it('perda técnica 0% não gera folhas extras', () => {
+    const r = calculateBudget(digitalCard({ financialConfig: fin({ technicalLossPercent: 0 }) }));
+    expect(r.grossSheets).toBe(42);
+    expect(r.costs.techLossPct).toBe(0);
+  });
+
+  it('perda técnica 0% zera a perda no DRE do off-set', () => {
+    const r = calculateBudget({
+      mode: 'offset', quantity: 5000, paper: { format: '66x96', weightGsm: 150, pricePerKg: 15 },
+      sheetSize: { widthMm: 480, heightMm: 660 }, equipment: { gripperMm: 10 }, productW: 90, productH: 50,
+      financialConfig: fin({ technicalLossPercent: 0 })
+    });
+    expect(r.costs.techLossVal).toBe(0);
+  });
+
+  it('custo fixo 0% deixa o custo industrial igual ao custo direto', () => {
+    const r = calculateBudget(digitalCard({ financialConfig: fin({ fixedOverheadPercent: 0 }) }));
+    expect(r.costs.fixedOverheadVal).toBe(0);
+    expect(r.costs.totalIndustrialCost).toBe(r.costs.directCost);
+  });
+
+  it('comissão 0% não desconta nada do lucro', () => {
+    const r = calculateBudget(digitalCard({ financialConfig: fin({ salesCommissionPercent: 0 }) }));
+    expect(r.costs.commissionPct).toBe(0);
+    expect(r.costs.commissionVal).toBe(0);
+  });
+
+  it('campo vazio ou ausente continua usando o padrão', () => {
+    for (const v of [undefined, null, '']) {
+      const r = calculateBudget(digitalCard({ financialConfig: { technicalLossPercent: v, fixedOverheadPercent: v, salesCommissionPercent: v } }));
+      expect(r.costs.techLossPct).toBe(5);
+      expect(r.costs.fixedOverheadPct).toBe(12);
+      expect(r.costs.commissionPct).toBe(5);
+    }
   });
 });
 

@@ -343,12 +343,14 @@ export default function FinancialSummary({
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '12px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>+ Perda Técnica ({financialConfig.technicalLossPercent}%):</span>
-              <span>R$ {Number(costs.techLossVal || 0).toFixed(2)}</span>
+              <span>+ Perda Técnica ({costs.techLossPct}%):</span>
+              {costs.techLossInSheets && costs.techLossPct > 0
+                ? <span title="A perda já entrou como folhas extras no custo de papel e impressão">já nas folhas</span>
+                : <span>R$ {Number(costs.techLossVal || 0).toFixed(2)}</span>}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '12px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>+ Rateio de Custo Fixo ({financialConfig.fixedOverheadPercent}%):</span>
+              <span>+ Rateio de Custo Fixo ({costs.fixedOverheadPct}%):</span>
               <span>R$ {Number(costs.fixedOverheadVal || 0).toFixed(2)}</span>
             </div>
 
@@ -374,7 +376,7 @@ export default function FinancialSummary({
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                <span>− Comissão de Venda ({financialConfig.salesCommissionPercent}%):</span>
+                <span>− Comissão de Venda ({costs.commissionPct}%):</span>
                 <span>R$ {Number(costs.commissionVal || 0).toFixed(2)}</span>
               </div>
 
@@ -651,7 +653,7 @@ export default function FinancialSummary({
             <div style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>
               Fórmula: <code>Preço de Venda = Custo Industrial × Multiplicador</code><br />
               • Multiplicador aplicado: <strong style={{ color: 'var(--brand-yellow)' }}>{Number(costs.markupMultiplier || 0).toFixed(3)}×</strong> ({costs.markupTierLabel}{costs.markupIsOverride ? ', ajuste manual' : ''})<br />
-              • Marcação bruta: <strong style={{ color: 'var(--text-strong)' }}>R$ {Number(costs.grossMarkupVal || 0).toFixed(2)}</strong> — dela saem {costs.taxPct}% de imposto e {financialConfig.salesCommissionPercent}% de comissão; o restante é lucro líquido ({Number(costs.netProfitPct || 0).toFixed(1)}%).
+              • Marcação bruta: <strong style={{ color: 'var(--text-strong)' }}>R$ {Number(costs.grossMarkupVal || 0).toFixed(2)}</strong> — dela saem {costs.taxPct}% de imposto e {costs.commissionPct}% de comissão; o restante é lucro líquido ({Number(costs.netProfitPct || 0).toFixed(1)}%).
             </div>
           </div>
         </div>
