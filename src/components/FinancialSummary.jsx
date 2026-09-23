@@ -34,17 +34,8 @@ export default function FinancialSummary({
   const handleQuickSave = () => {
     if (!onSaveQuoteToHistory || !budgetResult) return;
 
-    const quoteData = {
-      clientName: 'Cliente Balcão',
-      clientDoc: 'Não Informado',
-      description: `Produção Gráfica — ${qty.toLocaleString()} un`,
-      paperName: 'Couché 150g',
-      dimensions: 'Formato Personalizado',
-      quantity: qty,
-      totalValue: Number(costs.finalPrice || 0)
-    };
-
-    onSaveQuoteToHistory(quoteData);
+    // O App monta o orçamento com papel, formato, medidas e cores reais da calculadora.
+    onSaveQuoteToHistory();
     setSavedMsg(true);
     setTimeout(() => setSavedMsg(false), 2500);
   };
