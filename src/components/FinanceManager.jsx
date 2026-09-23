@@ -90,7 +90,9 @@ export default function FinanceManager({
   biddings = [],
   clients = [],
   suppliers = [],
-  setActiveTab
+  setActiveTab,
+  intent = null,
+  onIntentHandled
 }) {
   const today = todayStr();
   const [view, setView] = useState('lancamentos'); // 'lancamentos' | 'fluxo'
@@ -182,7 +184,7 @@ export default function FinanceManager({
   const openFromBillable = (b) => {
     setForm({
       ...emptyForm('receber'),
-      description: b.kind === 'quote' ? `${b.code} — ${b.description}` : `${b.code} — ${b.description}`,
+      description: `${b.code} — ${b.description}`,
       category: b.category,
       partyId: b.clientId || '',
       partyName: b.partyName,
@@ -194,6 +196,25 @@ export default function FinanceManager({
       origin: { kind: b.kind, id: b.id, code: b.code }
     });
   };
+
+  // Pedido vindo de outra aba (ex.: "Lançar no financeiro" no histórico de orçamentos):
+  // se ainda não foi faturado, abre a cobrança pré-preenchida; se já foi, filtra a
+  // lista nos lançamentos daquela origem.
+  useEffect(() => {
+    if (!intent) return;
+    const pending = billables.find(b => b.kind === intent.kind && b.id === intent.id);
+    if (pending) {
+      openFromBillable(pending);
+    } else {
+      setView('lancamentos');
+      setTypeFilter('all');
+      setStatusFilter('all');
+      setMonthFilter('all');
+      setSearch(intent.code || '');
+    }
+    onIntentHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intent]);
 
   const handleCreate = (e) => {
     e.preventDefault();

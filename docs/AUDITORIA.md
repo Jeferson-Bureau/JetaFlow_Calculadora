@@ -376,9 +376,21 @@ Commit `0c823fa`.
   Esc, baixa, fluxo; celular 390 px e tema escuro.
 - **Achado fora do escopo (não alterado):** o cabeçalho do app transborda ~10 px em 390 px de
   largura (bloco "JetaFlow / Precificação Pro"), em todas as abas.
-- **Próximos passos possíveis:** ~~cartão do financeiro no Dashboard~~ (feito, abaixo); botão
-  "Lançar no financeiro" direto no histórico de orçamentos; excluir/editar todas as parcelas de
-  um grupo de uma vez.
+- **Próximos passos possíveis:** ~~cartão do financeiro no Dashboard~~ e ~~botão "Lançar no
+  financeiro" no histórico~~ (feitos, abaixo); excluir/editar todas as parcelas de um grupo de
+  uma vez.
+
+### "Lançar no financeiro" no histórico de orçamentos
+
+- Na coluna Status do histórico (aba Orçamentos → Orçamentos Salvos): orçamento **Aprovado** sem
+  cobrança mostra **"Lançar no financeiro"**, que abre o Financeiro com a cobrança pré-preenchida
+  (mesmo formulário do "A faturar"). Já lançado, mostra "R$ recebido de R$ total" (vermelho se
+  houver parcela vencida, "Recebido" quando quitado); o clique abre o Financeiro filtrado pelo
+  código do orçamento.
+- `App.jsx` guarda um `financeIntent` ({ kind, id, code }) que o `FinanceManager` consome ao abrir.
+  Novo `billingSummary()` em `finance.js` (+3 testes, suíte com 74). Verificado em Chromium
+  headless: botão só no aprovado, cobrança pré-preenchida, 340 de 680 após a 1ª baixa, filtro
+  pelo ORC com as 2 parcelas.
 
 ### Cartão do Financeiro no Dashboard
 

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Search, Plus, Trash2, Printer, Eye, Copy, CheckCircle2, Clock, Calendar, DollarSign, User, AlertCircle, FileCheck, Edit, X, Save, RefreshCw } from 'lucide-react';
+import { FileText, Search, Plus, Trash2, Printer, Eye, Copy, CheckCircle2, Clock, Calendar, DollarSign, User, AlertCircle, FileCheck, Edit, X, Save, RefreshCw, Wallet } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
+import { billingSummary, formatBRL } from '../utils/finance';
 
 export default function QuoteHistoryManager({
   quotes = [],
@@ -8,7 +9,9 @@ export default function QuoteHistoryManager({
   onUpdateQuote,
   onDeleteQuote,
   onOpenQuoteModal,
-  onReopenQuoteInCalculator
+  onReopenQuoteInCalculator,
+  financeEntries = [],
+  onOpenInFinance
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -160,6 +163,36 @@ export default function QuoteHistoryManager({
 
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {getStatusBadge(q.status)}
+                    {onOpenInFinance && (() => {
+                      const billing = billingSummary('quote', q.id, financeEntries);
+                      if (billing) {
+                        const color = billing.allPaid ? 'var(--success)' : billing.hasOverdue ? 'var(--danger)' : 'var(--text-muted)';
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => onOpenInFinance(q)}
+                            title="Ver os lançamentos deste orçamento no Financeiro"
+                            style={{ display: 'flex', alignItems: 'center', gap: '4px', margin: '6px auto 0', background: 'transparent', border: 'none', color, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, whiteSpace: 'nowrap' }}
+                          >
+                            <Wallet size={12} />
+                            {billing.allPaid
+                              ? 'Recebido'
+                              : `${formatBRL(billing.paidTotal)} de ${formatBRL(billing.total)}${billing.hasOverdue ? ' · vencido' : ''}`}
+                          </button>
+                        );
+                      }
+                      if (q.status !== 'aprovado') return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => onOpenInFinance(q)}
+                          title="Criar a conta a receber deste orçamento no Financeiro"
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', margin: '6px auto 0', padding: '5px 9px', borderRadius: '6px', background: 'rgba(247, 181, 0, 0.12)', border: '1px solid rgba(247, 181, 0, 0.45)', color: 'var(--brand-yellow)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 800, whiteSpace: 'nowrap' }}
+                        >
+                          <Wallet size={12} /> Lançar no financeiro
+                        </button>
+                      );
+                    })()}
                   </td>
 
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
