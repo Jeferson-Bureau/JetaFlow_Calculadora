@@ -349,3 +349,32 @@ Commit `0c823fa`.
   `FinancialSummary` exibe os percentuais efetivos do engine (não os crus da configuração).
 - `npm test`: 52 testes (6 novos para 0% e para onde a perda entra). Conferido no navegador:
   digital "já nas folhas", off-set com o valor da perda, 0% → R$ 0,00, sem erros de console.
+
+## Módulo Financeiro (nova aba "Financeiro")
+
+- **Contas a receber e a pagar** (`jetaflow_finance_v1`, código `FIN-A0001…`, entra no backup).
+  Cada lançamento: tipo, descrição, categoria, valor, vencimento, data da baixa, cliente
+  (do cadastro de Clientes) ou fornecedor (do cadastro de Fornecedores) — ou nome livre —,
+  forma de pagamento, observações e origem (ORC/LIC).
+- **Formas de lançamento:** à vista (opcional "já foi pago"), 50% sinal + 50% na entrega,
+  parcelado em N vezes com intervalo em dias, e conta fixa mensal (repete o valor por N meses,
+  mesmo dia; 31 → último dia do mês). Prévia das parcelas antes de salvar; centavos do
+  arredondamento vão para a última parcela.
+- **"A faturar"** — orçamentos com status *Aprovado* e licitações *Vencedora/Homologada* sem conta
+  a receber ligada aparecem num painel com "Lançar cobrança" (pré-preenche cliente, valor,
+  origem; orçamento sugere 50%+50%, licitação sugere à vista em 30 dias via empenho). Somem da
+  lista ao serem lançados (cancelar o lançamento devolve para a lista).
+- **Baixa e estorno** com um clique; edição (vencimento, data da baixa, cancelado); exclusão com
+  confirmação. Filtros por tipo, situação (em aberto/vencidos/pagos/cancelados), mês e busca.
+- **Indicadores:** saldo em caixa (saldo inicial editável + baixas), a receber, a pagar,
+  vencidos, vencendo em 7 dias, resultado do mês (regime de caixa).
+- **Fluxo de caixa** dos próximos 6 meses (pagos no mês da baixa, em aberto no vencimento,
+  vencidos no mês atual) com saldo previsto acumulado e alerta de saldo negativo; resultado do
+  mês com despesas por categoria.
+- Lógica pura em `src/utils/finance.js` com 17 testes (`finance.test.js`); total da suíte: 69.
+  Verificado em Chromium headless: faturar orçamento → 2 parcelas, conta fixa 3 meses, validação,
+  Esc, baixa, fluxo; celular 390 px e tema escuro.
+- **Achado fora do escopo (não alterado):** o cabeçalho do app transborda ~10 px em 390 px de
+  largura (bloco "JetaFlow / Precificação Pro"), em todas as abas.
+- **Próximos passos possíveis:** cartão do financeiro no Dashboard; botão "Lançar no financeiro"
+  direto no histórico de orçamentos; excluir/editar todas as parcelas de um grupo de uma vez.

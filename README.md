@@ -65,6 +65,7 @@ bloqueio de CORS:
 | `src/App.jsx` | Estado central + navegação por abas (lazy-loaded) |
 | `src/utils/calculatorEngine.js` | Motor de precificação (folha, corte offset, lombada, DRE) |
 | `src/utils/pricing.js` + `src/data/productConfig.js` | Precificação por faixa de quantidade (produtos configuráveis) |
+| `src/utils/finance.js` + `src/components/FinanceManager.jsx` | Módulo Financeiro: contas a receber/pagar, parcelas, fluxo de caixa |
 | `src/utils/storage.js` | Leitura tolerante a falhas + backup/restore do `localStorage` |
 | `src/hooks/usePersistentState.js` | `useState` que persiste automaticamente |
 | `src/services/pncpService.js` | Cliente das APIs PNCP / Compras.gov.br |
