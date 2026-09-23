@@ -269,7 +269,7 @@ export default function SupplierManager({
               borderRadius: '8px',
               border: filterCategory === 'all' ? '1px solid var(--brand-cyan)' : '1px solid var(--border-color)',
               background: filterCategory === 'all' ? 'rgba(0, 168, 232, 0.2)' : 'var(--bg-input)',
-              color: filterCategory === 'all' ? '#ffffff' : 'var(--text-muted)',
+              color: filterCategory === 'all' ? 'var(--text-strong)' : 'var(--text-muted)',
               fontWeight: 600,
               fontSize: '0.8rem',
               cursor: 'pointer'
@@ -291,7 +291,7 @@ export default function SupplierManager({
                   borderRadius: '8px',
                   border: isSel ? `1px solid ${catObj.color}` : '1px solid var(--border-color)',
                   background: isSel ? 'var(--tint-subtle)' : 'var(--bg-input)',
-                  color: isSel ? '#ffffff' : 'var(--text-muted)',
+                  color: isSel ? 'var(--text-strong)' : 'var(--text-muted)',
                   fontWeight: 600,
                   fontSize: '0.8rem',
                   cursor: 'pointer'

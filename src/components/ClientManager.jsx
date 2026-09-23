@@ -244,7 +244,7 @@ export default function ClientManager({
               borderRadius: '8px',
               border: filterDocType === 'all' ? '1px solid var(--brand-cyan)' : '1px solid var(--border-color)',
               background: filterDocType === 'all' ? 'rgba(0, 168, 232, 0.2)' : 'var(--bg-input)',
-              color: filterDocType === 'all' ? '#ffffff' : 'var(--text-muted)',
+              color: filterDocType === 'all' ? 'var(--text-strong)' : 'var(--text-muted)',
               fontWeight: 600,
               fontSize: '0.8rem',
               cursor: 'pointer'
@@ -261,7 +261,7 @@ export default function ClientManager({
               borderRadius: '8px',
               border: filterDocType === 'cnpj' ? '1px solid var(--brand-cyan)' : '1px solid var(--border-color)',
               background: filterDocType === 'cnpj' ? 'rgba(0, 168, 232, 0.2)' : 'var(--bg-input)',
-              color: filterDocType === 'cnpj' ? '#ffffff' : 'var(--text-muted)',
+              color: filterDocType === 'cnpj' ? 'var(--text-strong)' : 'var(--text-muted)',
               fontWeight: 600,
               fontSize: '0.8rem',
               cursor: 'pointer'
@@ -278,7 +278,7 @@ export default function ClientManager({
               borderRadius: '8px',
               border: filterDocType === 'cpf' ? '1px solid var(--brand-magenta)' : '1px solid var(--border-color)',
               background: filterDocType === 'cpf' ? 'rgba(230, 46, 107, 0.2)' : 'var(--bg-input)',
-              color: filterDocType === 'cpf' ? '#ffffff' : 'var(--text-muted)',
+              color: filterDocType === 'cpf' ? 'var(--text-strong)' : 'var(--text-muted)',
               fontWeight: 600,
               fontSize: '0.8rem',
               cursor: 'pointer'

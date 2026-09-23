@@ -401,7 +401,7 @@ export default function FinancialSummary({
                   borderRadius: '8px',
                   border: (financialConfig.taxType === 'product' || !financialConfig.taxType) ? '2px solid var(--brand-cyan)' : '1px solid var(--border-color)',
                   background: (financialConfig.taxType === 'product' || !financialConfig.taxType) ? 'rgba(0, 168, 232, 0.2)' : 'var(--bg-input)',
-                  color: (financialConfig.taxType === 'product' || !financialConfig.taxType) ? '#ffffff' : 'var(--text-muted)',
+                  color: (financialConfig.taxType === 'product' || !financialConfig.taxType) ? 'var(--text-strong)' : 'var(--text-muted)',
                   fontWeight: 700,
                   fontSize: '0.8rem',
                   cursor: 'pointer'
@@ -418,7 +418,7 @@ export default function FinancialSummary({
                   borderRadius: '8px',
                   border: financialConfig.taxType === 'service' ? '2px solid var(--brand-magenta)' : '1px solid var(--border-color)',
                   background: financialConfig.taxType === 'service' ? 'rgba(230, 46, 107, 0.2)' : 'var(--bg-input)',
-                  color: financialConfig.taxType === 'service' ? '#ffffff' : 'var(--text-muted)',
+                  color: financialConfig.taxType === 'service' ? 'var(--text-strong)' : 'var(--text-muted)',
                   fontWeight: 700,
                   fontSize: '0.8rem',
                   cursor: 'pointer'
@@ -435,7 +435,7 @@ export default function FinancialSummary({
                   borderRadius: '8px',
                   border: financialConfig.taxType === 'custom' ? '2px solid var(--brand-yellow)' : '1px solid var(--border-color)',
                   background: financialConfig.taxType === 'custom' ? 'rgba(245, 158, 11, 0.2)' : 'var(--bg-input)',
-                  color: financialConfig.taxType === 'custom' ? '#ffffff' : 'var(--text-muted)',
+                  color: financialConfig.taxType === 'custom' ? 'var(--text-strong)' : 'var(--text-muted)',
                   fontWeight: 700,
                   fontSize: '0.8rem',
                   cursor: 'pointer'

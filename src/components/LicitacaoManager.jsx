@@ -1040,7 +1040,7 @@ export default function LicitacaoManager({
               borderRadius: '8px',
               border: filterStatus === 'all' ? '1px solid #8b5cf6' : '1px solid var(--border-color)',
               background: filterStatus === 'all' ? 'rgba(139, 92, 246, 0.2)' : 'var(--bg-input)',
-              color: filterStatus === 'all' ? '#ffffff' : 'var(--text-muted)',
+              color: filterStatus === 'all' ? 'var(--text-strong)' : 'var(--text-muted)',
               fontWeight: 600,
               fontSize: '0.8rem',
               cursor: 'pointer'
@@ -1062,7 +1062,7 @@ export default function LicitacaoManager({
                   borderRadius: '8px',
                   border: isSel ? `1px solid ${stObj.color}` : '1px solid var(--border-color)',
                   background: isSel ? stObj.bg : 'var(--bg-input)',
-                  color: isSel ? '#ffffff' : 'var(--text-muted)',
+                  color: isSel ? 'var(--text-strong)' : 'var(--text-muted)',
                   fontWeight: 600,
                   fontSize: '0.8rem',
                   cursor: 'pointer'
