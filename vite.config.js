@@ -53,8 +53,9 @@ export default defineConfig({
     })
   ],
   build: {
-    // recharts (Dashboard) e html2pdf.js (gerador de proposta) já ficam em chunks
-    // assíncronos próprios via React.lazy — não precisam de manualChunks.
+    // recharts (Dashboard, via React.lazy) e html2pdf.js (import dinâmico ao exportar
+    // a proposta) ficam em chunks assíncronos próprios — sem manualChunks. O limite
+    // acomoda o chunk do html2pdf (~980 KB), que só baixa ao gerar o PDF.
     chunkSizeWarningLimit: 1100
   },
   server: {
