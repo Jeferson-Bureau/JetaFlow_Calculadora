@@ -8,7 +8,8 @@ import {
   RECEIVABLE_CATEGORIES, PAYABLE_CATEGORIES, PAYMENT_METHODS, PAYMENT_PRESETS,
   categoryLabel, generateNextFinanceCode, roundCents, todayStr, addDays, monthKey,
   formatDateBR, formatMonthBR, formatBRL, entryStatus, buildInstallments,
-  summarize, cashFlowByMonth, pendingBillables, compareEntries
+  summarize, cashFlowByMonth, pendingBillables, compareEntries,
+  GROUP_SCOPES, groupTargetIds, applyGroupEdit, deleteGroupEntries
 } from '../utils/finance';
 
 const STATUS_STYLE = {
@@ -104,6 +105,7 @@ export default function FinanceManager({
   const [form, setForm] = useState(null);           // novo lançamento
   const [editing, setEditing] = useState(null);     // edição de um lançamento existente
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editScope, setEditScope] = useState('one'); // alcance da edição em contas parceladas
   const [editingBalance, setEditingBalance] = useState(false);
   const [balanceDraft, setBalanceDraft] = useState('');
 
@@ -116,17 +118,23 @@ export default function FinanceManager({
   }, []);
   useEffect(() => () => clearTimeout(toastTimerRef.current), []);
 
-  // Esc fecha o modal aberto (o ConfirmDialog trata o próprio Esc).
+  // Esc fecha o modal aberto. O ConfirmDialog (exclusão avulsa) trata o próprio Esc;
+  // a exclusão de parcelas em grupo usa o Modal daqui e fecha por este handler.
+  const isGroupDelete = !!deleteTarget?.groupId;
   useEffect(() => {
-    if (!form && !editing) return undefined;
+    if (!form && !editing && !isGroupDelete) return undefined;
     const onKeyDown = (e) => {
-      if (e.key !== 'Escape' || deleteTarget) return;
+      if (e.key !== 'Escape') return;
+      if (deleteTarget) { if (isGroupDelete) setDeleteTarget(null); return; }
       setForm(null);
       setEditing(null);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [form, editing, deleteTarget]);
+  }, [form, editing, deleteTarget, isGroupDelete]);
+
+  // Cada edição começa aplicando só à parcela aberta.
+  useEffect(() => { setEditScope('one'); }, [editing?.id]);
 
   const openingBalance = Number(settings.openingBalance) || 0;
   const summary = useMemo(() => summarize(entries, { today, openingBalance }), [entries, today, openingBalance]);
@@ -287,9 +295,11 @@ export default function FinanceManager({
       paidDate: editing.paidDate || null
     };
     delete updated.partyId;
-    setEntries(prev => prev.map(x => (x.id === updated.id ? updated : x)));
+    const original = entries.find(x => x.id === updated.id) || updated;
+    const count = groupTargetIds(entries, original, editScope).length;
+    setEntries(prev => applyGroupEdit(prev, original, updated, editScope));
     setEditing(null);
-    showToast(`Lançamento ${updated.code} atualizado`);
+    showToast(count > 1 ? `${count} parcelas atualizadas` : `Lançamento ${updated.code} atualizado`);
   };
 
   const togglePaid = (entry) => {
@@ -693,13 +703,69 @@ export default function FinanceManager({
             {editing.origin?.code && (
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>Origem: {editing.origin.code}</p>
             )}
+            {editing.groupId && (() => {
+              const original = entries.find(x => x.id === editing.id) || editing;
+              return (
+                <fieldset style={{ border: '1px solid var(--border-color)', borderRadius: '10px', padding: '10px 12px', margin: '0 0 12px 0' }}>
+                  <legend className="form-label" style={{ padding: '0 6px' }}>Aplicar alterações a</legend>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {GROUP_SCOPES.map(sc => {
+                      const n = groupTargetIds(entries, original, sc.id).length;
+                      return (
+                        <label key={sc.id} style={{ ...chipStyle(editScope === sc.id), display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <input type="radio" name="fin-edit-scope" value={sc.id} checked={editScope === sc.id} onChange={() => setEditScope(sc.id)} />
+                          {sc.label}{sc.id !== 'one' ? ` (${n})` : ''}
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: '8px 0 0 0' }}>
+                    Descrição, categoria, {editing.type === 'pagar' ? 'fornecedor' : 'cliente'}, forma de pagamento, observações, cancelamento e valor (se alterado) vão para as demais.
+                    Vencimento e data da baixa valem só para esta parcela. Parcelas já pagas não são alteradas.
+                  </p>
+                </fieldset>
+              );
+            })()}
             <ModalActions onCancel={() => setEditing(null)} submitLabel="Salvar alterações" />
           </form>
         </Modal>
       )}
 
+      {isGroupDelete && (
+        <Modal title={`Excluir ${deleteTarget.code} (${deleteTarget.installment}/${deleteTarget.installments})`} accent="var(--danger)" onClose={() => setDeleteTarget(null)}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-main)', margin: '0 0 6px 0' }}>
+            "{deleteTarget.description}" faz parte de uma conta com {deleteTarget.installments} parcelas. O que excluir?
+          </p>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 14px 0' }}>
+            Parcelas já pagas são mantidas. Para manter o histórico, prefira editar e marcar como cancelado.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {GROUP_SCOPES.map(sc => {
+              const n = groupTargetIds(entries, deleteTarget, sc.id).length;
+              return (
+                <button key={sc.id} type="button"
+                  onClick={() => {
+                    setEntries(prev => deleteGroupEntries(prev, deleteTarget, sc.id));
+                    showToast(n > 1 ? `${n} parcelas excluídas` : `${deleteTarget.code} excluído`, 'warning');
+                    setDeleteTarget(null);
+                  }}
+                  style={{ padding: '12px 14px', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.08)', color: 'var(--danger)', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Trash2 size={15} /> {sc.label}</span>
+                  <span style={{ fontWeight: 800 }}>{n} {n === 1 ? 'lançamento' : 'lançamentos'}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '14px' }}>
+            <button type="button" onClick={() => setDeleteTarget(null)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-muted)', fontWeight: 600, cursor: 'pointer' }}>
+              Cancelar
+            </button>
+          </div>
+        </Modal>
+      )}
+
       <ConfirmDialog
-        open={!!deleteTarget}
+        open={!!deleteTarget && !isGroupDelete}
         title="Excluir lançamento"
         message={deleteTarget ? `Excluir ${deleteTarget.code} — "${deleteTarget.description}" (${formatBRL(deleteTarget.amount)})? Para manter o histórico, prefira marcar como cancelado.` : ''}
         onCancel={() => setDeleteTarget(null)}

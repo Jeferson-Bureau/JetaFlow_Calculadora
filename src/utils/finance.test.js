@@ -10,6 +10,9 @@ import {
   compareEntries,
   upcomingDue,
   billingSummary,
+  groupTargetIds,
+  applyGroupEdit,
+  deleteGroupEntries,
   generateNextFinanceCode,
   formatDateBR,
   formatMonthBR
@@ -220,5 +223,54 @@ describe('billingSummary', () => {
 
   it('allPaid quando tudo foi recebido', () => {
     expect(billingSummary('quote', 'q1', [rec(100, TODAY, { origin, paidDate: TODAY })], TODAY).allPaid).toBe(true);
+  });
+});
+
+describe('parcelas em grupo', () => {
+  // Aluguel em 4 meses: 1ª paga, 2ª a 4ª em aberto; + uma conta avulsa.
+  const g = (n, extra = {}) => pay(1500, `2026-${String(8 + n).padStart(2, '0')}-10`, {
+    id: `a${n}`, groupId: 'grp-1', installment: n, installments: 4,
+    description: 'Aluguel', category: 'aluguel', partyName: 'Imobiliária', ...extra
+  });
+  const list = [g(1, { paidDate: '2026-09-10' }), g(2), g(3), g(4), pay(80, '2026-09-30', { id: 'x', description: 'Avulsa' })];
+
+  it('escopos: só esta, seguintes em aberto, todas em aberto (pagas ficam de fora)', () => {
+    expect(groupTargetIds(list, list[2], 'one')).toEqual(['a3']);
+    expect(groupTargetIds(list, list[2], 'following')).toEqual(['a3', 'a4']);
+    expect(groupTargetIds(list, list[2], 'all_open')).toEqual(['a2', 'a3', 'a4']);
+    expect(groupTargetIds(list, list[0], 'all_open')).toEqual(['a1', 'a2', 'a3', 'a4']); // a própria sempre entra
+  });
+
+  it('lançamento sem grupo só alcança ele mesmo', () => {
+    expect(groupTargetIds(list, list[4], 'all_open')).toEqual(['x']);
+  });
+
+  it('edição em grupo propaga campos compartilhados e o valor novo; vencimento fica só na parcela', () => {
+    const original = list[1];
+    const updated = { ...original, description: 'Aluguel reajustado', amount: 1650, dueDate: '2026-10-15', notes: 'IGP-M' };
+    const res = applyGroupEdit(list, original, updated, 'following');
+    const byId = Object.fromEntries(res.map(e => [e.id, e]));
+    expect(byId.a2).toEqual(updated);
+    expect(byId.a3).toMatchObject({ description: 'Aluguel reajustado', amount: 1650, notes: 'IGP-M', dueDate: '2026-11-10' });
+    expect(byId.a4).toMatchObject({ description: 'Aluguel reajustado', amount: 1650, dueDate: '2026-12-10' });
+    expect(byId.a1).toMatchObject({ description: 'Aluguel', amount: 1500, paidDate: '2026-09-10' }); // paga intacta
+    expect(byId.x.description).toBe('Avulsa');
+  });
+
+  it('valor igual não é copiado (parcelas de valores diferentes continuam como estão)', () => {
+    const custom = list.map(e => (e.id === 'a4' ? { ...e, amount: 1499.99 } : e));
+    const res = applyGroupEdit(custom, custom[1], { ...custom[1], notes: 'ok' }, 'all_open');
+    expect(res.find(e => e.id === 'a4')).toMatchObject({ amount: 1499.99, notes: 'ok' });
+  });
+
+  it('cancelar em grupo marca as parcelas em aberto', () => {
+    const res = applyGroupEdit(list, list[1], { ...list[1], canceled: true }, 'all_open');
+    expect(res.filter(e => e.canceled).map(e => e.id)).toEqual(['a2', 'a3', 'a4']);
+  });
+
+  it('exclusão em grupo mantém as pagas e as de fora do grupo', () => {
+    expect(deleteGroupEntries(list, list[2], 'following').map(e => e.id)).toEqual(['a1', 'a2', 'x']);
+    expect(deleteGroupEntries(list, list[1], 'all_open').map(e => e.id)).toEqual(['a1', 'x']);
+    expect(deleteGroupEntries(list, list[1], 'one').map(e => e.id)).toEqual(['a1', 'a3', 'a4', 'x']);
   });
 });
