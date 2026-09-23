@@ -125,6 +125,13 @@ export default function App() {
   // Financeiro: contas a receber / a pagar e configurações (saldo inicial de caixa)
   const [financeEntries, setFinanceEntries] = usePersistentState(STORAGE_KEYS.finance, []);
   const [financeSettings, setFinanceSettings] = usePersistentState(STORAGE_KEYS.financeSettings, { openingBalance: 0 });
+  // Pedido vindo de outra aba para o Financeiro: abrir a cobrança de um orçamento
+  // (ou filtrar seus lançamentos, se já foi lançado). Consumido ao abrir a aba.
+  const [financeIntent, setFinanceIntent] = useState(null);
+  const openQuoteInFinance = (quote) => {
+    setFinanceIntent({ kind: 'quote', id: quote.id, code: quote.code });
+    setActiveTab('finance');
+  };
 
   // Input Data Databases
   const [equipments] = useState(DEFAULT_EQUIPMENTS);
@@ -586,6 +593,8 @@ export default function App() {
             onDeleteQuote={handleDeleteQuoteFromHistory}
             onOpenQuoteModal={openQuoteProposal}
             onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+            financeEntries={financeEntries}
+            onOpenInFinance={openQuoteInFinance}
           />
         ) : activeTab === 'finance' ? (
           <FinanceManager
@@ -598,6 +607,8 @@ export default function App() {
             clients={clients}
             suppliers={suppliers}
             setActiveTab={setActiveTab}
+            intent={financeIntent}
+            onIntentHandled={() => setFinanceIntent(null)}
           />
         ) : activeTab === 'labels' ? (
           <LabelGenerator
@@ -621,6 +632,8 @@ export default function App() {
                   onDeleteQuote={handleDeleteQuoteFromHistory}
                   onOpenQuoteModal={openQuoteProposal}
                   onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+                  financeEntries={financeEntries}
+                  onOpenInFinance={openQuoteInFinance}
                 />
               </div>
             ) : (

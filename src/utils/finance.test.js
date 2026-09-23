@@ -9,6 +9,7 @@ import {
   pendingBillables,
   compareEntries,
   upcomingDue,
+  billingSummary,
   generateNextFinanceCode,
   formatDateBR,
   formatMonthBR
@@ -197,5 +198,27 @@ describe('upcomingDue', () => {
   it('respeita o limite', () => {
     const many = Array.from({ length: 9 }, (_, i) => rec(i, '2026-09-01'));
     expect(upcomingDue(many, { today: TODAY, limit: 5 })).toHaveLength(5);
+  });
+});
+
+describe('billingSummary', () => {
+  const origin = { kind: 'quote', id: 'q1' };
+  it('null quando não há cobrança ativa (cancelada não conta)', () => {
+    expect(billingSummary('quote', 'q1', [])).toBeNull();
+    expect(billingSummary('quote', 'q1', [rec(10, TODAY, { origin, canceled: true })])).toBeNull();
+  });
+
+  it('soma parcelas, recebido e vencidos só do orçamento certo', () => {
+    const s = billingSummary('quote', 'q1', [
+      rec(340, '2026-09-10', { origin, paidDate: '2026-09-10' }),
+      rec(340, '2026-09-20', { origin }),                              // vencida
+      rec(999, TODAY, { origin: { kind: 'quote', id: 'q2' } }),        // outro orçamento
+      rec(50, TODAY, { origin: { kind: 'bidding', id: 'q1' } })        // mesmo id, outro tipo
+    ], TODAY);
+    expect(s).toEqual({ count: 2, total: 680, paidTotal: 340, allPaid: false, hasOverdue: true });
+  });
+
+  it('allPaid quando tudo foi recebido', () => {
+    expect(billingSummary('quote', 'q1', [rec(100, TODAY, { origin, paidDate: TODAY })], TODAY).allPaid).toBe(true);
   });
 });

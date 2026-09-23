@@ -279,6 +279,24 @@ export function pendingBillables(quotes = [], biddings = [], entries = []) {
 }
 
 /**
+ * Situação da cobrança de um orçamento/licitação no financeiro, ou `null` se
+ * ainda não há conta a receber ativa ligada a ele.
+ */
+export function billingSummary(kind, id, entries = [], today = todayStr()) {
+  const linked = entries.filter(e => e.origin?.kind === kind && e.origin?.id === id && !e.canceled);
+  if (linked.length === 0) return null;
+  const total = roundCents(linked.reduce((s, e) => s + (Number(e.amount) || 0), 0));
+  const paidTotal = roundCents(linked.filter(e => e.paidDate).reduce((s, e) => s + (Number(e.amount) || 0), 0));
+  return {
+    count: linked.length,
+    total,
+    paidTotal,
+    allPaid: paidTotal >= total,
+    hasOverdue: linked.some(e => entryStatus(e, today) === 'vencido')
+  };
+}
+
+/**
  * Em aberto que pedem atenção: vencidos + os que vencem nos próximos `days` dias,
  * do vencimento mais antigo para o mais novo.
  */
