@@ -60,7 +60,7 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
 
 ## Pendências fora das 8 prioridades
 
-- **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI. **Aberto.**
+- **Sem suíte de testes.** **Parcial** — motor de cálculo e `pricing.js` cobertos por Vitest (ver "Testes do motor de cálculo" abaixo). Componentes, ESLint, TypeScript e CI seguem sem.
 - **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). **Resolvido** — ver "Proposta mais leve" abaixo.
 - **Estilos majoritariamente inline.** Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado. `<label>` sem `htmlFor` — **Resolvido** (ver rodada abaixo); estilos inline em si seguem como estão (baixo risco, alto custo de refatorar sem sistema de design definido).
 - **Dashboard é a aba inicial** — **Resolvido** (ver rodada abaixo).
@@ -314,3 +314,24 @@ Commit `0c823fa`.
 - Verificado em Chromium headless sobre o build: abrir a proposta não baixa o `html2pdf`;
   o clique gera o PDF (arquivo `%PDF` válido, ~480 KB), o botão volta ao normal, sem erros de
   console.
+
+## Testes do motor de cálculo (Vitest)
+
+- `npm test` (Vitest 3) roda 46 testes em ~1 s. Arquivos ao lado do código:
+  `src/utils/calculatorEngine.test.js` e `src/utils/pricing.test.js`.
+- Cobertura: marcação por faixa (limites 100/101/500/501, faixas configuradas, override e
+  overrides inválidos); aproveitamento da folha (orientação, peça maior que a folha); lombada
+  (bulk por família, PUR, valores manuais, mínimo 1 mm); orçamento digital de ponta a ponta com
+  valores calculados à mão (folhas, papel, clique × formato, CI, preço, imposto, comissão,
+  lucro); acabamentos por folha/unidade/fixo; off-set (folhas de máquina por folha de compra,
+  acerto, papel por kg ou por resma, chapas, rodagem com mínimo); grande formato; editorial
+  (encadernação padrão e editada); matriz de tiragens; códigos sequenciais; `calcularPreco`
+  dos produtos personalizados (faixas, mín./máx., modificadores, desconto).
+- **Bug encontrado e corrigido:** `generateSequentialCode` comparava só o número. Depois da
+  virada `…-A9999 → …-B0001`, o maior continuava sendo A9999 e o próximo código gerado era
+  `B0001` de novo (duplicado). Agora a letra entra na comparação.
+- **Observações, sem alteração (aguardam decisão):**
+  - Perda técnica contada duas vezes: o digital/editorial já soma 5% de folhas extras, e o DRE
+    aplica mais 5% de "perda técnica" sobre o custo direto.
+  - `technicalLossPercent`, `fixedOverheadPercent` e `salesCommissionPercent` usam `|| padrão`:
+    configurar **0%** vira 5% / 12% / 5%. Não dá para zerar comissão ou custo fixo.

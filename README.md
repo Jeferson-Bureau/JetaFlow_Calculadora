@@ -18,6 +18,7 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # gera dist/
 npm run preview  # serve o build localmente
+npm test         # testes do motor de cálculo (Vitest)
 ```
 
 ## Instalar como app de desktop (PWA)

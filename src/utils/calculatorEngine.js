@@ -646,20 +646,25 @@ export function generateTierMatrix(config, tiers = [100, 250, 500, 1000, 2500, 5
 /**
  * Gera o próximo código sequencial no formato PREFIXO-A0001, PREFIXO-A0002, …
  * A numeração é derivada do MAIOR código existente (não da contagem da lista),
- * para não colidir quando itens são excluídos no meio.
+ * para não colidir quando itens são excluídos no meio. A letra conta na
+ * comparação: B0001 é maior que A9999 (senão, após a virada, B0001 se repetiria).
  */
 export function generateSequentialCode(prefix, items = []) {
   const re = new RegExp(`${prefix}-([A-Z])(\\d+)`, 'i');
+  let maxRank = 0;
   let maxNum = 0;
   let activeLetter = 'A';
 
   (items || []).forEach(item => {
     const match = (item && item.code ? String(item.code) : '').match(re);
     if (match) {
+      const letter = match[1].toUpperCase();
       const num = parseInt(match[2], 10);
-      if (num > maxNum) {
+      const rank = (letter.charCodeAt(0) - 65) * 10000 + num;
+      if (rank > maxRank) {
+        maxRank = rank;
         maxNum = num;
-        activeLetter = match[1].toUpperCase();
+        activeLetter = letter;
       }
     }
   });
