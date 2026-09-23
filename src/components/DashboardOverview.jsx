@@ -501,7 +501,7 @@ export default function DashboardOverview({
       </div>
 
       {/* ── SEÇÃO DE GRÁFICOS ANALÍTICOS (NOVO) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: '20px' }}>
         
         {/* Gráfico 1: Pipeline de Licitações por Estágio (Rosca/Pie) */}
         <div className="glass-card animate-fade-in hover-scale" style={{ padding: '20px', display: 'flex', flexDirection: 'column', animationDelay: '0.5s' }}>
@@ -575,7 +575,7 @@ export default function DashboardOverview({
       </div>
 
       {/* Bloco Duplo: Próximas Sessões de Licitação & Status das Máquinas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: '20px' }}>
         
         {/* Lado Esquerdo: Agenda de Licitações Críticas */}
         <div className="glass-card animate-fade-in" style={{ padding: '20px', animationDelay: '0.7s' }}>

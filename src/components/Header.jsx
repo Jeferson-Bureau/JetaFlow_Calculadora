@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { LayoutDashboard, Calculator, Sliders, RefreshCw, Users, Truck, Award, Tag, Wallet } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
@@ -32,6 +32,13 @@ function tabStyle(isActive) {
 }
 
 export default function Header({ activeTab, setActiveTab, onReset }) {
+  // No celular as abas rolam na horizontal: mantém a aba ativa à vista.
+  const navRef = useRef(null);
+  useEffect(() => {
+    const active = navRef.current?.querySelector('[aria-current="page"]');
+    active?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [activeTab]);
+
   return (
     <header
       className="no-print"
@@ -48,11 +55,12 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
         borderBottom: '1px solid var(--border-color)'
       }}
     >
-      <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+      <div className="app-header-top" style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
 
         {/* Marca */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
+        <div className="app-header-brand" style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
           <div style={{
+            flexShrink: 0,
             background: '#FFFFFF',
             padding: '7px 12px',
             borderRadius: 12,
@@ -61,14 +69,14 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
             display: 'flex',
             alignItems: 'center'
           }}>
-            <img src="/JETAPRINT_LOGO_01_2026-01.jpg" alt="JETAPRINT" style={{ height: 34, objectFit: 'contain' }} />
+            <img src="/JETAPRINT_LOGO_01_2026-01.jpg" alt="JETAPRINT" className="app-header-logo" />
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '1.32rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-strong)' }}>
+              <span className="app-header-name" style={{ fontSize: '1.32rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-strong)' }}>
                 JetaFlow
               </span>
-              <span style={{
+              <span className="app-header-badge" style={{
                 background: 'var(--tint-subtle)',
                 color: 'var(--text-muted)',
                 fontSize: '0.62rem',
@@ -81,14 +89,14 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
                 Precificação Pro
               </span>
             </div>
-            <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
+            <p className="app-header-subtitle" style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
               Custos & orçamentos — digital · off-set · grande formato
             </p>
           </div>
         </div>
 
         {/* Ações à direita */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <button
             type="button"
             onClick={onReset}
@@ -111,7 +119,7 @@ export default function Header({ activeTab, setActiveTab, onReset }) {
       </div>
 
       {/* Navegação */}
-      <nav style={{ maxWidth: 1400, margin: '12px auto 0', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      <nav ref={navRef} className="app-header-nav" aria-label="Módulos">
         {TABS.map(({ key, label, Icon }) => {
           const isActive = activeTab === key;
           return (

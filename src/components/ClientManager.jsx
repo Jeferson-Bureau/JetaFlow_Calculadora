@@ -301,7 +301,7 @@ export default function ClientManager({
 
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: '16px' }}>
           {filteredClients.map((client) => {
             const isCnpj = client.docType === 'cnpj';
             return (

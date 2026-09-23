@@ -374,8 +374,8 @@ Commit `0c823fa`.
 - Lógica pura em `src/utils/finance.js` com 17 testes (`finance.test.js`); total da suíte: 69.
   Verificado em Chromium headless: faturar orçamento → 2 parcelas, conta fixa 3 meses, validação,
   Esc, baixa, fluxo; celular 390 px e tema escuro.
-- **Achado fora do escopo (não alterado):** o cabeçalho do app transborda ~10 px em 390 px de
-  largura (bloco "JetaFlow / Precificação Pro"), em todas as abas.
+- **Achado fora do escopo:** o cabeçalho do app transbordava ~10 px em 390 px de largura —
+  **Resolvido** (ver "Cabeçalho e layout no celular").
 - **Próximos passos possíveis:** ~~cartão do financeiro no Dashboard~~, ~~botão "Lançar no
   financeiro" no histórico~~ e ~~editar/excluir parcelas em grupo~~ (feitos, abaixo).
 
@@ -414,3 +414,18 @@ Commit `0c823fa`.
 - Reusa `summarize` e `pendingBillables`; novo `upcomingDue()` em `finance.js` (+2 testes,
   suíte com 71). Verificado em Chromium headless com dados de exemplo e vazio, desktop e
   celular 390 px no tema escuro.
+
+## Cabeçalho e layout no celular
+
+- **Cabeçalho (≤ 600 px):** marca compacta (logo 26 px, sem o selo "Precificação Pro" e sem o
+  subtítulo), logo/nome/botões numa linha só, e as abas numa única linha com rolagem lateral
+  (sem barra visível; a aba ativa é trazida à vista ao trocar). Em ≤ 380 px o logo cai para
+  20 px. Classes `app-header-*` em `src/index.css` (estilo inline não aceita media query).
+  Altura do cabeçalho fixo em 390 px: **~300 px → 120 px**. Desktop inalterado.
+- **Grades com mínimo fixo** de 340–360 px (Dashboard, Orçamentos, Clientes, Fornecedores,
+  Licitações, Produtos Personalizados, resumo financeiro) viraram `minmax(min(Npx, 100%), 1fr)`
+  — mesma aparência no desktop, sem estourar em telas de 360 px.
+- **Sub-abas de Insumos & Preços** passam a quebrar linha (transbordavam 249 px no celular).
+- Medido em Chromium headless em 360/390/768/1280 px, todas as 8 abas: rolagem horizontal da
+  página 0 em todas (antes: 10 px em todas, 249 px em Insumos, 16 px no Dashboard/Orçamentos
+  em 360 px). Tabelas largas continuam rolando dentro da própria caixa.
