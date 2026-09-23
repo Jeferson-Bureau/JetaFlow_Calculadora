@@ -83,7 +83,7 @@ export default function FinishingSelector({
               borderRadius: '6px',
               border: 'none',
               background: filterCategory === 'positiva' ? 'linear-gradient(135deg, var(--brand-magenta), #b81b4f)' : 'var(--bg-input)',
-              color: 'var(--text-strong)',
+              color: filterCategory === 'positiva' ? '#ffffff' : 'var(--text-muted)',
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: 'pointer',

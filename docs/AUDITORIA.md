@@ -452,7 +452,28 @@ Testes: `summaries.test.js` (8) e `storage.test.js` (4, com `localStorage` em me
 com 92. Verificado em Chromium headless: KPIs/pipeline/legenda do Dashboard, orçamento salvo
 com o papel escolhido e restaurado pelo "Recarregar", backup exportado com os atalhos.
 
-**Ainda em aberto (não escolhidos nesta rodada):** contraste dos filtros selecionados no tema
-claro (texto branco sobre fundo claro, 17 ocorrências em Licitações, Clientes, Fornecedores,
-Acabamentos, Insumos e resumo financeiro); margens de pinça do off-set e padrões da tabela
-Positiva editáveis; ESLint; testes de componentes.
+**Ainda em aberto (não escolhidos nesta rodada):** ~~contraste dos filtros selecionados no
+tema claro~~ (resolvido, abaixo); margens de pinça do off-set e padrões da tabela Positiva
+editáveis; ESLint; testes de componentes.
+
+## Contraste dos filtros selecionados
+
+- Das 17 ocorrências de texto branco em filtro selecionado, **10** estavam sobre fundo
+  translúcido (quase branco no tema claro): Clientes (3), impostos do resumo financeiro (3),
+  Licitações (2), Fornecedores (2). O texto ativo passou a `var(--text-strong)` (escuro no claro,
+  branco no escuro); a borda colorida continua indicando a seleção. As outras 7 (sub-abas de
+  Insumos, "Todos"/"Interna" de Acabamentos) têm fundo sólido e já eram legíveis — mantidas.
+- Caso inverso: filtro **"Positiva"** (Acabamentos) tinha texto escuro sobre magenta sólido —
+  passou a branco quando ativo.
+- Medido em Chromium headless (contraste WCAG texto × fundo efetivo, compondo transparências),
+  temas claro e escuro: filtros selecionados de 1,13–1,23 → acima de 4,5; Positiva 3,58 → OK.
+
+**Achados da medição, fora do escopo desta rodada (não alterados):**
+- **Botões de destaque com texto branco sobre o ciano da marca:** 4,04 no tema claro
+  (`#0787BC`, um pouco abaixo de 4,5) e **2,36 no tema escuro** (`#22B5EE`) — aba ativa do
+  menu, "Novo Cliente", "Gerar Proposta", sub-aba ativa de Insumos etc. No escuro, a correção
+  natural é `--on-accent` escuro; no claro, escurecer levemente `--brand-cyan` (decisão de marca).
+- **Licitações, tema claro:** "Buscar no PNCP (Ao Vivo)" 2,11 (ciano `#06b6d4` sobre tinta
+  ciano) e "Colar Alerta (E-mail)" 3,43.
+- Outros pontuais: chip "Adesivo (Meio-Corte BannerCut)" 3,22 (claro); "Salvar Preços" 2,15 e
+  "Positiva 2025" 3,66 (escuro).
