@@ -179,7 +179,7 @@ export default function FinancialSummary({
       </div>
 
       {/* Detalhamento de Custos Diretos & Configuração de Margens */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: '20px' }}>
         
         {/* REFINADO: DRE DE CUSTOS DIRETO, QUANTIDADES & REFILE */}
         <div className="glass-card" style={{ padding: '20px' }}>

@@ -1128,7 +1128,7 @@ export default function LicitacaoManager({
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(360px, 100%), 1fr))', gap: '16px' }}>
           {filteredBiddings.map((bidding) => {
             const stObj = statusLabels[bidding.status] || statusLabels.agendada;
 

@@ -229,6 +229,39 @@ button, input, select, textarea { font-family: inherit; }
   border: 0;
 }
 
+/* ---------- cabeçalho (Header.jsx) ---------- */
+.app-header-nav { display: flex; flex-wrap: wrap; gap: 6px; max-width: 1400px; margin: 12px auto 0; }
+.app-header-top { flex-wrap: wrap; }
+.app-header-brand { min-width: 0; }
+.app-header-logo { height: 34px; object-fit: contain; }
+
+/* Celular: marca compacta e abas numa linha só com rolagem lateral, para o
+   cabeçalho fixo não ocupar metade da tela nem passar da largura. */
+@media (max-width: 600px) {
+  .app-header-badge,
+  .app-header-subtitle { display: none; }
+  .app-header-top { flex-wrap: nowrap; }
+  .app-header-brand { gap: 10px !important; }
+  .app-header-logo { height: 26px; }
+  .app-header-name { font-size: 1.15rem !important; }
+  .app-header-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 10px -16px 0;
+    padding: 0 16px 2px;
+    scroll-padding-inline: 16px;
+  }
+  .app-header-nav::-webkit-scrollbar { display: none; }
+  .app-header-nav > button { flex-shrink: 0; }
+}
+
+/* Celulares estreitos (≤ 380 px): logo um pouco menor para a linha caber. */
+@media (max-width: 380px) {
+  .app-header-logo { height: 20px; }
+  .app-header-name { font-size: 1.02rem !important; }
+}
+
 /* ---------- motion ---------- */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-in { animation: fadeInUp 0.5s var(--ease) both; }

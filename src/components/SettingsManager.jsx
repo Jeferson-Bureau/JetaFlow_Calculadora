@@ -148,7 +148,7 @@ export default function SettingsManager({
       )}
 
       {/* Subtabs Header */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
         <button
           onClick={() => setActiveSubTab('papers')}
           style={{
