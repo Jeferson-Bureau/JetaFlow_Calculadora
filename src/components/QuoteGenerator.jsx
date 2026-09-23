@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { X, Printer, CheckCircle2, Building, User, Phone, Mail, Calendar, Plus, Trash2, Download, FileText } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
+
+// html2pdf (+ html2canvas + jsPDF) pesa ~1 MB: só é baixado ao exportar o PDF,
+// para a proposta abrir na hora. A promessa fica guardada — um único download.
+let html2pdfPromise = null;
+const loadHtml2pdf = () => {
+  if (!html2pdfPromise) {
+    html2pdfPromise = import('html2pdf.js')
+      .then(m => m.default)
+      .catch(err => { html2pdfPromise = null; throw err; });
+  }
+  return html2pdfPromise;
+};
 
 export default function QuoteGenerator({
   budgetResult,
@@ -150,7 +161,7 @@ export default function QuoteGenerator({
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(element).save().then(() => {
+    loadHtml2pdf().then(html2pdf => html2pdf().set(opt).from(element).save()).then(() => {
       setIsExportingPdf(false);
     }).catch(err => {
       console.error(err);
@@ -204,6 +215,8 @@ export default function QuoteGenerator({
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               onClick={handleDownloadPdf}
+              onPointerEnter={() => loadHtml2pdf().catch(() => {})}
+              onFocus={() => loadHtml2pdf().catch(() => {})}
               disabled={isExportingPdf}
               style={{
                 padding: '10px 18px',

@@ -61,7 +61,7 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
 ## Pendências fora das 8 prioridades
 
 - **Sem suíte de testes.** A verificação foi com script de navegador descartável; não há testes permanentes, TypeScript, ESLint ou CI. **Aberto.**
-- **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). Adiado, mas pesado ao abrir. **Aberto.**
+- **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). **Resolvido** — ver "Proposta mais leve" abaixo.
 - **Estilos majoritariamente inline.** Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado. `<label>` sem `htmlFor` — **Resolvido** (ver rodada abaixo); estilos inline em si seguem como estão (baixo risco, alto custo de refatorar sem sistema de design definido).
 - **Dashboard é a aba inicial** — **Resolvido** (ver rodada abaixo).
 
@@ -299,3 +299,18 @@ Commit `0c823fa`.
 - Verificado em Chromium headless sobre o build de produção: ordem dos 6 cards de teste,
   e-mail salvo e mantido após recarregar, Esc nos 3 modais, toast no lugar do `alert()`,
   nenhum diálogo nativo nem erro de console.
+
+## Proposta mais leve — `html2pdf` só ao exportar
+
+- `QuoteGenerator.jsx` deixou de importar `html2pdf.js` no topo. O helper `loadHtml2pdf()`
+  faz `import()` dinâmico na hora de **Baixar PDF Direto** e guarda a promessa (um único
+  download; se falhar, limpa para tentar de novo, e o `catch` existente cai no
+  `window.print()`). Passar o mouse ou focar o botão já dispara o carregamento, então o PDF
+  costuma estar pronto quando o clique chega.
+- Chunk da proposta: **1 000 KB → 17 KB** (5 KB gzip). O `html2pdf` virou chunk próprio
+  (~980 KB, 286 KB gzip), baixado só ao exportar; continua no precache do PWA, então exporta
+  também offline. `chunkSizeWarningLimit: 1100` mantido por causa dele (comentário atualizado
+  em `vite.config.js`).
+- Verificado em Chromium headless sobre o build: abrir a proposta não baixa o `html2pdf`;
+  o clique gera o PDF (arquivo `%PDF` válido, ~480 KB), o botão volta ao normal, sem erros de
+  console.
