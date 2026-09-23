@@ -1,10 +1,11 @@
 import React from 'react';
-import { LayoutDashboard, Calculator, Sliders, RefreshCw, Users, Truck, Award, Tag } from 'lucide-react';
+import { LayoutDashboard, Calculator, Sliders, RefreshCw, Users, Truck, Award, Tag, Wallet } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { key: 'digital', label: 'Orçamentos', Icon: Calculator },
+  { key: 'finance', label: 'Financeiro', Icon: Wallet },
   { key: 'clients', label: 'Clientes', Icon: Users },
   { key: 'suppliers', label: 'Fornecedores', Icon: Truck },
   { key: 'biddings', label: 'Licitações', Icon: Award },

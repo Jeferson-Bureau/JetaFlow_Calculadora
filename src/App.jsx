@@ -41,6 +41,7 @@ const SupplierManager = lazy(() => import('./components/SupplierManager'));
 const LicitacaoManager = lazy(() => import('./components/LicitacaoManager'));
 const QuoteHistoryManager = lazy(() => import('./components/QuoteHistoryManager'));
 const LabelGenerator = lazy(() => import('./components/LabelGenerator'));
+const FinanceManager = lazy(() => import('./components/FinanceManager'));
 
 function TabLoader() {
   return (
@@ -55,6 +56,7 @@ function TabLoader() {
 // exibe seu próprio título estilizado no corpo do conteúdo.
 const TAB_PAGE_TITLES = {
   dashboard: 'Dashboard — JetaFlow',
+  finance: 'Financeiro — JetaFlow',
   clients: 'Clientes — JetaFlow',
   suppliers: 'Fornecedores — JetaFlow',
   biddings: 'Licitações — JetaFlow',
@@ -119,6 +121,10 @@ export default function App() {
   const handleDeleteQuoteFromHistory = (id) => {
     setQuotesHistory(quotesHistory.filter(q => q.id !== id));
   };
+
+  // Financeiro: contas a receber / a pagar e configurações (saldo inicial de caixa)
+  const [financeEntries, setFinanceEntries] = usePersistentState(STORAGE_KEYS.finance, []);
+  const [financeSettings, setFinanceSettings] = usePersistentState(STORAGE_KEYS.financeSettings, { openingBalance: 0 });
 
   // Input Data Databases
   const [equipments] = useState(DEFAULT_EQUIPMENTS);
@@ -577,6 +583,18 @@ export default function App() {
             onDeleteQuote={handleDeleteQuoteFromHistory}
             onOpenQuoteModal={openQuoteProposal}
             onReopenQuoteInCalculator={handleReopenQuoteInCalculator}
+          />
+        ) : activeTab === 'finance' ? (
+          <FinanceManager
+            entries={financeEntries}
+            setEntries={setFinanceEntries}
+            settings={financeSettings}
+            setSettings={setFinanceSettings}
+            quotes={quotesHistory}
+            biddings={biddings}
+            clients={clients}
+            suppliers={suppliers}
+            setActiveTab={setActiveTab}
           />
         ) : activeTab === 'labels' ? (
           <LabelGenerator
