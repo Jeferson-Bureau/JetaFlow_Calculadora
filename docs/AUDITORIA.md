@@ -252,9 +252,7 @@ Agora:
   esquerda, horário à direita, como pretendido).
 - **"Valor Total Estimado"** deixa de somar licitações canceladas/fracassadas.
 - Build de produção OK. Sem suíte de testes (pendência já registrada acima).
-- **Ideias não feitas (aguardam decisão):** ordenar cards por data de sessão; fechar modais com
-  Esc; trocar os `alert()` do import por toast; e-mail fixo do banner
-  (`jeferson.arte@gmail.com`) virar configuração.
+- **Ideias pendentes — Resolvido** (ver "Rodada de ajustes — Licitações" abaixo).
 
 ## Bug corrigido — fallback da busca PNCP nunca disparava
 
@@ -269,3 +267,35 @@ por tentativa). Verificado em Chromium headless: antes só 1 requisição aparec
 as 2 (proxy e direta) são efetivamente disparadas. A API do PNCP em si seguiu instável durante
 os testes (confirmado via `curl` direto, fora do app) — isso é externo, sem solução do nosso lado.
 Commit `0c823fa`.
+
+## PNCP instável e PWA (registrado depois)
+
+- **Busca PNCP** — sequência de correções (`f63f501`…`2ab35e1`): valida as datas antes de
+  consultar e exibe a mensagem da API no erro 422; não repete a consulta em timeout (o PNCP
+  fora do ar travava a tela por minutos); chama a API direto (CORS liberado) e usa o proxy
+  `/api/pncp` só como reserva. 16 atalhos padrão da gráfica, editáveis, no painel.
+- **PWA instalável** (`806a5db`) — `vite-plugin-pwa` com manifest, service worker e ícones
+  gerados da logo (`scripts/gen-icons.cjs`). Chamadas às APIs ficam em `NetworkOnly`
+  (nunca servem dado antigo do cache). Deploy automático na Vercel verificado em 23/09/2026:
+  página, manifest, `sw.js`, ícones e proxies de CNPJ OK; o PNCP em si estava fora do ar
+  (também não respondia acessado direto).
+
+## Rodada de ajustes — Licitações (ordem, Esc, avisos, e-mail)
+
+- **Cards ordenados pela sessão** — `compareBySession`: de hoje em diante primeiro (a mais
+  próxima no topo, desempate pelo horário), depois as encerradas (a mais recente primeiro),
+  e as sem data por último. Vale com busca e filtro de status.
+- **Esc fecha os modais** — cadastro/edição, importação e painel PNCP. O modal de importação
+  não fecha no meio de uma consulta (igual ao botão Cancelar); o `ConfirmDialog` segue com o
+  próprio Esc.
+- **Sem `alert()` nativo** — os 3 alertas da importação viraram o toast já existente, agora
+  com tipo: sucesso (ciano), aviso (âmbar) e erro (vermelho, fica 7 s). Clique fecha; um aviso
+  novo cancela o timer do anterior. `role="alert"`/`"status"` para leitor de tela.
+- **E-mail do Alerta Licitação configurável** — o selo do cabeçalho virou botão que edita o
+  e-mail no lugar (Enter salva, Esc cancela). Persistido em `jetaflow_bidding_alert_email`
+  (`STORAGE_KEYS.biddingAlertEmail`, entra no backup). Sem valor, mostra "Configurar e-mail
+  do Alerta Licitação" — o endereço pessoal saiu do código-fonte (repositório é público).
+  O e-mail de contato impresso na proposta (`QuoteGenerator.jsx`) não foi mexido.
+- Verificado em Chromium headless sobre o build de produção: ordem dos 6 cards de teste,
+  e-mail salvo e mantido após recarregar, Esc nos 3 modais, toast no lugar do `alert()`,
+  nenhum diálogo nativo nem erro de console.

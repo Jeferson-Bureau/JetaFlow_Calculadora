@@ -11,7 +11,8 @@ export const STORAGE_KEYS = {
   financial: 'jetaflow_financial',
   clients: 'jetaflow_clients_v2',
   suppliers: 'jetaflow_suppliers_v2',
-  biddings: 'jetaflow_biddings_v3'
+  biddings: 'jetaflow_biddings_v3',
+  biddingAlertEmail: 'jetaflow_bidding_alert_email'
 };
 
 // Chaves que compõem um backup completo. Inclui variações antigas para

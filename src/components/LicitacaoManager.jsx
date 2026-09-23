@@ -34,6 +34,8 @@ import { generateNextBiddingCode } from '../utils/calculatorEngine';
 import { getContratacao, mapPncpToBidding, searchBiddingByUasgAndEdital } from '../services/pncpService';
 import PncpSearchPanel from './PncpSearchPanel';
 import ConfirmDialog from './ConfirmDialog';
+import { usePersistentState } from '../hooks/usePersistentState';
+import { STORAGE_KEYS } from '../utils/storage';
 
 export function parseBrlCurrencyToFloat(str) {
   if (!str && str !== 0) return 0;
@@ -415,6 +417,20 @@ function toLocalDateStr(d) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// Ordem dos cards: sessões de hoje em diante primeiro (a mais próxima no topo),
+// depois as já encerradas (a mais recente primeiro) e, por último, as sem data.
+export function compareBySession(a, b) {
+  const todayStr = toLocalDateStr(new Date());
+  const rank = (x) => (!x.sessionDate ? 2 : x.sessionDate >= todayStr ? 0 : 1);
+  const ra = rank(a);
+  const rb = rank(b);
+  if (ra !== rb) return ra - rb;
+  if (ra === 2) return 0;
+  const ka = `${a.sessionDate} ${a.sessionTime || '00:00'}`;
+  const kb = `${b.sessionDate} ${b.sessionTime || '00:00'}`;
+  return ra === 0 ? ka.localeCompare(kb) : kb.localeCompare(ka);
+}
+
 export function getSessionBadge(sessionDateStr) {
 
   if (!sessionDateStr) return null;
@@ -462,8 +478,46 @@ export default function LicitacaoManager({
   const [copiedId, setCopiedId] = useState(null);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [isPncpSearchOpen, setIsPncpSearchOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null);
+  const [toast, setToast] = useState(null); // { message, type: 'success' | 'warning' | 'error' }
+  const toastTimerRef = useRef(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [alertEmail, setAlertEmail] = usePersistentState(STORAGE_KEYS.biddingAlertEmail, '');
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [emailDraft, setEmailDraft] = useState('');
+
+  // Erros ficam mais tempo na tela; o timer anterior é cancelado para um aviso
+  // novo não sumir antes da hora.
+  const showToast = useCallback((message, type = 'success') => {
+    clearTimeout(toastTimerRef.current);
+    setToast({ message, type });
+    toastTimerRef.current = setTimeout(() => setToast(null), type === 'error' ? 7000 : 4000);
+  }, []);
+
+  useEffect(() => () => clearTimeout(toastTimerRef.current), []);
+
+  // Esc fecha o modal aberto. O ConfirmDialog trata o próprio Esc, e o modal de
+  // importação não fecha no meio de uma consulta (mesma regra do botão Cancelar).
+  useEffect(() => {
+    if (!isModalOpen && !isImportModalOpen && !isPncpSearchOpen) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape' || deleteTarget) return;
+      if (isPncpSearchOpen) setIsPncpSearchOpen(false);
+      else if (isImportModalOpen) { if (!isFetchingCnjp) setIsImportModalOpen(false); }
+      else if (isModalOpen) setIsModalOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isModalOpen, isImportModalOpen, isPncpSearchOpen, isFetchingCnjp, deleteTarget]);
+
+  const startEditingEmail = () => {
+    setEmailDraft(alertEmail);
+    setIsEditingEmail(true);
+  };
+
+  const saveEmail = () => {
+    setAlertEmail(emailDraft.trim());
+    setIsEditingEmail(false);
+  };
 
   const handleImportBiddingFromPncp = (pncpData) => {
     const existing = biddings.find(b => 
@@ -472,8 +526,7 @@ export default function LicitacaoManager({
     );
 
     if (existing) {
-      setToastMessage(`Aviso: Licitação já cadastrada (${existing.code || existing.biddingNumber})`);
-      setTimeout(() => setToastMessage(null), 3500);
+      showToast(`Licitação já cadastrada (${existing.code || existing.biddingNumber})`, 'warning');
       return;
     }
 
@@ -488,8 +541,7 @@ export default function LicitacaoManager({
     };
 
     onAddBidding(newBidding);
-    setToastMessage(`✓ Licitação importada: ${nextCode} — ${newBidding.biddingNumber}`);
-    setTimeout(() => setToastMessage(null), 4000);
+    showToast(`Licitação importada: ${nextCode} — ${newBidding.biddingNumber}`);
   };
 
   // Atualizar preview do parser em tempo real conforme o usuário digita/cola texto
@@ -635,7 +687,7 @@ export default function LicitacaoManager({
       // ── MODO 1: Buscar diretamente por Número do Edital + UASG ──────
       if (importMode === 'edital_uasg') {
         if (!inputEdital.trim() || !inputUasg.trim()) {
-          alert('Por favor, informe tanto o Número do Edital (ex: 179/2026) quanto a Unidade Compradora / UASG (ex: 102174).');
+          showToast('Informe o Número do Edital (ex: 179/2026) e a Unidade Compradora / UASG (ex: 102174).', 'warning');
           setIsFetchingCnpj(false);
           return;
         }
@@ -654,7 +706,7 @@ export default function LicitacaoManager({
           setIsModalOpen(true);
           return;
         } else {
-          alert(`Nenhuma contratação encontrada no PNCP para o Edital "${inputEdital}" na UASG "${inputUasg}". Verifique os números informados.`);
+          showToast(`Nenhuma contratação encontrada no PNCP para o Edital "${inputEdital}" na UASG "${inputUasg}". Verifique os números informados.`, 'warning');
           setIsFetchingCnpj(false);
           return;
         }
@@ -742,7 +794,7 @@ export default function LicitacaoManager({
       setIsModalOpen(true);
     } catch (err) {
       console.error('Erro ao processar importação do alerta:', err);
-      alert('Erro ao consultar o PNCP: ' + (err.message || 'Verifique sua conexão.'));
+      showToast('Erro ao consultar o PNCP: ' + (err.message || 'Verifique sua conexão.'), 'error');
     } finally {
       setIsFetchingCnpj(false);
     }
@@ -775,7 +827,7 @@ export default function LicitacaoManager({
     const matchesStatus = filterStatus === 'all' || b.status === filterStatus;
 
     return matchesSearch && matchesStatus;
-  });
+  }).sort(compareBySession);
 
   // Canceladas e fracassadas não representam oportunidade — ficam fora do total estimado.
   const totalEstimateValue = biddings
@@ -798,20 +850,54 @@ export default function LicitacaoManager({
               <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-strong)' }}>
                 Gestão de Licitações & Pregões Públicos
               </h2>
-              <span style={{
-                padding: '3px 8px',
-                borderRadius: '12px',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: 'var(--success)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                <Mail size={12} /> Alerta Licitação: jeferson.arte@gmail.com
-              </span>
+              {isEditingEmail ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); saveEmail(); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <label htmlFor="bidding-alert-email" className="sr-only">E-mail que recebe o Alerta Licitação</label>
+                  <input
+                    id="bidding-alert-email"
+                    type="email"
+                    className="form-input"
+                    value={emailDraft}
+                    onChange={(e) => setEmailDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Escape') setIsEditingEmail(false); }}
+                    placeholder="email@exemplo.com"
+                    autoFocus
+                    style={{ padding: '4px 8px', fontSize: '0.75rem', width: '220px' }}
+                  />
+                  <button type="submit" aria-label="Salvar e-mail" style={{ background: 'transparent', border: 'none', color: 'var(--success)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                    <Check size={16} />
+                  </button>
+                  <button type="button" aria-label="Cancelar" onClick={() => setIsEditingEmail(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                    <X size={16} />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={startEditingEmail}
+                  title="Alterar o e-mail que recebe o Alerta Licitação"
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    background: alertEmail ? 'rgba(16, 185, 129, 0.15)' : 'var(--tint-subtle)',
+                    color: alertEmail ? 'var(--success)' : 'var(--text-muted)',
+                    border: alertEmail ? '1px solid rgba(16, 185, 129, 0.3)' : '1px dashed var(--border-color)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Mail size={12} />
+                  {alertEmail ? `Alerta Licitação: ${alertEmail}` : 'Configurar e-mail do Alerta Licitação'}
+                  <Edit size={11} style={{ opacity: 0.7 }} />
+                </button>
+              )}
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
               Acompanhamento de processos licitatórios, editais, UASG, prazos de sessões e propostas arrematadas.
@@ -1966,28 +2052,43 @@ export default function LicitacaoManager({
       )}
 
       {/* Floating Toast Notification */}
-      {toastMessage && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-          color: 'var(--on-accent)',
-          padding: '14px 22px',
-          borderRadius: '12px',
-          boxShadow: '0 8px 30px rgba(6, 182, 212, 0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          zIndex: 100000,
-          fontWeight: 700,
-          fontSize: '0.9rem',
-          border: '1px solid var(--tint-strong)'
-        }}>
-          <CheckCircle size={20} />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      {toast && (() => {
+        const tone = {
+          success: { grad: 'linear-gradient(135deg, #06b6d4, #0891b2)', glow: 'rgba(6, 182, 212, 0.45)', Icon: CheckCircle },
+          warning: { grad: 'linear-gradient(135deg, #f59e0b, #d97706)', glow: 'rgba(245, 158, 11, 0.45)', Icon: AlertCircle },
+          error: { grad: 'linear-gradient(135deg, #ef4444, #dc2626)', glow: 'rgba(239, 68, 68, 0.45)', Icon: XCircle }
+        }[toast.type] || {};
+        const ToastIcon = tone.Icon || CheckCircle;
+        return (
+          <div
+            role={toast.type === 'success' ? 'status' : 'alert'}
+            onClick={() => setToast(null)}
+            title="Clique para fechar"
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              maxWidth: 'min(480px, calc(100vw - 32px))',
+              background: tone.grad,
+              color: 'var(--on-accent)',
+              padding: '14px 22px',
+              borderRadius: '12px',
+              boxShadow: `0 8px 30px ${tone.glow}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              zIndex: 100000,
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              border: '1px solid var(--tint-strong)',
+              cursor: 'pointer'
+            }}
+          >
+            <ToastIcon size={20} style={{ flexShrink: 0 }} />
+            <span>{toast.message}</span>
+          </div>
+        );
+      })()}
 
       <ConfirmDialog
         open={!!deleteTarget}
