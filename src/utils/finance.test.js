@@ -8,6 +8,7 @@ import {
   cashFlowByMonth,
   pendingBillables,
   compareEntries,
+  upcomingDue,
   generateNextFinanceCode,
   formatDateBR,
   formatMonthBR
@@ -177,5 +178,24 @@ describe('ordem e códigos', () => {
   it('códigos FIN sequenciais', () => {
     expect(generateNextFinanceCode([])).toBe('FIN-A0001');
     expect(generateNextFinanceCode([{ code: 'FIN-A0009' }])).toBe('FIN-A0010');
+  });
+});
+
+describe('upcomingDue', () => {
+  it('vencidos + próximos 7 dias, mais antigo primeiro, sem pagos/cancelados', () => {
+    const list = upcomingDue([
+      rec(1, '2026-10-15'),                                  // fora da janela
+      pay(2, '2026-09-30'),                                  // limite do 7º dia
+      rec(3, '2026-09-01'),                                  // vencido
+      rec(4, '2026-09-24', { paidDate: '2026-09-20' }),      // pago
+      pay(5, '2026-09-25', { canceled: true }),              // cancelado
+      rec(6, TODAY)
+    ], { today: TODAY });
+    expect(list.map(e => e.amount)).toEqual([3, 6, 2]);
+  });
+
+  it('respeita o limite', () => {
+    const many = Array.from({ length: 9 }, (_, i) => rec(i, '2026-09-01'));
+    expect(upcomingDue(many, { today: TODAY, limit: 5 })).toHaveLength(5);
   });
 });

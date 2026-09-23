@@ -278,6 +278,21 @@ export function pendingBillables(quotes = [], biddings = [], entries = []) {
   return [...fromQuotes, ...fromBiddings];
 }
 
+/**
+ * Em aberto que pedem atenção: vencidos + os que vencem nos próximos `days` dias,
+ * do vencimento mais antigo para o mais novo.
+ */
+export function upcomingDue(entries = [], { today = todayStr(), days = 7, limit = 5 } = {}) {
+  const until = addDays(today, days);
+  return entries
+    .filter(e => {
+      const st = entryStatus(e, today);
+      return (st === 'vencido' || st === 'aberto') && e.dueDate <= until;
+    })
+    .sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)))
+    .slice(0, limit);
+}
+
 /** Compara por vencimento (mais antigo primeiro); pagos por último, mais recentes antes. */
 export function compareEntries(a, b) {
   const pa = a.paidDate ? 1 : 0;
