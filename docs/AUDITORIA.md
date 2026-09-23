@@ -60,7 +60,7 @@ referência for excluído, o cálculo cai para o mais barato do grupo. → `Prod
 
 ## Pendências fora das 8 prioridades
 
-- **Sem suíte de testes.** **Parcial** — motor de cálculo e `pricing.js` cobertos por Vitest (ver "Testes do motor de cálculo" abaixo). Componentes, ESLint, TypeScript e CI seguem sem.
+- **Sem suíte de testes.** **Parcial** — motor de cálculo e `pricing.js` cobertos por Vitest (ver "Testes do motor de cálculo" abaixo). CI no GitHub Actions (`.github/workflows/ci.yml`) roda `npm test` + `npm run build` em cada PR e push no `main`. Componentes, ESLint e TypeScript seguem sem.
 - **`QuoteGenerator` ainda é um chunk de 999 KB** (`html2pdf` + `html2canvas` + `jspdf`). **Resolvido** — ver "Proposta mais leve" abaixo.
 - **Estilos majoritariamente inline.** Tema claro/escuro com alternância já implementado — sistema de tokens em `src/index.css` + `useTheme`. O JS resolve "sistema" para um `data-theme` sempre explícito, então o escuro vive num único bloco `:root[data-theme="dark"]`, sem o `@media (prefers-color-scheme: dark)` duplicado. `<label>` sem `htmlFor` — **Resolvido** (ver rodada abaixo); estilos inline em si seguem como estão (baixo risco, alto custo de refatorar sem sistema de design definido).
 - **Dashboard é a aba inicial** — **Resolvido** (ver rodada abaixo).
