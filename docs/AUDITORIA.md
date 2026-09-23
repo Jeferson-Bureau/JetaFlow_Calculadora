@@ -376,9 +376,22 @@ Commit `0c823fa`.
   Esc, baixa, fluxo; celular 390 px e tema escuro.
 - **Achado fora do escopo (não alterado):** o cabeçalho do app transborda ~10 px em 390 px de
   largura (bloco "JetaFlow / Precificação Pro"), em todas as abas.
-- **Próximos passos possíveis:** ~~cartão do financeiro no Dashboard~~ e ~~botão "Lançar no
-  financeiro" no histórico~~ (feitos, abaixo); excluir/editar todas as parcelas de um grupo de
-  uma vez.
+- **Próximos passos possíveis:** ~~cartão do financeiro no Dashboard~~, ~~botão "Lançar no
+  financeiro" no histórico~~ e ~~editar/excluir parcelas em grupo~~ (feitos, abaixo).
+
+### Edição e exclusão de parcelas em grupo
+
+- Lançamentos com `groupId` (parcelado / conta fixa mensal): a edição ganha **"Aplicar alterações
+  a"** — só esta parcela · esta e as seguintes em aberto · todas as em aberto (com a contagem).
+  Descrição, categoria, cliente/fornecedor, forma de pagamento, observações, cancelamento e
+  valor (se alterado) vão para as demais; vencimento e data da baixa só para a parcela aberta.
+- A exclusão de uma parcela abre um diálogo com as mesmas 3 opções e a contagem de cada uma;
+  lançamentos avulsos seguem com a confirmação simples. Esc fecha.
+- **Parcelas pagas nunca são alteradas nem excluídas em grupo** (preserva o caixa realizado).
+- `groupTargetIds`, `applyGroupEdit` e `deleteGroupEntries` em `finance.js` (+6 testes, suíte
+  com 80). Verificado em Chromium headless: reajuste do aluguel da 2ª em diante (1ª paga
+  intacta, vencimentos preservados), exclusão "esta e as seguintes", avulso com confirmação
+  simples, sem erros de console.
 
 ### "Lançar no financeiro" no histórico de orçamentos
 

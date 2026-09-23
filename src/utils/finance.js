@@ -278,6 +278,52 @@ export function pendingBillables(quotes = [], biddings = [], entries = []) {
   return [...fromQuotes, ...fromBiddings];
 }
 
+// ── Parcelas em grupo (parcelado / conta fixa mensal) ───────────────────────
+
+export const GROUP_SCOPES = [
+  { id: 'one', label: 'Só esta parcela' },
+  { id: 'following', label: 'Esta e as seguintes em aberto' },
+  { id: 'all_open', label: 'Todas as parcelas em aberto' }
+];
+
+// Campos que valem para a conta inteira (vencimento e baixa são de cada parcela).
+const GROUP_SHARED_FIELDS = ['description', 'category', 'clientId', 'supplierId', 'partyName', 'paymentMethod', 'notes', 'canceled'];
+
+/**
+ * Ids alcançados por uma ação em grupo a partir de `entry`. A própria parcela
+ * sempre entra; as demais só se estiverem em aberto (pagas nunca são alteradas
+ * nem excluídas em grupo). 'following' = mesma parcela ou número maior.
+ */
+export function groupTargetIds(entries = [], entry, scope = 'one') {
+  if (!entry?.groupId || scope === 'one') return [entry.id];
+  const from = Number(entry.installment) || 0;
+  return entries
+    .filter(e => e.groupId === entry.groupId)
+    .filter(e => e.id === entry.id || (!e.paidDate && (scope === 'all_open' || (Number(e.installment) || 0) >= from)))
+    .map(e => e.id);
+}
+
+/**
+ * Aplica a edição de `updated` (versão editada de `original`) às parcelas do escopo.
+ * Nas outras parcelas copia os campos compartilhados e, se o valor mudou, o novo valor.
+ */
+export function applyGroupEdit(entries = [], original, updated, scope = 'one') {
+  const ids = new Set(groupTargetIds(entries, original, scope));
+  const amountChanged = roundCents(updated.amount) !== roundCents(original.amount);
+  const shared = Object.fromEntries(GROUP_SHARED_FIELDS.map(k => [k, updated[k]]));
+  return entries.map(e => {
+    if (e.id === updated.id) return updated;
+    if (!ids.has(e.id)) return e;
+    return { ...e, ...shared, ...(amountChanged ? { amount: roundCents(updated.amount) } : {}) };
+  });
+}
+
+/** Remove as parcelas do escopo (pagas ficam, exceto a própria se for 'one'). */
+export function deleteGroupEntries(entries = [], entry, scope = 'one') {
+  const ids = new Set(groupTargetIds(entries, entry, scope));
+  return entries.filter(e => !ids.has(e.id));
+}
+
 /**
  * Situação da cobrança de um orçamento/licitação no financeiro, ou `null` se
  * ainda não há conta a receber ativa ligada a ele.
