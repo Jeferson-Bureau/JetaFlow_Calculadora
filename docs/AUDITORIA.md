@@ -376,5 +376,16 @@ Commit `0c823fa`.
   Esc, baixa, fluxo; celular 390 px e tema escuro.
 - **Achado fora do escopo (não alterado):** o cabeçalho do app transborda ~10 px em 390 px de
   largura (bloco "JetaFlow / Precificação Pro"), em todas as abas.
-- **Próximos passos possíveis:** cartão do financeiro no Dashboard; botão "Lançar no financeiro"
-  direto no histórico de orçamentos; excluir/editar todas as parcelas de um grupo de uma vez.
+- **Próximos passos possíveis:** ~~cartão do financeiro no Dashboard~~ (feito, abaixo); botão
+  "Lançar no financeiro" direto no histórico de orçamentos; excluir/editar todas as parcelas de
+  um grupo de uma vez.
+
+### Cartão do Financeiro no Dashboard
+
+- Logo abaixo do banner: saldo em caixa, a receber, a pagar (com vencidos em vermelho ou o que
+  vence em 7 dias) e resultado do mês; lista dos vencidos + próximos 7 dias (até 5, mais antigo
+  primeiro); atalho "A faturar" com quantidade e valor das vendas sem cobrança. "Abrir
+  Financeiro" e o atalho levam à aba.
+- Reusa `summarize` e `pendingBillables`; novo `upcomingDue()` em `finance.js` (+2 testes,
+  suíte com 71). Verificado em Chromium headless com dados de exemplo e vazio, desktop e
+  celular 390 px no tema escuro.

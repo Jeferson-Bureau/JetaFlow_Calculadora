@@ -535,6 +535,9 @@ export default function App() {
             equipments={equipments}
             financialConfig={financialConfig}
             digitalClickRates={digitalClickRates}
+            financeEntries={financeEntries}
+            financeSettings={financeSettings}
+            quotes={quotesHistory}
             setActiveTab={setActiveTab}
             goToQuote={goToQuote}
           />

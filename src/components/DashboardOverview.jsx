@@ -20,8 +20,22 @@ import {
   ShieldCheck,
   Percent,
   PieChart as PieIcon,
-  BarChart2
+  BarChart2,
+  Wallet,
+  ArrowDownCircle,
+  ArrowUpCircle
 } from 'lucide-react';
+import {
+  summarize,
+  pendingBillables,
+  upcomingDue,
+  todayStr,
+  monthKey,
+  formatBRL,
+  formatDateBR,
+  formatMonthBR,
+  entryStatus
+} from '../utils/finance';
 import {
   ResponsiveContainer,
   PieChart,
@@ -44,6 +58,9 @@ export default function DashboardOverview({
   equipments = [],
   financialConfig = {},
   digitalClickRates = {},
+  financeEntries = [],
+  financeSettings = {},
+  quotes = [],
   setActiveTab,
   goToQuote = () => {}
 }) {
@@ -86,6 +103,53 @@ export default function DashboardOverview({
       pieData
     };
   }, [biddings]);
+
+  // ── 1b. Financeiro ──
+  const finance = useMemo(() => {
+    const today = todayStr();
+    const summary = summarize(financeEntries, { today, openingBalance: Number(financeSettings.openingBalance) || 0 });
+    const billables = pendingBillables(quotes, biddings, financeEntries);
+    return {
+      today,
+      summary,
+      due: upcomingDue(financeEntries, { today, days: 7, limit: 5 }),
+      billablesCount: billables.length,
+      billablesValue: billables.reduce((s, b) => s + (Number(b.amount) || 0), 0)
+    };
+  }, [financeEntries, financeSettings, quotes, biddings]);
+
+  const financeKpis = [
+    {
+      label: 'Saldo em caixa',
+      value: finance.summary.cashBalance,
+      color: finance.summary.cashBalance < 0 ? 'var(--danger)' : 'var(--text-strong)',
+      hint: 'Saldo inicial + baixas'
+    },
+    {
+      label: 'A receber',
+      value: finance.summary.receivableOpen,
+      color: 'var(--success)',
+      hint: finance.summary.receivableOverdueCount
+        ? `${finance.summary.receivableOverdueCount} vencido(s): ${formatBRL(finance.summary.receivableOverdue)}`
+        : `Próx. 7 dias: ${formatBRL(finance.summary.dueNext7Receivable)}`,
+      alert: finance.summary.receivableOverdueCount > 0
+    },
+    {
+      label: 'A pagar',
+      value: finance.summary.payableOpen,
+      color: 'var(--danger)',
+      hint: finance.summary.payableOverdueCount
+        ? `${finance.summary.payableOverdueCount} vencido(s): ${formatBRL(finance.summary.payableOverdue)}`
+        : `Próx. 7 dias: ${formatBRL(finance.summary.dueNext7Payable)}`,
+      alert: finance.summary.payableOverdueCount > 0
+    },
+    {
+      label: `Resultado de ${formatMonthBR(monthKey(finance.today))}`,
+      value: finance.summary.resultMonth,
+      color: finance.summary.resultMonth < 0 ? 'var(--danger)' : 'var(--brand-cyan)',
+      hint: `Recebido ${formatBRL(finance.summary.receivedMonth)} · Pago ${formatBRL(finance.summary.paidMonth)}`
+    }
+  ];
 
   // ── 2. Estatísticas do CRM de Clientes ──
   const clientStats = useMemo(() => {
@@ -220,6 +284,109 @@ export default function DashboardOverview({
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Meta de Lucro</div>
               <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-cyan)' }}>{financialConfig.desiredProfitPercent || 30}% Líquido</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Resumo Financeiro */}
+      <div className="glass-card animate-fade-in" style={{ padding: '20px', animationDelay: '0.05s' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-strong)' }}>
+            <Wallet size={18} color="var(--success)" /> Financeiro
+          </h3>
+          <button
+            type="button"
+            onClick={() => setActiveTab('finance')}
+            style={{ background: 'transparent', border: 'none', color: 'var(--brand-cyan)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            Abrir Financeiro <ChevronRight size={14} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
+          {financeKpis.map(k => (
+            <div key={k.label} style={{ background: 'var(--tint-hairline)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 14px' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{k.label}</div>
+              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: k.color, marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>{formatBRL(k.value)}</div>
+              <div style={{ fontSize: '0.74rem', color: k.alert ? 'var(--danger)' : 'var(--text-muted)', fontWeight: k.alert ? 700 : 400, marginTop: '2px' }}>{k.hint}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: '16px', marginTop: '16px' }}>
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              Vencidos e próximos 7 dias
+            </div>
+            {finance.due.length === 0 ? (
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', padding: '10px 0' }}>
+                {financeEntries.length === 0 ? 'Nenhum lançamento ainda.' : 'Nada vencendo nos próximos 7 dias.'}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {finance.due.map(e => {
+                  const overdue = entryStatus(e, finance.today) === 'vencido';
+                  const isIn = e.type === 'receber';
+                  const Icon = isIn ? ArrowDownCircle : ArrowUpCircle;
+                  return (
+                    <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', background: 'var(--tint-hairline)', border: `1px solid ${overdue ? 'rgba(239, 68, 68, 0.35)' : 'var(--border-color)'}` }}>
+                      <Icon size={16} color={isIn ? 'var(--success)' : 'var(--danger)'} style={{ flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.83rem', fontWeight: 700, color: 'var(--text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {e.description}{e.installments ? ` (${e.installment}/${e.installments})` : ''}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: overdue ? 'var(--danger)' : 'var(--text-muted)', fontWeight: overdue ? 700 : 400 }}>
+                          {overdue ? 'Venceu' : 'Vence'} {formatDateBR(e.dueDate)}{e.partyName ? ` · ${e.partyName}` : ''}
+                        </div>
+                      </div>
+                      <strong style={{ fontSize: '0.85rem', color: isIn ? 'var(--success)' : 'var(--danger)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                        {isIn ? '+ ' : '− '}{formatBRL(e.amount)}
+                      </strong>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              A faturar
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('finance')}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                cursor: 'pointer',
+                color: 'inherit',
+                padding: '14px',
+                borderRadius: '10px',
+                background: finance.billablesCount ? 'rgba(247, 181, 0, 0.08)' : 'var(--tint-hairline)',
+                border: `1px solid ${finance.billablesCount ? 'rgba(247, 181, 0, 0.35)' : 'var(--border-color)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}
+            >
+              {finance.billablesCount
+                ? <AlertCircle size={20} color="var(--brand-yellow)" style={{ flexShrink: 0 }} />
+                : <CheckCircle2 size={20} color="var(--success)" style={{ flexShrink: 0 }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-strong)' }}>
+                  {finance.billablesCount
+                    ? `${finance.billablesCount} venda(s) sem cobrança · ${formatBRL(finance.billablesValue)}`
+                    : 'Tudo faturado'}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {finance.billablesCount
+                    ? 'Orçamentos aprovados e licitações ganhas ainda sem conta a receber'
+                    : 'Nenhum orçamento aprovado ou licitação ganha pendente de cobrança'}
+                </div>
+              </div>
+              <ChevronRight size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+            </button>
           </div>
         </div>
       </div>
